@@ -8,6 +8,7 @@ set -e;
 # - Installs Visual Studio Code
 # - Installs latest Node.js LTS using nvm
 # - Installs npm packages (Angular CLI, Codex CLI, markdown-tree-parser)
+# - Installs .NET 10 LTS
 # - Installs Claude Code
 # - Registers upd and updall aliases in .zshrc
 # =========================================================================
@@ -140,6 +141,20 @@ npm install -g @openai/codex;
 # Install markdown-tree-parser
 echo "Installing markdown-tree-parser...";
 npm install -g @kayvan/markdown-tree-parser;
+
+# ---------------------
+# Install .NET 10 LTS
+# ---------------------
+echo "Installing .NET 10 LTS...";
+curl -sSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin --channel LTS;
+
+echo 'export DOTNET_ROOT=$HOME/.dotnet' >> ~/.zshrc;
+echo 'export PATH=$PATH:$DOTNET_ROOT:$DOTNET_ROOT/tools' >> ~/.zshrc;
+export DOTNET_ROOT=$HOME/.dotnet;
+export PATH=$PATH:$DOTNET_ROOT:$DOTNET_ROOT/tools;
+
+dotnet --version;
+echo ".NET installation completed successfully!";
 
 # -------------------
 # Install Claude Code
