@@ -17,7 +17,7 @@ A set of scripts intended to be run sequentially on a fresh Debian 13 (Trixie) i
 | Script | What it does |
 |--------|-------------|
 | `setup_0_packages.sh` | Updates the OS, installs essential packages (curl, git, gpg, mesa-utils, etc.), installs Oh My Zsh with autosuggestions and syntax highlighting, sets Zsh as the default shell |
-| `setup_1_applications.sh` | Installs Docker Engine, Google Chrome, Visual Studio Code, Node.js 24 (via nvm), npm packages (Angular CLI, Codex CLI), Claude Code, and registers `upd`/`updall` shell aliases |
+| `setup_1_devtools.sh` | Installs Docker Engine, Google Chrome, Visual Studio Code, Node.js 24 (via nvm), npm packages (Angular CLI, Codex CLI), Claude Code, and registers `upd`/`updall` shell aliases |
 | `setup_2_claude_code_plugins.sh` | Installs Claude Code plugins (superpowers, context7, feature-dev, frontend-design, hookify, and others) |
 | `setup_3_jetbrains_toolbox.sh` | Installs JetBrains Toolbox |
 | `setup_4_docker_images.sh` | Pulls Docker images: PostgreSQL 18, Jupyter SciPy Notebook, Jupyter PyTorch Notebook |
@@ -48,7 +48,7 @@ Assuming the repo has been cloned to `~/github/octanevz/desktop-environment`:
    ```
 4. Install applications and dev tools:
    ```bash
-   ./setup_1_applications.sh # reboot when prompted
+   ./setup_1_devtools.sh # reboot when prompted
    ```
 5. After reboot, open your terminal and navigate back to the setup directory. Then run any of the optional scripts as needed:
    ```bash
@@ -65,7 +65,7 @@ linux/
   debian/
     13-trixie-dev/ # Debian 13 Trixie development setup
       setup_0_packages.sh
-      setup_1_applications.sh
+      setup_1_devtools.sh
       setup_2_claude_code_plugins.sh
       setup_3_jetbrains_toolbox.sh
       setup_4_docker_images.sh
