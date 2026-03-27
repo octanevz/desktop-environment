@@ -8,7 +8,7 @@ set -e;
 # - Installs Visual Studio Code
 # - Installs latest Node.js LTS using nvm
 # - Installs npm packages (Angular CLI, Codex CLI, markdown-tree-parser)
-# - Installs Claude Code and Claude Code Plugins
+# - Installs Claude Code
 # - Registers upd and updall aliases in .zshrc
 # =========================================================================
 
