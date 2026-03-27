@@ -142,11 +142,11 @@ npm install -g @openai/codex;
 echo "Installing markdown-tree-parser...";
 npm install -g @kayvan/markdown-tree-parser;
 
-# ---------------------
+# -------------------
 # Install .NET 10 LTS
-# ---------------------
+# -------------------
 echo "Installing .NET 10 LTS...";
-curl -sSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin --channel LTS;
+curl -sSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin --channel 10.0;
 
 echo 'export DOTNET_ROOT=$HOME/.dotnet' >> ~/.zshrc;
 echo 'export PATH=$PATH:$DOTNET_ROOT:$DOTNET_ROOT/tools' >> ~/.zshrc;
