@@ -1,0 +1,2065 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cheatsheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root,
+  [data-theme="paper"] {
+    --bg: #f7f8fa;
+    --bg-soft: #f1f3f5;
+    --bg-tab: #ffffff;
+    --bg-card: #ffffff;
+    --bg-card-head: #f1f3f5;
+    --ink: #111111;
+    --ink-dim: #2a2a2a;
+    --ink-mute: #6b6b6b;
+    --rule: #e4e4e7;
+    --rule-soft: #ececef;
+
+    --c-shell:  #16a34a;
+    --c-docker: #0284c7;
+    --c-git:    #dc2626;
+    --c-tmux:   #0d9488;
+    --c-nvim:   #7c3aed;
+    --c-gnome:  #ea580c;
+    --c-bridge: #db2777;
+
+    --sample-bg: #f1f3f5;
+    --sample-text: #1f2937;
+    --sample-comment: #9ca3af;
+    --sample-prompt: #16a34a;
+    --sample-output: #6b6b6b;
+
+    --highlight: #f59e0b;     /* search match yellow */
+  }
+
+  /* ===================== WARM ===================== */
+  [data-theme="warm"] {
+    --bg: #faf6ef;
+    --bg-soft: #f1eadc;
+    --bg-tab: #fffbf3;
+    --bg-card: #fffbf3;
+    --bg-card-head: #f1eadc;
+    --ink: #1c1611;
+    --ink-dim: #3a322a;
+    --ink-mute: #7a6f5f;
+    --rule: #e5dcc7;
+    --rule-soft: #ede6d4;
+
+    --c-shell:  #4d7c0f;
+    --c-docker: #0369a1;
+    --c-git:    #b91c1c;
+    --c-tmux:   #047857;
+    --c-nvim:   #6d28d9;
+    --c-gnome:  #c2410c;
+    --c-bridge: #be185d;
+
+    --sample-bg: #f1eadc;
+    --sample-text: #1c1611;
+    --sample-comment: #9a8e76;
+    --sample-prompt: #4d7c0f;
+    --sample-output: #7a6f5f;
+
+    --highlight: #d97706;
+  }
+
+  /* ===================== COOL MINT ===================== */
+  [data-theme="mint"] {
+    --bg: #eef4f4;
+    --bg-soft: #e2eaeb;
+    --bg-tab: #ffffff;
+    --bg-card: #ffffff;
+    --bg-card-head: #e2eaeb;
+    --ink: #0f1e23;
+    --ink-dim: #2a3942;
+    --ink-mute: #647580;
+    --rule: #cdd9da;
+    --rule-soft: #dde4e6;
+
+    --c-shell:  #0f766e;
+    --c-docker: #1d4ed8;
+    --c-git:    #be123c;
+    --c-tmux:   #0e7490;
+    --c-nvim:   #6d28d9;
+    --c-gnome:  #c2410c;
+    --c-bridge: #a21caf;
+
+    --sample-bg: #e2eaeb;
+    --sample-text: #0f1e23;
+    --sample-comment: #8a99a3;
+    --sample-prompt: #0f766e;
+    --sample-output: #647580;
+
+    --highlight: #0891b2;
+  }
+
+  /* ===================== SLATE (DARK) ===================== */
+  [data-theme="slate"] {
+    --bg: #0f172a;
+    --bg-soft: #1e293b;
+    --bg-tab: #1e293b;
+    --bg-card: #1e293b;
+    --bg-card-head: #0f172a;
+    --ink: #f1f5f9;
+    --ink-dim: #cbd5e1;
+    --ink-mute: #94a3b8;
+    --rule: #334155;
+    --rule-soft: #2a3a52;
+
+    --c-shell:  #4ade80;
+    --c-docker: #38bdf8;
+    --c-git:    #f87171;
+    --c-tmux:   #2dd4bf;
+    --c-nvim:   #a78bfa;
+    --c-gnome:  #fb923c;
+    --c-bridge: #f472b6;
+
+    --sample-bg: #0f172a;
+    --sample-text: #e2e8f0;
+    --sample-comment: #64748b;
+    --sample-prompt: #4ade80;
+    --sample-output: #94a3b8;
+
+    --highlight: #fbbf24;
+  }
+
+  /* ===================== SOLARIZED DARK ===================== */
+  [data-theme="solarized-dark"] {
+    --bg: #002b36;
+    --bg-soft: #073642;
+    --bg-tab: #073642;
+    --bg-card: #073642;
+    --bg-card-head: #002b36;
+    --ink: #fdf6e3;
+    --ink-dim: #eee8d5;
+    --ink-mute: #93a1a1;
+    --rule: #094352;
+    --rule-soft: #0a3a47;
+
+    --c-shell:  #859900;
+    --c-docker: #268bd2;
+    --c-git:    #dc322f;
+    --c-tmux:   #2aa198;
+    --c-nvim:   #6c71c4;
+    --c-gnome:  #cb4b16;
+    --c-bridge: #d33682;
+
+    --sample-bg: #002b36;
+    --sample-text: #eee8d5;
+    --sample-comment: #586e75;
+    --sample-prompt: #859900;
+    --sample-output: #93a1a1;
+
+    --highlight: #b58900;
+  }
+
+  /* ===================== GITHUB DARK ===================== */
+  [data-theme="github-dark"] {
+    --bg: #0d1117;
+    --bg-soft: #161b22;
+    --bg-tab: #161b22;
+    --bg-card: #161b22;
+    --bg-card-head: #0d1117;
+    --ink: #e6edf3;
+    --ink-dim: #c9d1d9;
+    --ink-mute: #8b949e;
+    --rule: #30363d;
+    --rule-soft: #21262d;
+
+    --c-shell:  #3fb950;
+    --c-docker: #58a6ff;
+    --c-git:    #f85149;
+    --c-tmux:   #2ea7e0;
+    --c-nvim:   #bc8cff;
+    --c-gnome:  #db6d28;
+    --c-bridge: #db61a2;
+
+    --sample-bg: #0d1117;
+    --sample-text: #e6edf3;
+    --sample-comment: #6e7681;
+    --sample-prompt: #3fb950;
+    --sample-output: #8b949e;
+
+    --highlight: #d29922;
+  }
+
+  /* ===================== TOKYO NIGHT ===================== */
+  [data-theme="tokyo-night"] {
+    --bg: #1a1b26;
+    --bg-soft: #24283b;
+    --bg-tab: #24283b;
+    --bg-card: #24283b;
+    --bg-card-head: #1a1b26;
+    --ink: #c0caf5;
+    --ink-dim: #a9b1d6;
+    --ink-mute: #787c99;
+    --rule: #2f334d;
+    --rule-soft: #292e42;
+
+    --c-shell:  #9ece6a;
+    --c-docker: #7aa2f7;
+    --c-git:    #f7768e;
+    --c-tmux:   #73daca;
+    --c-nvim:   #bb9af7;
+    --c-gnome:  #ff9e64;
+    --c-bridge: #c574dd;
+
+    --sample-bg: #1a1b26;
+    --sample-text: #c0caf5;
+    --sample-comment: #565a6e;
+    --sample-prompt: #9ece6a;
+    --sample-output: #787c99;
+
+    --highlight: #e0af68;
+  }
+
+  /* ===================== HIGH CONTRAST ===================== */
+  [data-theme="high-contrast"] {
+    --bg: #ffffff;
+    --bg-soft: #f0f0f0;
+    --bg-tab: #ffffff;
+    --bg-card: #ffffff;
+    --bg-card-head: #e8e8e8;
+    --ink: #000000;
+    --ink-dim: #1a1a1a;
+    --ink-mute: #404040;
+    --rule: #000000;
+    --rule-soft: #6b6b6b;
+
+    --c-shell:  #006400;
+    --c-docker: #00008b;
+    --c-git:    #b20000;
+    --c-tmux:   #006666;
+    --c-nvim:   #5c00a3;
+    --c-gnome:  #b35200;
+    --c-bridge: #a3005c;
+
+    --sample-bg: #f0f0f0;
+    --sample-text: #000000;
+    --sample-comment: #404040;
+    --sample-prompt: #006400;
+    --sample-output: #1a1a1a;
+
+    --highlight: #ffd700;
+  }
+
+  /* ===================== SEPIA ===================== */
+  [data-theme="sepia"] {
+    --bg: #f4ecd8;
+    --bg-soft: #ebe0c4;
+    --bg-tab: #faf3e0;
+    --bg-card: #faf3e0;
+    --bg-card-head: #ebe0c4;
+    --ink: #3a2d18;
+    --ink-dim: #5a4530;
+    --ink-mute: #8a7556;
+    --rule: #d4c39d;
+    --rule-soft: #ddc8a3;
+
+    --c-shell:  #6b8e23;
+    --c-docker: #2c5777;
+    --c-git:    #a0431f;
+    --c-tmux:   #4a7c5a;
+    --c-nvim:   #6e3a8a;
+    --c-gnome:  #b8651b;
+    --c-bridge: #9e3870;
+
+    --sample-bg: #ebe0c4;
+    --sample-text: #3a2d18;
+    --sample-comment: #a89472;
+    --sample-prompt: #6b8e23;
+    --sample-output: #5a4530;
+
+    --highlight: #c8932a;
+  }
+
+  /* ===================== MONOCHROME ===================== */
+  [data-theme="mono"] {
+    --bg: #f7f8fa;
+    --bg-soft: #f1f3f5;
+    --bg-tab: #ffffff;
+    --bg-card: #ffffff;
+    --bg-card-head: #f1f3f5;
+    --ink: #111111;
+    --ink-dim: #2a2a2a;
+    --ink-mute: #6b6b6b;
+    --rule: #e4e4e7;
+    --rule-soft: #ececef;
+
+    /* every accent is the same neutral ink */
+    --c-shell:  #1f2937;
+    --c-docker: #1f2937;
+    --c-git:    #1f2937;
+    --c-tmux:   #1f2937;
+    --c-nvim:   #1f2937;
+    --c-gnome:  #1f2937;
+    --c-bridge: #1f2937;
+
+    --sample-bg: #f1f3f5;
+    --sample-text: #1f2937;
+    --sample-comment: #9ca3af;
+    --sample-prompt: #1f2937;
+    --sample-output: #6b6b6b;
+
+    --highlight: #d4d4d8;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  .tabs {
+    display: flex;
+    width: 100%;
+    background: var(--bg-tab);
+    border-bottom: 1px solid var(--rule);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+
+  .tab {
+    flex: 1 1 0;
+    background: none;
+    border: none;
+    color: var(--ink-mute);
+    padding: 7px 12px;
+    font-family: 'Inter', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: color 0.12s ease, background 0.12s ease;
+    border-right: 1px solid var(--rule);
+    position: relative;
+    text-align: center;
+    min-width: 0;
+  }
+  .tab:last-child { border-right: none; }
+  .tab:hover { color: var(--ink); background: var(--bg-card); }
+  .tab.active { color: var(--ink); background: var(--bg-card); }
+  .tab.active::before {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--ink);
+  }
+
+  /* show accent-colored underline on hover (when not already active) */
+  .tab:not(.active):hover::before {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 2px;
+  }
+  .tab[data-tab="shell"]:not(.active):hover::before  { background: var(--c-shell); }
+  .tab[data-tab="docker"]:not(.active):hover::before { background: var(--c-docker); }
+  .tab[data-tab="git"]:not(.active):hover::before    { background: var(--c-git); }
+  .tab[data-tab="tmux"]:not(.active):hover::before   { background: var(--c-tmux); }
+  .tab[data-tab="nvim"]:not(.active):hover::before   { background: var(--c-nvim); }
+  .tab[data-tab="gnome"]:not(.active):hover::before  { background: var(--c-gnome); }
+  .tab[data-tab="bridge"]:not(.active):hover::before { background: var(--c-bridge); }
+
+  .tab[data-tab="shell"].active  { background: color-mix(in srgb, var(--c-shell) 10%, transparent); }
+  .tab[data-tab="docker"].active { background: color-mix(in srgb, var(--c-docker) 10%, transparent); }
+  .tab[data-tab="git"].active    { background: color-mix(in srgb, var(--c-git) 10%, transparent); }
+  .tab[data-tab="tmux"].active   { background: color-mix(in srgb, var(--c-tmux) 10%, transparent); }
+  .tab[data-tab="nvim"].active   { background: color-mix(in srgb, var(--c-nvim) 10%, transparent); }
+  .tab[data-tab="gnome"].active  { background: color-mix(in srgb, var(--c-gnome) 10%, transparent); }
+  .tab[data-tab="bridge"].active { background: color-mix(in srgb, var(--c-bridge) 10%, transparent); }
+
+  .tab[data-tab="shell"].active::before  { background: var(--c-shell); }
+  .tab[data-tab="docker"].active::before { background: var(--c-docker); }
+  .tab[data-tab="git"].active::before    { background: var(--c-git); }
+  .tab[data-tab="tmux"].active::before   { background: var(--c-tmux); }
+  .tab[data-tab="nvim"].active::before   { background: var(--c-nvim); }
+  .tab[data-tab="gnome"].active::before  { background: var(--c-gnome); }
+  .tab[data-tab="bridge"].active::before { background: var(--c-bridge); }
+
+  .tab .num {
+    color: var(--ink-mute);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 500;
+    margin-right: 8px;
+    opacity: 0.6;
+  }
+
+  .wrap {
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 16px 20px 40px;
+  }
+
+  .panel { display: none; }
+  .panel.active { display: block; animation: fade 0.2s ease; }
+
+  @keyframes fade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .groups {
+    column-width: 380px;
+    column-gap: 14px;
+  }
+
+  .group {
+    break-inside: avoid;
+    margin-bottom: 14px;
+    background: var(--bg-card);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    padding: 12px 14px 6px;
+    display: inline-block;
+    width: 100%;
+  }
+
+  .group-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin: -12px -14px 8px;
+    padding: 6px 14px 5px;
+    border-bottom: 1px solid var(--rule);
+    background: var(--bg-card-head);
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+    gap: 8px;
+  }
+
+  .group-head h3 {
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: -0.005em;
+    color: var(--ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .group-head .label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-mute);
+    white-space: nowrap;
+  }
+
+  /* per-tab heading dot */
+  #panel-shell  .group-head h3::before,
+  #panel-docker .group-head h3::before,
+  #panel-git    .group-head h3::before,
+  #panel-tmux   .group-head h3::before,
+  #panel-nvim   .group-head h3::before,
+  #panel-gnome  .group-head h3::before,
+  #panel-bridge .group-head h3::before {
+    content: '';
+    display: inline-block;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    margin-right: 7px;
+    vertical-align: middle;
+  }
+  #panel-shell  .group-head h3::before { background: var(--c-shell); }
+  #panel-docker .group-head h3::before { background: var(--c-docker); }
+  #panel-git    .group-head h3::before { background: var(--c-git); }
+  #panel-tmux   .group-head h3::before { background: var(--c-tmux); }
+  #panel-nvim   .group-head h3::before { background: var(--c-nvim); }
+  #panel-gnome  .group-head h3::before { background: var(--c-gnome); }
+  #panel-bridge .group-head h3::before { background: var(--c-bridge); }
+
+  .row {
+    padding: 5px 0;
+    border-bottom: 1px solid var(--rule-soft);
+  }
+  .row:last-child { border-bottom: none; }
+
+  .row-main {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 8px;
+    align-items: start;
+  }
+
+  .row .desc {
+    font-size: 14px;
+    color: var(--ink-dim);
+    line-height: 1.4;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+  }
+
+  .row .keys {
+    display: flex;
+    gap: 2px;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  kbd {
+    display: inline-flex;
+    align-items: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12.5px;
+    font-weight: 500;
+    padding: 2px 7px;
+    background: var(--bg-soft);
+    color: var(--ink);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    line-height: 1.2;
+    min-width: 20px;
+    justify-content: center;
+    box-shadow: none;
+  }
+
+  kbd.cmd {
+    font-family: 'JetBrains Mono', monospace;
+    background: var(--bg-soft);
+    border-radius: 3px;
+    text-align: left;
+    min-width: auto;
+    padding: 2px 8px;
+    font-weight: 600;
+    box-shadow: none;
+  }
+
+  #panel-shell  kbd.cmd { color: var(--c-shell);  border-color: color-mix(in srgb, var(--c-shell)  35%, transparent); }
+  #panel-docker kbd.cmd { color: var(--c-docker); border-color: color-mix(in srgb, var(--c-docker) 35%, transparent); }
+  #panel-git    kbd.cmd { color: var(--c-git);    border-color: color-mix(in srgb, var(--c-git)    30%, transparent); }
+  #panel-tmux   kbd.cmd { color: var(--c-tmux);   border-color: color-mix(in srgb, var(--c-tmux)   35%, transparent); }
+  #panel-nvim   kbd.cmd { color: var(--c-nvim);   border-color: color-mix(in srgb, var(--c-nvim)   30%, transparent); }
+  #panel-gnome  kbd.cmd { color: var(--c-gnome);  border-color: color-mix(in srgb, var(--c-gnome)  30%, transparent); }
+  #panel-bridge kbd.cmd { color: var(--c-bridge); border-color: color-mix(in srgb, var(--c-bridge) 30%, transparent); }
+
+  .sep {
+    color: var(--ink-mute);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    padding: 0 1px;
+  }
+
+  .sample {
+    margin-top: 5px;
+    background: var(--sample-bg);
+    color: var(--sample-text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12.5px;
+    line-height: 1.55;
+    padding: 7px 10px;
+    border-radius: 3px;
+    white-space: pre;
+    overflow-x: auto;
+    border: 1px solid var(--rule-soft);
+    scrollbar-width: thin;
+    scrollbar-color: var(--rule) transparent;
+  }
+  .sample::-webkit-scrollbar { height: 6px; background: transparent; }
+  .sample::-webkit-scrollbar-thumb { background: var(--rule); border-radius: 3px; }
+  .sample::-webkit-scrollbar-thumb:hover { background: var(--ink-mute); }
+  .sample sc { color: var(--sample-comment); }
+  .sample sp { color: var(--sample-prompt); font-weight: 600; }
+  .sample so { color: var(--sample-output); }
+
+  .note {
+    background: var(--bg-card);
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--ink);
+    padding: 10px 14px;
+    margin-bottom: 16px;
+    font-size: 13.5px;
+    color: var(--ink-dim);
+    border-radius: 3px;
+  }
+  #panel-docker .note { border-left-color: var(--c-docker); }
+  #panel-git    .note { border-left-color: var(--c-git); }
+  #panel-tmux   .note { border-left-color: var(--c-tmux); }
+  #panel-nvim   .note { border-left-color: var(--c-nvim); }
+  #panel-gnome  .note { border-left-color: var(--c-gnome); }
+  #panel-bridge .note { border-left-color: var(--c-bridge); }
+  .note strong {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-right: 8px;
+    color: var(--ink);
+  }
+
+  .mode-pill {
+    display: inline-flex;
+    align-items: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 1px 5px;
+    border-radius: 2px;
+    margin-left: 4px;
+    vertical-align: middle;
+  }
+  .mode-n { background: color-mix(in srgb, var(--c-nvim)  12%, transparent); color: var(--c-nvim); }
+  .mode-i { background: color-mix(in srgb, var(--c-shell) 12%, transparent); color: var(--c-shell); }
+  .mode-v { background: color-mix(in srgb, var(--c-gnome) 12%, transparent); color: var(--c-gnome); }
+  .mode-c { background: color-mix(in srgb, var(--c-git)   12%, transparent); color: var(--c-git); }
+
+  .search-bar {
+    position: sticky;
+    top: 0;
+    z-index: 60;
+    background: var(--bg-tab);
+    border-bottom: 1px solid var(--rule);
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .search-bar svg {
+    flex-shrink: 0;
+    color: var(--ink-mute);
+  }
+
+  .search-bar input {
+    flex: 1;
+    background: var(--bg-card);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 6px 10px;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    color: var(--ink);
+    outline: none;
+    transition: border-color 0.15s ease;
+  }
+
+  .search-bar input:focus {
+    border-color: var(--c-nvim);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--c-nvim) 14%, transparent);
+  }
+
+  .search-bar input::placeholder {
+    color: var(--ink-mute);
+  }
+
+  .search-bar .stats {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-mute);
+    white-space: nowrap;
+    min-width: 80px;
+    text-align: right;
+  }
+
+  .theme-picker {
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .theme-picker button {
+    background: var(--bg-card);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 5px 8px;
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    color: var(--ink-dim);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: border-color 0.12s;
+  }
+  .theme-picker button:hover {
+    border-color: var(--ink-mute);
+  }
+  .theme-picker .swatch {
+    display: inline-flex;
+    width: 14px; height: 14px;
+    border-radius: 3px;
+    border: 1px solid var(--rule);
+    overflow: hidden;
+  }
+  .theme-picker .swatch span {
+    flex: 1;
+    height: 100%;
+  }
+
+  .theme-picker .menu {
+    position: absolute;
+    top: calc(100% + 4px);
+    right: 0;
+    background: var(--bg-card);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    padding: 4px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+    min-width: 200px;
+    display: none;
+    z-index: 100;
+  }
+  .theme-picker.open .menu { display: block; }
+
+  .theme-picker .menu button {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    border: none;
+    background: transparent;
+    text-align: left;
+    border-radius: 4px;
+    font-size: 13px;
+    color: var(--ink);
+    font-weight: 400;
+  }
+  .theme-picker .menu button:hover {
+    background: color-mix(in srgb, var(--ink) 10%, transparent);
+    color: var(--ink);
+  }
+  .theme-picker .menu button.active {
+    background: color-mix(in srgb, var(--ink) 8%, transparent);
+    color: var(--ink);
+    font-weight: 600;
+  }
+  .theme-picker .menu .group-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-mute);
+    padding: 6px 10px 4px;
+  }
+
+  .search-bar kbd.hint {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    padding: 1px 5px;
+    background: var(--bg-card);
+    color: var(--ink-mute);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    min-width: 0;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  /* tabs: shift down to sit below search bar in the sticky stack */
+  .tabs {
+    top: 44px;
+  }
+
+  /* search highlight on matched text */
+  mark {
+    background: color-mix(in srgb, var(--highlight) 35%, transparent);
+    color: inherit;
+    padding: 0 1px;
+    border-radius: 2px;
+  }
+  /* lighter mark inside kbd so colored badges remain readable */
+  kbd mark {
+    background: color-mix(in srgb, var(--highlight) 50%, transparent);
+    padding: 0;
+  }
+
+  /* custom tooltip for truncated descriptions */
+  .tooltip {
+    position: fixed;
+    background: var(--ink);
+    color: var(--bg-card);
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    line-height: 1.4;
+    padding: 6px 10px;
+    border-radius: 4px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    pointer-events: none;
+    z-index: 100;
+    max-width: 400px;
+    white-space: normal;
+    opacity: 0;
+    transition: opacity 0.12s ease;
+  }
+  .tooltip.visible { opacity: 1; }
+  .tooltip::before {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 14px;
+    width: 8px; height: 8px;
+    background: var(--ink);
+    transform: rotate(45deg);
+  }
+
+  /* hidden groups/rows during search */
+  .row.hidden, .group.hidden { display: none; }
+
+  /* when searching, all panels become visible */
+  body.searching .panel { display: block; }
+  body.searching .panel-divider {
+    display: block;
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-mute);
+    padding: 16px 4px 6px;
+    border-bottom: 1px solid var(--rule);
+    margin-bottom: 12px;
+    margin-top: 4px;
+  }
+  .panel-divider { display: none; }
+
+  body.searching .tabs { display: none; }
+  body.searching .search-bar { top: 0; }
+
+  .no-results {
+    display: none;
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--ink-mute);
+    font-size: 14px;
+  }
+  body.searching.empty .no-results { display: block; }
+
+  @media (max-width: 640px) {
+    .row-main { grid-template-columns: 1fr; gap: 4px; }
+    .row .keys { justify-content: flex-start; }
+    .tab { padding: 14px 6px; font-size: 13px; }
+    .tab .num { display: none; }
+    .search-bar .stats { display: none; }
+    .search-bar kbd.hint { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="search-bar">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="11" cy="11" r="7"></circle>
+    <path d="m21 21-4.35-4.35"></path>
+  </svg>
+  <input type="text" id="search" placeholder="Search commands, shortcuts, descriptions…" autocomplete="off" spellcheck="false">
+  <span class="stats" id="stats"></span>
+  <kbd class="hint" id="searchHint">/</kbd>
+  <div class="theme-picker" id="themePicker">
+    <button id="themeButton" title="Change theme">
+      <span class="swatch" id="themeSwatch"></span>
+      <span id="themeLabel">Paper</span>
+    </button>
+    <div class="menu" id="themeMenu"></div>
+  </div>
+</div>
+
+<nav class="tabs" id="tabs" role="tablist"></nav>
+<div class="wrap" id="content">
+  <div class="no-results">No matches found.</div>
+</div>
+
+<script>
+/* =====================================================================
+   DATA
+   ---------------------------------------------------------------------
+   Each tab has: { id, label, note?, groups: [...] }
+   Each group has: { title, label, rows: [...] }
+   Each row has:   { desc, keys, sample? }
+     - desc:  string (HTML allowed for mode pills)
+     - keys:  array of strings, with prefixes:
+              "cmd:foo"     → green/red/etc colored kbd
+              "k:Ctrl"      → plain kbd
+              "+", "·", "/" → separators
+     - sample: optional string (HTML allowed for .c .p .o spans), can use \n
+   ===================================================================== */
+
+const data = [
+  /* ===================== SHELL ===================== */
+  {
+    id: 'shell', label: 'Shell',
+    groups: [
+      { title:'Navigation', label:'filesystem', rows:[
+        {desc:'Print working directory', keys:['cmd:pwd'],
+         sample:'<sp>$</sp> pwd\n<so>/home/lukas/projects</so>'},
+        {desc:'List files (long, all, human)', keys:['cmd:ls -lah'],
+         sample:'<sp>$</sp> ls -lah\n<so>drwxr-xr-x  3 lukas 4.0K Apr 20 src\n-rw-r--r--  1 lukas  812 Apr 20 README.md</so>'},
+        {desc:'Change directory', keys:['cmd:cd &lt;dir&gt;'],
+         sample:'<sp>$</sp> cd ~/projects/my-app'},
+        {desc:'Home / previous / parent', keys:['cmd:cd ~','·','cmd:cd -','·','cmd:cd ..'],
+         sample:'<sp>$</sp> cd -        <sc># jumps back to last directory</sc>\n<sp>$</sp> cd ..       <sc># up one level</sc>\n<sp>$</sp> cd ~/dev    <sc># anywhere under home</sc>'},
+        {desc:'Tree view (depth 2)', keys:['cmd:tree -L 2'],
+         sample:'<sp>$</sp> tree -L 2\n<so>.\n├── src\n│   └── main.py\n└── README.md</so>'},
+      ]},
+
+      { title:'File Operations', label:'cp · mv · rm', rows:[
+        {desc:'Copy file', keys:['cmd:cp src dst'],
+         sample:'<sp>$</sp> cp config.yml config.yml.bak'},
+        {desc:'Copy directory recursively', keys:['cmd:cp -r src/ dst/'],
+         sample:'<sp>$</sp> cp -r ~/app /tmp/app-backup'},
+        {desc:'Move / rename', keys:['cmd:mv old new'],
+         sample:'<sp>$</sp> mv draft.md final.md'},
+        {desc:'Remove file', keys:['cmd:rm file'],
+         sample:'<sp>$</sp> rm temp.log'},
+        {desc:'Remove dir recursively', keys:['cmd:rm -rf dir/'],
+         sample:'<sp>$</sp> rm -rf node_modules'},
+        {desc:'Make dir (with parents)', keys:['cmd:mkdir -p a/b/c'],
+         sample:'<sp>$</sp> mkdir -p src/components/ui'},
+        {desc:'Create / touch file', keys:['cmd:touch file'],
+         sample:'<sp>$</sp> touch .env.local       <sc># create empty</sc>\n<sp>$</sp> touch existing.txt     <sc># update mtime to now</sc>'},
+        {desc:'Symbolic link', keys:['cmd:ln -s tgt link'],
+         sample:'<sp>$</sp> ln -s /opt/node/bin/node ~/bin/node'},
+      ]},
+
+      { title:'View &amp; Search', label:'cat · grep · find', rows:[
+        {desc:'Print contents', keys:['cmd:cat file'],
+         sample:'<sp>$</sp> cat /etc/hostname\n<so>workstation-01</so>'},
+        {desc:'Page through file', keys:['cmd:less file'],
+         sample:'<sc># arrows / PgUp · /search · q to quit</sc>'},
+        {desc:'First / last 10 lines', keys:['cmd:head -n 10','·','cmd:tail -n 10'],
+         sample:'<sp>$</sp> head -n 5 access.log\n<sp>$</sp> tail -n 20 server.log'},
+        {desc:'Follow log', keys:['cmd:tail -f log'],
+         sample:'<sp>$</sp> tail -f /var/log/syslog'},
+        {desc:'Find by name', keys:['cmd:find . -name \'*.py\''],
+         sample:'<sp>$</sp> find . -name \'*.log\' -mtime -1'},
+        {desc:'grep recursive', keys:['cmd:grep -rn \'foo\' .'],
+         sample:'<sp>$</sp> grep -rn \'TODO\' src/\n<so>src/main.py:42:    # TODO</so>'},
+        {desc:'ripgrep (faster)', keys:['cmd:rg \'foo\''],
+         sample:'<sp>$</sp> rg --type py \'def main\''},
+        {desc:'Count lines / words / bytes', keys:['cmd:wc -l'],
+         sample:'<sp>$</sp> wc -l *.py\n<so>42 main.py\n18 utils.py</so>'},
+        {desc:'Sort / unique with counts', keys:['cmd:sort','·','cmd:uniq -c'],
+         sample:'<sp>$</sp> sort access.log | uniq -c | sort -rn'},
+        {desc:'Locate binary', keys:['cmd:which cmd'],
+         sample:'<sp>$</sp> which python3\n<so>/usr/bin/python3</so>'},
+      ]},
+
+      { title:'Pipes &amp; Redirection', label:'stdin · stdout · stderr', rows:[
+        {desc:'Pipe to another command', keys:['cmd:|'],
+         sample:'<sp>$</sp> ps aux | grep nginx | wc -l'},
+        {desc:'Redirect (overwrite / append)', keys:['cmd:&gt;','·','cmd:&gt;&gt;'],
+         sample:'<sp>$</sp> echo "hi" &gt; out.txt    <sc># overwrite</sc>\n<sp>$</sp> date &gt;&gt; out.txt        <sc># append</sc>'},
+        {desc:'Stderr / merge streams', keys:['cmd:2&gt;','·','cmd:2&gt;&amp;1'],
+         sample:'<sp>$</sp> make 2&gt; build-errors.log\n<sp>$</sp> cmd &gt; out.log 2&gt;&amp;1'},
+        {desc:'Discard output', keys:['cmd:&gt; /dev/null'],
+         sample:'<sp>$</sp> noisy-cmd &gt; /dev/null 2&gt;&amp;1'},
+        {desc:'Read from file', keys:['cmd:&lt;'],
+         sample:'<sp>$</sp> wc -l &lt; input.txt'},
+        {desc:'Tee — split to file + stdout', keys:['cmd:tee'],
+         sample:'<sp>$</sp> make 2&gt;&amp;1 | tee build.log'},
+        {desc:'xargs — pass items as args', keys:['cmd:xargs'],
+         sample:'<sp>$</sp> find . -name \'*.tmp\' | xargs rm'},
+        {desc:'Command substitution', keys:['cmd:$(cmd)'],
+         sample:'<sp>$</sp> echo "today is $(date +%F)"\n<sp>$</sp> cd $(git rev-parse --show-toplevel)'},
+      ]},
+
+      { title:'Permissions', label:'chmod · chown', rows:[
+        {desc:'Make executable', keys:['cmd:chmod +x file'],
+         sample:'<sp>$</sp> chmod +x deploy.sh'},
+        {desc:'Owner only / standard', keys:['cmd:chmod 700','·','cmd:644'],
+         sample:'<sc># 7=rwx 6=rw- 5=r-x 4=r--   owner|group|other</sc>'},
+        {desc:'Recursive chmod', keys:['cmd:chmod -R 755 dir/'],
+         sample:'<sp>$</sp> sudo chmod -R 755 /var/www/site'},
+        {desc:'Change owner (recursive)', keys:['cmd:chown -R u:g dir/'],
+         sample:'<sp>$</sp> sudo chown -R lukas:lukas /var/www'},
+        {desc:'Run as superuser', keys:['cmd:sudo &lt;cmd&gt;'],
+         sample:'<sp>$</sp> sudo apt update\n<sp>$</sp> sudo systemctl restart nginx'},
+      ]},
+
+      { title:'Processes &amp; System', label:'ps · kill · top', rows:[
+        {desc:'Live viewer', keys:['cmd:htop','/','cmd:top'],
+         sample:'<sc># interactive — F9 to kill, F6 to sort, q to quit</sc>'},
+        {desc:'List processes', keys:['cmd:ps aux'],
+         sample:'<sp>$</sp> ps aux | grep nginx'},
+        {desc:'Kill PID / by name', keys:['cmd:kill -9 pid','·','cmd:pkill name'],
+         sample:'<sp>$</sp> pkill -f \'node server.js\''},
+        {desc:'Disk usage', keys:['cmd:du -sh *'],
+         sample:'<sp>$</sp> du -sh *\n<so>120M    node_modules\n4.0K    package.json\n8.0K    src</so>'},
+        {desc:'Free disk / memory', keys:['cmd:df -h','·','cmd:free -h'],
+         sample:'<sp>$</sp> df -h /\n<so>/dev/sda2  234G  87G  135G  40%  /</so>\n<sp>$</sp> free -h\n<so>              total   used   free\nMem:           15Gi  4.2Gi  6.8Gi</so>'},
+        {desc:'Suspend / list / fg', keys:['k:Ctrl','+','k:Z','·','cmd:jobs','·','cmd:fg'],
+         sample:'<sp>$</sp> sleep 100  <sc># Ctrl+Z, then bg / fg %1</sc>'},
+      ]},
+
+      { title:'Services &amp; Logs', label:'systemctl · journalctl', rows:[
+        {desc:'Service status', keys:['cmd:systemctl status svc'],
+         sample:'<sp>$</sp> systemctl status nginx'},
+        {desc:'Start / stop / restart', keys:['cmd:start','·','cmd:stop','·','cmd:restart'],
+         sample:'<sp>$</sp> sudo systemctl restart nginx'},
+        {desc:'Enable / disable at boot', keys:['cmd:enable','·','cmd:disable'],
+         sample:'<sp>$</sp> sudo systemctl enable --now docker'},
+        {desc:'List all units', keys:['cmd:systemctl list-units'],
+         sample:'<sp>$</sp> systemctl list-units --type=service\n<sp>$</sp> systemctl list-units --failed'},
+        {desc:'Follow service log', keys:['cmd:journalctl -fu svc'],
+         sample:'<sp>$</sp> journalctl -fu nginx'},
+        {desc:'Boot log / since time', keys:['cmd:-b','·','cmd:--since'],
+         sample:'<sp>$</sp> journalctl -b              <sc># this boot</sc>\n<sp>$</sp> journalctl --since "1h ago"'},
+      ]},
+
+      { title:'Packages', label:'apt · dnf · pacman', rows:[
+        {desc:'Update package lists', keys:['cmd:apt update'],
+         sample:'<sp>$</sp> sudo apt update'},
+        {desc:'Upgrade installed', keys:['cmd:apt upgrade'],
+         sample:'<sp>$</sp> sudo apt upgrade -y'},
+        {desc:'Install / remove', keys:['cmd:install','·','cmd:remove'],
+         sample:'<sp>$</sp> sudo apt install ripgrep fd-find\n<sp>$</sp> sudo apt remove --purge oldpkg'},
+        {desc:'Search packages', keys:['cmd:apt search foo'],
+         sample:'<sp>$</sp> apt search ripgrep'},
+        {desc:'Show package info', keys:['cmd:apt show pkg'],
+         sample:'<sp>$</sp> apt show ripgrep\n<so>Package: ripgrep\nVersion: 13.0.0\nDescription: ...</so>'},
+        {desc:'Fedora / Arch equivalents', keys:['cmd:dnf','·','cmd:pacman'],
+         sample:'<sc># Fedora:  sudo dnf install ripgrep\n# Arch:    sudo pacman -S ripgrep</sc>'},
+      ]},
+
+      { title:'Environment Variables', label:'export · env', rows:[
+        {desc:'Show all env vars', keys:['cmd:env'],
+         sample:'<sp>$</sp> env | grep -i path\n<so>PATH=/usr/local/bin:/usr/bin:/bin\nMANPATH=/usr/share/man</so>'},
+        {desc:'Print one variable', keys:['cmd:echo $VAR'],
+         sample:'<sp>$</sp> echo $HOME\n<so>/home/lukas</so>'},
+        {desc:'Set for current shell', keys:['cmd:VAR=value'],
+         sample:'<sp>$</sp> DEBUG=1 npm start    <sc># single command only</sc>'},
+        {desc:'Export to child processes', keys:['cmd:export VAR=val'],
+         sample:'<sp>$</sp> export EDITOR=nvim\n<sp>$</sp> export PATH="$HOME/bin:$PATH"'},
+        {desc:'Persistent — add to shell rc', keys:['cmd:~/.bashrc','·','cmd:~/.zshrc'],
+         sample:'<sc># append, then reload:</sc>\n<sp>$</sp> echo \'export EDITOR=nvim\' &gt;&gt; ~/.bashrc\n<sp>$</sp> source ~/.bashrc'},
+        {desc:'Unset variable', keys:['cmd:unset VAR'],
+         sample:'<sp>$</sp> unset DEBUG'},
+      ]},
+
+      { title:'Network &amp; Transfer', label:'ssh · scp · curl', rows:[
+        {desc:'SSH', keys:['cmd:ssh user@host'],
+         sample:'<sp>$</sp> ssh -p 2222 lukas@10.0.0.5'},
+        {desc:'SCP copy', keys:['cmd:scp file user@host:~'],
+         sample:'<sp>$</sp> scp report.pdf lukas@srv:~/inbox/'},
+        {desc:'Sync directories', keys:['cmd:rsync -avz s/ d/'],
+         sample:'<sp>$</sp> rsync -avz --delete site/ srv:/var/www/'},
+        {desc:'HTTP / download', keys:['cmd:curl -L url','·','cmd:wget url'],
+         sample:'<sp>$</sp> curl -L https://api.example.com/users -o users.json\n<sp>$</sp> curl -fsSL https://get.example.sh | sh\n<sp>$</sp> wget https://example.com/file.tgz'},
+        {desc:'Listening ports', keys:['cmd:ss -tulpn'],
+         sample:'<sp>$</sp> ss -tulpn | grep LISTEN\n<so>tcp  LISTEN  *:22       sshd\ntcp  LISTEN  *:8080     node</so>'},
+        {desc:'Test connectivity', keys:['cmd:ping -c 4 host'],
+         sample:'<sp>$</sp> ping -c 4 1.1.1.1\n<so>64 bytes from 1.1.1.1: time=8.42 ms\n64 bytes from 1.1.1.1: time=7.91 ms\n--- 1.1.1.1 ping statistics ---\n4 packets transmitted, 4 received</so>'},
+      ]},
+
+      { title:'Archives', label:'tar · zip', rows:[
+        {desc:'Create gzip tarball', keys:['cmd:tar -czf a.tgz d/'],
+         sample:'<sp>$</sp> tar -czf backup.tgz ~/app\n<sc># c=create z=gzip f=file v=verbose</sc>'},
+        {desc:'Extract', keys:['cmd:tar -xzf a.tgz'],
+         sample:'<sp>$</sp> tar -xzf backup.tgz -C /tmp'},
+        {desc:'List contents', keys:['cmd:tar -tf a.tgz'],
+         sample:'<sp>$</sp> tar -tf backup.tgz | head\n<so>app/\napp/src/main.py\napp/README.md</so>'},
+        {desc:'Zip / unzip', keys:['cmd:zip -r a.zip d/','·','cmd:unzip a.zip'],
+         sample:'<sp>$</sp> zip -r site.zip ./public\n<sp>$</sp> unzip site.zip -d /tmp/site'},
+      ]},
+
+      { title:'Bash Line Editing', label:'readline', rows:[
+        {desc:'Begin / end of line', keys:['k:Ctrl','+','k:A','·','k:Ctrl','+','k:E']},
+        {desc:'Word back / forward', keys:['k:Alt','+','k:B','·','k:Alt','+','k:F']},
+        {desc:'Delete to end / start', keys:['k:Ctrl','+','k:K','·','k:Ctrl','+','k:U']},
+        {desc:'Word back / paste', keys:['k:Ctrl','+','k:W','·','k:Ctrl','+','k:Y']},
+        {desc:'History search', keys:['k:Ctrl','+','k:R'],
+         sample:'<sc># type partial cmd, Enter runs, → edits</sc>'},
+        {desc:'Clear / cancel / EOF', keys:['k:Ctrl','+','k:L','·','k:Ctrl','+','k:C','·','k:Ctrl','+','k:D']},
+      ]},
+
+      { title:'History', label:'recall · expand · clean', rows:[
+        {desc:'Show numbered history', keys:['cmd:history'],
+         sample:'<sp>$</sp> history | tail\n<so>  142  ssh srv\n  143  cd ~/projects\n  144  git status</so>'},
+        {desc:'Last command', keys:['cmd:!!'],
+         sample:'<sp>$</sp> apt update\n<so>E: Permission denied</so>\n<sp>$</sp> sudo !!     <sc># reruns as: sudo apt update</sc>'},
+        {desc:'Last argument of prev cmd', keys:['cmd:!$'],
+         sample:'<sp>$</sp> mkdir -p some/long/path\n<sp>$</sp> cd !$         <sc># cd some/long/path</sc>'},
+        {desc:'Run command N from history', keys:['cmd:!N'],
+         sample:'<sp>$</sp> !142'},
+        {desc:'Search by prefix', keys:['cmd:!ssh'],
+         sample:'<sp>$</sp> !ssh    <sc># most recent line starting with ssh</sc>'},
+        {desc:'Clear history (current session)', keys:['cmd:history -c']},
+        {desc:'Clear history file', keys:['cmd:history -cw'],
+         sample:'<sp>$</sp> history -c &amp;&amp; history -w\n<sc># or just truncate the file:</sc>\n<sp>$</sp> &gt; ~/.bash_history'},
+      ]},
+    ]
+  },
+
+  /* ===================== DOCKER ===================== */
+  {
+    id: 'docker', label: 'Docker',
+    note: '<strong>Prefix</strong>Every command shown is prefixed with <kbd>docker</kbd>. Compose commands are prefixed with <kbd>docker compose</kbd>. The full form appears in each sample below.',
+    groups: [
+      { title:'Containers — Run', label:'docker run', rows:[
+        {desc:'Run, foreground, interactive', keys:['cmd:run -it'],
+         sample:'<sp>$</sp> docker run -it ubuntu:24.04 bash\n<sc># -i keep stdin open · -t allocate TTY</sc>'},
+        {desc:'Run detached (background)', keys:['cmd:run -d'],
+         sample:'<sp>$</sp> docker run -d --name web nginx:alpine'},
+        {desc:'Auto-remove when stopped', keys:['cmd:run --rm'],
+         sample:'<sp>$</sp> docker run --rm -it python:3.12 python\n<sc># container deleted on exit — handy for one-offs</sc>'},
+        {desc:'Map ports (host:container)', keys:['cmd:-p 8080:80'],
+         sample:'<sp>$</sp> docker run -d -p 8080:80 nginx\n<sc># browse http://localhost:8080</sc>'},
+        {desc:'Mount volume / bind mount', keys:['cmd:-v','·','cmd:--mount'],
+         sample:'<sp>$</sp> docker run -v $(pwd):/app node:20 npm test\n<sp>$</sp> docker run -v mydata:/var/lib/db postgres'},
+        {desc:'Set environment variable', keys:['cmd:-e VAR=val'],
+         sample:'<sp>$</sp> docker run -e DEBUG=1 -e PORT=3000 myapp'},
+        {desc:'Name container, set restart policy', keys:['cmd:--name','·','cmd:--restart'],
+         sample:'<sp>$</sp> docker run -d --name api \\\n  --restart=unless-stopped \\\n  -p 3000:3000 myapp:latest'},
+        {desc:'Run as different user', keys:['cmd:-u'],
+         sample:'<sp>$</sp> docker run -u $(id -u):$(id -g) -v $(pwd):/app node'},
+      ]},
+
+      { title:'Containers — Manage', label:'ps · logs · exec', rows:[
+        {desc:'List running / all containers', keys:['cmd:ps','·','cmd:ps -a'],
+         sample:'<sp>$</sp> docker ps\n<so>CONTAINER ID  IMAGE          STATUS       NAMES\nf3a2c5d1      nginx:alpine   Up 2 hours   web\n8b7e9f0a      postgres:16    Up 1 day     db</so>'},
+        {desc:'Container logs', keys:['cmd:logs'],
+         sample:'<sp>$</sp> docker logs web                <sc># all logs</sc>\n<sp>$</sp> docker logs -f --tail 50 web   <sc># follow last 50</sc>'},
+        {desc:'Exec command in running container', keys:['cmd:exec'],
+         sample:'<sp>$</sp> docker exec -it web sh           <sc># shell inside</sc>\n<sp>$</sp> docker exec db psql -U postgres   <sc># run a command</sc>'},
+        {desc:'Start / stop / restart', keys:['cmd:start','·','cmd:stop','·','cmd:restart'],
+         sample:'<sp>$</sp> docker stop web\n<sp>$</sp> docker start web\n<sp>$</sp> docker restart web'},
+        {desc:'Remove (running needs -f)', keys:['cmd:rm','·','cmd:rm -f'],
+         sample:'<sp>$</sp> docker rm web        <sc># must be stopped first</sc>\n<sp>$</sp> docker rm -f web     <sc># force-kill and remove</sc>'},
+        {desc:'Copy files to / from container', keys:['cmd:cp'],
+         sample:'<sp>$</sp> docker cp ./config.yml web:/etc/nginx/\n<sp>$</sp> docker cp web:/var/log/nginx/access.log .'},
+        {desc:'Rename container', keys:['cmd:rename'],
+         sample:'<sp>$</sp> docker rename old-name new-name'},
+      ]},
+
+      { title:'Images', label:'pull · build · push', rows:[
+        {desc:'List images', keys:['cmd:images'],
+         sample:'<sp>$</sp> docker images\n<so>REPOSITORY    TAG       SIZE\nnginx         alpine    23MB\npostgres      16        425MB</so>'},
+        {desc:'Pull from registry', keys:['cmd:pull'],
+         sample:'<sp>$</sp> docker pull nginx:alpine\n<sp>$</sp> docker pull ghcr.io/user/app:v1.2'},
+        {desc:'Build image from Dockerfile', keys:['cmd:build'],
+         sample:'<sp>$</sp> docker build -t myapp:latest .\n<sp>$</sp> docker build -t myapp:v2 -f Dockerfile.prod .\n<sc># . is build context (sent to daemon)</sc>'},
+        {desc:'Tag (alias) an image', keys:['cmd:tag'],
+         sample:'<sp>$</sp> docker tag myapp:latest \\\n  ghcr.io/user/myapp:v1.0'},
+        {desc:'Push to registry', keys:['cmd:push'],
+         sample:'<sp>$</sp> docker login ghcr.io\n<sp>$</sp> docker push ghcr.io/user/myapp:v1.0'},
+        {desc:'Remove image / dangling', keys:['cmd:rmi','·','cmd:image prune'],
+         sample:'<sp>$</sp> docker rmi nginx:alpine\n<sp>$</sp> docker image prune    <sc># dangling (untagged)</sc>'},
+        {desc:'Save / load image as tar', keys:['cmd:save','·','cmd:load'],
+         sample:'<sp>$</sp> docker save myapp:latest -o myapp.tar\n<sp>$</sp> docker load -i myapp.tar'},
+      ]},
+
+      { title:'Inspect &amp; Debug', label:'inspect · stats · top', rows:[
+        {desc:'Detailed JSON metadata', keys:['cmd:inspect'],
+         sample:'<sp>$</sp> docker inspect web\n<sp>$</sp> docker inspect -f \'{{.NetworkSettings.IPAddress}}\' web\n<sc># -f filters with Go template</sc>'},
+        {desc:'Live resource usage', keys:['cmd:stats'],
+         sample:'<sp>$</sp> docker stats\n<so>NAME    CPU%   MEM USAGE / LIMIT\nweb     0.05%  12 MiB / 8 GiB\ndb      2.1%   180 MiB / 8 GiB</so>'},
+        {desc:'Processes inside container', keys:['cmd:top'],
+         sample:'<sp>$</sp> docker top web'},
+        {desc:'Show port mappings', keys:['cmd:port'],
+         sample:'<sp>$</sp> docker port web\n<so>80/tcp -> 0.0.0.0:8080</so>'},
+        {desc:'Filesystem changes since start', keys:['cmd:diff'],
+         sample:'<sp>$</sp> docker diff web\n<so>A /var/log/nginx/access.log\nC /etc/nginx/conf.d</so>'},
+        {desc:'Image layer history', keys:['cmd:history'],
+         sample:'<sp>$</sp> docker history nginx:alpine'},
+      ]},
+
+      { title:'Volumes', label:'persist data', rows:[
+        {desc:'List / inspect volumes', keys:['cmd:volume ls','·','cmd:volume inspect'],
+         sample:'<sp>$</sp> docker volume ls\n<sp>$</sp> docker volume inspect mydata'},
+        {desc:'Create named volume', keys:['cmd:volume create'],
+         sample:'<sp>$</sp> docker volume create mydata'},
+        {desc:'Use named volume', keys:['cmd:-v name:/path'],
+         sample:'<sp>$</sp> docker run -v mydata:/var/lib/postgresql/data postgres'},
+        {desc:'Bind mount host directory', keys:['cmd:-v $(pwd):/app'],
+         sample:'<sp>$</sp> docker run -v $(pwd):/app -w /app node:20 npm test\n<sc># changes on host visible in container instantly</sc>'},
+        {desc:'Read-only bind mount', keys:['cmd:-v src:dst:ro'],
+         sample:'<sp>$</sp> docker run -v $(pwd)/config:/etc/app:ro myapp'},
+        {desc:'Remove volume / unused', keys:['cmd:volume rm','·','cmd:volume prune'],
+         sample:'<sp>$</sp> docker volume rm mydata\n<sp>$</sp> docker volume prune    <sc># all unused</sc>'},
+      ]},
+
+      { title:'Networks', label:'connect containers', rows:[
+        {desc:'List / inspect networks', keys:['cmd:network ls','·','cmd:network inspect'],
+         sample:'<sp>$</sp> docker network ls\n<so>NETWORK ID    NAME      DRIVER\nf3a2c5d1      bridge    bridge\n8b7e9f0a      mynet     bridge</so>'},
+        {desc:'Create custom bridge network', keys:['cmd:network create'],
+         sample:'<sp>$</sp> docker network create mynet\n<sc># containers on same network reach each other by name</sc>'},
+        {desc:'Connect container to network', keys:['cmd:--network','·','cmd:network connect'],
+         sample:'<sp>$</sp> docker run -d --network=mynet --name db postgres\n<sp>$</sp> docker run --network=mynet alpine ping db\n<sc># resolves "db" via Docker DNS</sc>'},
+        {desc:'Disconnect / remove network', keys:['cmd:network disconnect','·','cmd:network rm'],
+         sample:'<sp>$</sp> docker network disconnect mynet web\n<sp>$</sp> docker network rm mynet'},
+      ]},
+
+      { title:'Compose', label:'multi-container apps', rows:[
+        {desc:'Start services (background)', keys:['cmd:compose up -d'],
+         sample:'<sp>$</sp> docker compose up -d\n<sp>$</sp> docker compose up -d --build  <sc># rebuild images</sc>'},
+        {desc:'Stop &amp; remove services', keys:['cmd:compose down'],
+         sample:'<sp>$</sp> docker compose down              <sc># stop + remove</sc>\n<sp>$</sp> docker compose down -v           <sc># also remove volumes</sc>'},
+        {desc:'List services / view logs', keys:['cmd:compose ps','·','cmd:compose logs'],
+         sample:'<sp>$</sp> docker compose ps\n<sp>$</sp> docker compose logs -f web    <sc># follow one service</sc>'},
+        {desc:'Exec into a service', keys:['cmd:compose exec'],
+         sample:'<sp>$</sp> docker compose exec web sh\n<sp>$</sp> docker compose exec db psql -U postgres'},
+        {desc:'Restart / pull / build', keys:['cmd:restart','·','cmd:pull','·','cmd:build'],
+         sample:'<sp>$</sp> docker compose restart web\n<sp>$</sp> docker compose pull           <sc># refresh images</sc>\n<sp>$</sp> docker compose build --no-cache'},
+        {desc:'Run one-off command in new container', keys:['cmd:compose run'],
+         sample:'<sp>$</sp> docker compose run --rm web npm test\n<sc># temporary container, removed after</sc>'},
+        {desc:'Use a non-default file', keys:['cmd:-f compose.yml'],
+         sample:'<sp>$</sp> docker compose -f compose.prod.yml up -d'},
+      ]},
+
+      { title:'Cleanup', label:'reclaim disk space', rows:[
+        {desc:'Show disk usage', keys:['cmd:system df'],
+         sample:'<sp>$</sp> docker system df\n<so>TYPE          TOTAL  ACTIVE  SIZE     RECLAIMABLE\nImages        47     12      8.2GB    6.1GB\nContainers    18     3       1.2GB    980MB\nVolumes       9      2       2.3GB    1.8GB</so>'},
+        {desc:'Prune everything unused (careful!)', keys:['cmd:system prune'],
+         sample:'<sp>$</sp> docker system prune          <sc># containers, networks, dangling images</sc>\n<sp>$</sp> docker system prune -a        <sc># also unused images</sc>\n<sp>$</sp> docker system prune -a --volumes   <sc># nuclear option</sc>'},
+        {desc:'Prune individual types', keys:['cmd:image','·','cmd:container','·','cmd:volume','·','cmd:network'],
+         sample:'<sp>$</sp> docker image prune\n<sp>$</sp> docker container prune\n<sp>$</sp> docker volume prune\n<sp>$</sp> docker network prune'},
+        {desc:'Remove all stopped containers', keys:['cmd:rm $(docker ps -aq)'],
+         sample:'<sp>$</sp> docker rm $(docker ps -aq)\n<sc># or:</sc>\n<sp>$</sp> docker container prune -f'},
+      ]},
+
+      { title:'Dockerfile Cheatsheet', label:'image recipe', rows:[
+        {desc:'Common instructions', keys:[],
+         sample:'<sc># base image to start from</sc>\nFROM node:20-alpine\n\n<sc># metadata</sc>\nLABEL maintainer="lukas@example.com"\n\n<sc># env vars (build-time and runtime)</sc>\nARG BUILD_VERSION\nENV NODE_ENV=production PORT=3000\n\n<sc># set working dir (creates if missing)</sc>\nWORKDIR /app\n\n<sc># copy files from build context into image</sc>\nCOPY package*.json ./\nRUN npm ci --omit=dev\nCOPY . .\n\n<sc># declare port (informational)</sc>\nEXPOSE 3000\n\n<sc># run as non-root</sc>\nUSER node\n\n<sc># default command (overridable at run)</sc>\nCMD ["node", "server.js"]\n\n<sc># vs ENTRYPOINT — fixed, with CMD as default args</sc>\nENTRYPOINT ["node"]\nCMD ["server.js"]'},
+        {desc:'Multi-stage build', keys:[],
+         sample:'<sc># stage 1: build</sc>\nFROM node:20 AS builder\nWORKDIR /app\nCOPY . .\nRUN npm ci &amp;&amp; npm run build\n\n<sc># stage 2: tiny runtime</sc>\nFROM nginx:alpine\nCOPY --from=builder /app/dist /usr/share/nginx/html\n<sc># final image only contains nginx + dist/</sc>'},
+      ]},
+    ]
+  },
+
+  /* ===================== GIT ===================== */
+  {
+    id: 'git', label: 'Git',
+    note: '<strong>Prefix</strong>Every command shown is prefixed with <kbd>git</kbd>. The full form appears in each sample below.',
+    groups: [
+      { title:'Config — Identity', label:'name · email', rows:[
+        {desc:'Set name globally', keys:['cmd:config --global user.name'],
+         sample:'<sp>$</sp> git config --global user.name "Lukas Schmidt"'},
+        {desc:'Set email globally', keys:['cmd:config --global user.email'],
+         sample:'<sp>$</sp> git config --global user.email "lukas@example.com"'},
+        {desc:'Override locally for this repo', keys:['cmd:config --local user.email'],
+         sample:'<sp>$</sp> cd ~/projects/work-app\n<sp>$</sp> git config --local user.email "lukas@company.com"'},
+        {desc:'Show value with origin', keys:['cmd:config --show-origin'],
+         sample:'<sp>$</sp> git config --show-origin user.email\n<so>file:.git/config    lukas@company.com</so>'},
+        {desc:'Unset a value', keys:['cmd:config --unset'],
+         sample:'<sp>$</sp> git config --local --unset user.email'},
+      ]},
+
+      { title:'Config — Defaults', label:'editor · branch · alias', rows:[
+        {desc:'List all (with source)', keys:['cmd:config --list'],
+         sample:'<sp>$</sp> git config --list --show-origin\n<so>file:~/.gitconfig  user.name=Lukas\nfile:.git/config   core.editor=nvim</so>'},
+        {desc:'Default editor', keys:['cmd:core.editor'],
+         sample:'<sp>$</sp> git config --global core.editor "nvim"'},
+        {desc:'Default branch name', keys:['cmd:init.defaultBranch'],
+         sample:'<sp>$</sp> git config --global init.defaultBranch main'},
+        {desc:'Pull rebases by default', keys:['cmd:pull.rebase'],
+         sample:'<sp>$</sp> git config --global pull.rebase true'},
+        {desc:'Define alias', keys:['cmd:alias.&lt;name&gt;'],
+         sample:'<sp>$</sp> git config --global alias.lg \\\n  "log --oneline --graph --all"'},
+        {desc:'Edit ~/.gitconfig', keys:['cmd:config --global --edit'],
+         sample:'<sp>$</sp> git config --global --edit\n<sc># opens ~/.gitconfig in your $EDITOR</sc>'},
+      ]},
+
+      { title:'Setup &amp; Inspect', label:'init · status · log', rows:[
+        {desc:'Init / clone', keys:['cmd:init','·','cmd:clone'],
+         sample:'<sp>$</sp> git init                          <sc># start a new repo here</sc>\n<sp>$</sp> git clone git@github.com:user/repo.git'},
+        {desc:'Status (short)', keys:['cmd:status -sb'],
+         sample:'<sp>$</sp> git status -sb\n<so>## main...origin/main\n M README.md\n?? new.txt</so>'},
+        {desc:'Log graph', keys:['cmd:log --oneline --graph --all'],
+         sample:'<sp>$</sp> git log --oneline --graph --all\n<so>* a1b2c3d (HEAD -> feat/x) add tests\n* d4e5f6a (main) initial commit</so>'},
+        {desc:'Diff working / staged', keys:['cmd:diff','·','cmd:diff --staged'],
+         sample:'<sp>$</sp> git diff src/main.py\n<sp>$</sp> git diff --staged   <sc># what will commit</sc>'},
+        {desc:'Diff between branches / commits', keys:['cmd:diff a..b'],
+         sample:'<sp>$</sp> git diff main..feat/login\n<sp>$</sp> git diff HEAD~3 HEAD'},
+        {desc:'Show a commit (or file at commit)', keys:['cmd:show'],
+         sample:'<sp>$</sp> git show a1b2c3d\n<sp>$</sp> git show HEAD~2:src/main.py'},
+        {desc:'Blame', keys:['cmd:blame file'],
+         sample:'<sp>$</sp> git blame -L 40,60 src/main.py'},
+      ]},
+
+      { title:'Stage &amp; Commit', label:'add · commit', rows:[
+        {desc:'Stage file(s)', keys:['cmd:add &lt;file&gt;'],
+         sample:'<sp>$</sp> git add src/main.py README.md'},
+        {desc:'Stage everything', keys:['cmd:add -A'],
+         sample:'<sp>$</sp> git add -A\n<sc># stages new, modified, AND deleted files\n# across the whole working tree</sc>'},
+        {desc:'Stage hunk-by-hunk', keys:['cmd:add -p'],
+         sample:'<sp>$</sp> git add -p src/main.py  <sc># y/n per hunk</sc>'},
+        {desc:'Commit with message', keys:['cmd:commit -m'],
+         sample:'<sp>$</sp> git commit -m "fix: handle empty input"'},
+        {desc:'Stage tracked &amp; commit', keys:['cmd:commit -am'],
+         sample:'<sp>$</sp> git commit -am "refactor: extract validation"'},
+        {desc:'Amend last commit', keys:['cmd:commit --amend'],
+         sample:'<sp>$</sp> git commit --amend --no-edit'},
+        {desc:'Unstage / discard', keys:['cmd:restore --staged','·','cmd:restore'],
+         sample:'<sp>$</sp> git restore --staged main.py   <sc># keep edits, unstage</sc>\n<sp>$</sp> git restore main.py            <sc># revert to HEAD</sc>'},
+        {desc:'Remove untracked files', keys:['cmd:clean -fd'],
+         sample:'<sp>$</sp> git clean -nfd      <sc># dry run first!</sc>\n<sp>$</sp> git clean -fd'},
+      ]},
+
+      { title:'Branches', label:'branch · switch', rows:[
+        {desc:'List branches (incl. remote)', keys:['cmd:branch -a'],
+         sample:'<sp>$</sp> git branch -a\n<so>* main\n  feat/login\n  remotes/origin/main\n  remotes/origin/feat/login</so>'},
+        {desc:'Create + switch', keys:['cmd:switch -c name'],
+         sample:'<sp>$</sp> git switch -c feat/profile'},
+        {desc:'Switch existing', keys:['cmd:switch name'],
+         sample:'<sp>$</sp> git switch main\n<sp>$</sp> git switch -    <sc># back to previous branch</sc>'},
+        {desc:'Rename current', keys:['cmd:branch -m new'],
+         sample:'<sp>$</sp> git branch -m feat/profile'},
+        {desc:'Delete (safe / force)', keys:['cmd:branch -d','·','cmd:branch -D'],
+         sample:'<sp>$</sp> git branch -d feat/old        <sc># refuses if unmerged</sc>\n<sp>$</sp> git branch -D feat/abandoned  <sc># force delete</sc>'},
+        {desc:'Merge into current', keys:['cmd:merge name'],
+         sample:'<sp>$</sp> git switch main\n<sp>$</sp> git merge --no-ff feat/login'},
+        {desc:'Rebase onto branch', keys:['cmd:rebase main'],
+         sample:'<sp>$</sp> git switch feat/login\n<sp>$</sp> git rebase main'},
+        {desc:'Interactive rebase last N', keys:['cmd:rebase -i HEAD~5'],
+         sample:'<sp>$</sp> git rebase -i HEAD~5\n<sc># mark commits: pick / reword / squash / drop</sc>'},
+      ]},
+
+      { title:'Remote &amp; Sync', label:'fetch · pull · push', rows:[
+        {desc:'List / add remote', keys:['cmd:remote -v','·','cmd:remote add'],
+         sample:'<sp>$</sp> git remote add origin git@github.com:u/r.git'},
+        {desc:'Fetch / pull', keys:['cmd:fetch','·','cmd:pull'],
+         sample:'<sp>$</sp> git fetch --all --prune\n<sp>$</sp> git pull --rebase'},
+        {desc:'Push current', keys:['cmd:push'],
+         sample:'<sp>$</sp> git push'},
+        {desc:'Push + set upstream', keys:['cmd:push -u origin name'],
+         sample:'<sp>$</sp> git push -u origin feat/login'},
+        {desc:'Force push (safe)', keys:['cmd:push --force-with-lease'],
+         sample:'<sp>$</sp> git push --force-with-lease\n<sc># aborts if remote moved unexpectedly</sc>'},
+        {desc:'Sync &amp; clean stale branches', keys:['cmd:fetch --prune'],
+         sample:'<sp>$</sp> git fetch --all --prune\n<sc># removes refs to branches deleted on remote</sc>'},
+      ]},
+
+      { title:'Undo &amp; Recover', label:'reset · revert · reflog', rows:[
+        {desc:'Soft reset (keep staged)', keys:['cmd:reset --soft HEAD~1'],
+         sample:'<sp>$</sp> git reset --soft HEAD~1\n<sc># commit undone, all changes still staged</sc>'},
+        {desc:'Mixed reset', keys:['cmd:reset HEAD~1'],
+         sample:'<sp>$</sp> git reset HEAD~1\n<sc># commit undone, changes unstaged but kept</sc>'},
+        {desc:'Hard reset (danger)', keys:['cmd:reset --hard'],
+         sample:'<sp>$</sp> git reset --hard origin/main'},
+        {desc:'Revert (new commit)', keys:['cmd:revert sha'],
+         sample:'<sp>$</sp> git revert a1b2c3d\n<sc># makes a NEW commit that undoes the changes</sc>'},
+        {desc:'HEAD movement log', keys:['cmd:reflog'],
+         sample:'<sp>$</sp> git reflog\n<so>a1b2c3d HEAD@{0}: reset: moving to HEAD~1\nd4e5f6a HEAD@{1}: commit: add tests</so>'},
+        {desc:'Cherry-pick', keys:['cmd:cherry-pick sha'],
+         sample:'<sp>$</sp> git cherry-pick d4e5f6a\n<sc># applies one commit from elsewhere onto current</sc>'},
+      ]},
+
+      { title:'Stash &amp; Tag', label:'temp · permanent', rows:[
+        {desc:'Stash changes', keys:['cmd:stash'],
+         sample:'<sp>$</sp> git stash push -m "wip: parser"'},
+        {desc:'List', keys:['cmd:stash list'],
+         sample:'<sp>$</sp> git stash list\n<so>stash@{0}: On main: wip: refactor parser\nstash@{1}: On feat/x: WIP</so>'},
+        {desc:'Pop / apply', keys:['cmd:stash pop','·','cmd:stash apply'],
+         sample:'<sp>$</sp> git stash pop          <sc># most recent, then drop</sc>\n<sp>$</sp> git stash apply stash@{1}'},
+        {desc:'Annotated tag', keys:['cmd:tag -a v1.0 -m "msg"'],
+         sample:'<sp>$</sp> git tag -a v1.0.0 -m "first stable"\n<sp>$</sp> git push origin v1.0.0'},
+        {desc:'Push tags', keys:['cmd:push --tags'],
+         sample:'<sp>$</sp> git push --tags    <sc># push all local tags</sc>'},
+      ]},
+
+      { title:'Worktree &amp; Submodule', label:'parallel · nested', rows:[
+        {desc:'Add a worktree (parallel checkout)', keys:['cmd:worktree add'],
+         sample:'<sp>$</sp> git worktree add ../app-feat feat/login\n<sc># work on two branches at once, no stashing</sc>'},
+        {desc:'List worktrees', keys:['cmd:worktree list'],
+         sample:'<sp>$</sp> git worktree list\n<so>/home/lukas/app          a1b2c3d [main]\n/home/lukas/app-feat     d4e5f6a [feat/login]</so>'},
+        {desc:'Remove worktree', keys:['cmd:worktree remove'],
+         sample:'<sp>$</sp> git worktree remove ../app-feat'},
+        {desc:'Init / update submodules', keys:['cmd:submodule update'],
+         sample:'<sp>$</sp> git submodule update --init --recursive'},
+      ]},
+
+      { title:'Bisect', label:'find regression', rows:[
+        {desc:'Start the search', keys:['cmd:bisect start'],
+         sample:'<sp>$</sp> git bisect start    <sc># begin a bisect session</sc>'},
+        {desc:'Mark current as bad / good', keys:['cmd:bisect bad','·','cmd:bisect good'],
+         sample:'<sp>$</sp> git bisect start\n<sp>$</sp> git bisect bad           <sc># current commit is broken</sc>\n<sp>$</sp> git bisect good v1.2.0   <sc># this one worked</sc>\n<sc># git checks out midpoint; test, repeat:</sc>\n<sp>$</sp> git bisect good   <sc># or "bad"</sc>'},
+        {desc:'End the search', keys:['cmd:bisect reset'],
+         sample:'<sp>$</sp> git bisect reset    <sc># return to original HEAD</sc>'},
+      ]},
+    ]
+  },
+
+  /* ===================== TMUX ===================== */
+  {
+    id: 'tmux', label: 'Tmux',
+    note: '<strong>Prefix</strong>Default is <kbd>Ctrl</kbd>+<kbd>B</kbd>. Every shortcut below is pressed after releasing the prefix.',
+    groups: [
+      { title:'Sessions', label:'long-lived', rows:[
+        {desc:'New named session', keys:['cmd:tmux new -s name'],
+         sample:'<sp>$</sp> tmux new -s work'},
+        {desc:'Attach last / named', keys:['cmd:tmux a','·','cmd:a -t name']},
+        {desc:'List sessions', keys:['cmd:tmux ls'],
+         sample:'<sp>$</sp> tmux ls\n<so>work: 3 windows\nssh:  1 window</so>'},
+        {desc:'Detach', keys:['k:prefix','+','k:d']},
+        {desc:'Session chooser', keys:['k:prefix','+','k:s']},
+        {desc:'Rename session', keys:['k:prefix','+','k:$']},
+        {desc:'Kill server / session', keys:['cmd:tmux kill-server'],
+         sample:'<sp>$</sp> tmux kill-server          <sc># end ALL sessions</sc>\n<sp>$</sp> tmux kill-session -t work <sc># just one</sc>'},
+      ]},
+
+      { title:'Windows', label:'tabs', rows:[
+        {desc:'Create', keys:['k:prefix','+','k:c']},
+        {desc:'Next / previous', keys:['k:prefix','+','k:n','·','k:p']},
+        {desc:'Jump to N', keys:['k:prefix','+','k:0','…','k:9']},
+        {desc:'Last active', keys:['k:prefix','+','k:l']},
+        {desc:'Window chooser', keys:['k:prefix','+','k:w']},
+        {desc:'Rename / kill', keys:['k:prefix','+','k:,','·','k:&amp;']},
+        {desc:'Find by name', keys:['k:prefix','+','k:f']},
+      ]},
+
+      { title:'Panes — Splits', label:'divide', rows:[
+        {desc:'Split horizontal', keys:['k:prefix','+','k:"']},
+        {desc:'Split vertical', keys:['k:prefix','+','k:%']},
+        {desc:'Close pane', keys:['k:prefix','+','k:x']},
+        {desc:'Toggle zoom', keys:['k:prefix','+','k:z']},
+        {desc:'Pane → window', keys:['k:prefix','+','k:!']},
+        {desc:'Cycle layouts', keys:['k:prefix','+','k:Space']},
+        {desc:'Move pane to other window', keys:['cmd:join-pane -t :N'],
+         sample:'<sc># in command prompt (prefix + :)</sc>\n:join-pane -t :2     <sc># move to window 2</sc>'},
+      ]},
+
+      { title:'Panes — Navigate', label:'focus', rows:[
+        {desc:'Move (arrows)', keys:['k:prefix','+','k:←','k:↓','k:↑','k:→']},
+        {desc:'Cycle / last', keys:['k:prefix','+','k:o','·','k:;']},
+        {desc:'Show pane numbers', keys:['k:prefix','+','k:q']},
+        {desc:'Swap (rotate)', keys:['k:prefix','+','k:{','·','k:}']},
+        {desc:'Resize (hold + arrow)', keys:['k:prefix','+','k:Ctrl','+','k:↑↓←→']},
+        {desc:'Sync — type into all panes', keys:['cmd:setw synchronize-panes'],
+         sample:'<sc># toggle on/off (in command prompt):</sc>\n:setw synchronize-panes'},
+      ]},
+
+      { title:'Copy &amp; Scroll', label:'copy mode', rows:[
+        {desc:'Enter copy mode', keys:['k:prefix','+','k:[']},
+        {desc:'Move (vi keys)', keys:['k:h','k:j','k:k','k:l']},
+        {desc:'Select / copy', keys:['k:Space','·','k:Enter']},
+        {desc:'Search back / fwd', keys:['k:?','·','k:/']},
+        {desc:'Paste / exit', keys:['k:prefix','+','k:]','·','k:q']},
+      ]},
+
+      { title:'Misc', label:'help · reload', rows:[
+        {desc:'All key bindings', keys:['k:prefix','+','k:?']},
+        {desc:'Command prompt', keys:['k:prefix','+','k::']},
+        {desc:'Reload config', keys:['cmd::source ~/.tmux.conf'],
+         sample:'<sc># press prefix + : then type the command</sc>\n:source-file ~/.tmux.conf'},
+        {desc:'Show all options', keys:['cmd::show-options -g']},
+        {desc:'Clock', keys:['k:prefix','+','k:t']},
+      ]},
+    ]
+  },
+
+  /* ===================== NEOVIM ===================== */
+  {
+    id: 'nvim', label: 'Neovim · LazyVim',
+    note: '<strong>Leader</strong>LazyVim\'s leader is <kbd>Space</kbd>. Pause after pressing — which-key reveals options. <span class="mode-pill mode-n">N</span>ormal <span class="mode-pill mode-i">I</span>nsert <span class="mode-pill mode-v">V</span>isual <span class="mode-pill mode-c">C</span>md.',
+    groups: [
+      { title:'Modes &amp; Survival', label:'enter · escape · save', rows:[
+        {desc:'Insert before / after <span class="mode-pill mode-n">N</span>', keys:['k:i','·','k:a']},
+        {desc:'Start / end of line <span class="mode-pill mode-n">N</span>', keys:['k:I','·','k:A']},
+        {desc:'New line below / above <span class="mode-pill mode-n">N</span>', keys:['k:o','·','k:O']},
+        {desc:'Visual / line / block <span class="mode-pill mode-n">N</span>', keys:['k:v','·','k:V','·','k:Ctrl','+','k:v']},
+        {desc:'Back to normal <span class="mode-pill mode-i">I</span>', keys:['k:Esc','·','k:Ctrl','+','k:[']},
+        {desc:'Save / save+quit / quit <span class="mode-pill mode-c">C</span>', keys:['cmd::w','·','cmd::wq','·','cmd::q'],
+         sample:':w file.txt    save as\n:q!            discard\n:wqa           save+quit all'},
+      ]},
+
+      { title:'Insert Mode', label:'shortcuts <span class="mode-pill mode-i">I</span>', rows:[
+        {desc:'Delete word back', keys:['k:Ctrl','+','k:w']},
+        {desc:'Delete to line start', keys:['k:Ctrl','+','k:u']},
+        {desc:'Completion next / prev', keys:['k:Ctrl','+','k:n','·','k:Ctrl','+','k:p']},
+        {desc:'Paste from register', keys:['k:Ctrl','+','k:r','·','k:&lt;reg&gt;'],
+         sample:'<sc># Ctrl+r then " (last yank), * (selection), + (clipboard)</sc>'},
+        {desc:'Insert literal char', keys:['k:Ctrl','+','k:v','·','k:&lt;char&gt;']},
+      ]},
+
+      { title:'Cursor Motions', label:'move <span class="mode-pill mode-n">N</span>', rows:[
+        {desc:'L / D / U / R', keys:['k:h','k:j','k:k','k:l']},
+        {desc:'Word fwd / back / end', keys:['k:w','·','k:b','·','k:e']},
+        {desc:'Start / end / non-blank', keys:['k:0','·','k:$','·','k:^']},
+        {desc:'Top / bottom / line N', keys:['k:g','k:g','·','k:G','·','k::','k:N'],
+         sample:'42G    jump to line 42\n:120   same via cmd mode'},
+        {desc:'Match / center', keys:['k:%','·','k:z','k:z']},
+        {desc:'Page down / up', keys:['k:Ctrl','+','k:d','·','k:Ctrl','+','k:u']},
+        {desc:'Find char on line', keys:['k:f','k:?','·','k:t','k:?'],
+         sample:'fx    forward to next x\ntx    forward TILL next x\n;     repeat last f/t\n,     reverse it'},
+      ]},
+
+      { title:'Jump List &amp; History', label:'navigate <span class="mode-pill mode-n">N</span>', rows:[
+        {desc:'Jump back / forward', keys:['k:Ctrl','+','k:o','·','k:Ctrl','+','k:i'],
+         sample:'<sc># Ctrl+o is invaluable: \'go back to where I was\'</sc>'},
+        {desc:'Last edit position', keys:['k:g','k:;','·','k:g','k:,']},
+        {desc:'List jumps / changes', keys:['cmd::jumps','·','cmd::changes']},
+      ]},
+
+      { title:'Edit Operators', label:'d · y · c <span class="mode-pill mode-n">N</span>', rows:[
+        {desc:'Verb + motion', keys:['k:d','·','k:y','·','k:c'],
+         sample:'dw    delete word\nd$    to end of line\ny3y   yank 3 lines\nc2w   change 2 words'},
+        {desc:'Whole line', keys:['k:d','k:d','·','k:y','k:y','·','k:c','k:c']},
+        {desc:'Delete / replace char', keys:['k:x','·','k:r','k:?']},
+        {desc:'Paste after / before', keys:['k:p','·','k:P']},
+        {desc:'Undo / redo', keys:['k:u','·','k:Ctrl','+','k:r']},
+        {desc:'Indent / outdent', keys:['k:&gt;','k:&gt;','·','k:&lt;','k:&lt;']},
+        {desc:'Repeat last change', keys:['k:.']},
+      ]},
+
+      { title:'Text Objects', label:'verb + object <span class="mode-pill mode-n">N</span>', rows:[
+        {desc:'Inner / a-word', keys:['k:i','k:w','·','k:a','k:w'],
+         sample:'diw   delete inner word\ndaw   delete a word + space'},
+        {desc:'Quotes / brackets', keys:['k:i','k:"','·','k:i','k:(','·','k:i','k:{'],
+         sample:'ci"   change inside quotes\nda(   delete (incl. parens)\nyi{   yank inside braces'},
+        {desc:'Tag (HTML/JSX)', keys:['k:i','k:t','·','k:a','k:t']},
+        {desc:'Paragraph', keys:['k:i','k:p','·','k:a','k:p']},
+      ]},
+
+      { title:'Search &amp; Replace', label:'find · sub <span class="mode-pill mode-n">N</span>', rows:[
+        {desc:'Forward / backward', keys:['k:/','·','k:?']},
+        {desc:'Next / previous', keys:['k:n','·','k:N']},
+        {desc:'Word under cursor', keys:['k:*','·','k:#']},
+        {desc:'Substitute <span class="mode-pill mode-c">C</span>', keys:['cmd::%s/old/new/gc'],
+         sample:':%s/foo/bar/g     all in file\n:%s/foo/bar/gc    confirm each\n:.,+5s/foo/bar/g  current+5'},
+        {desc:'Clear highlight', keys:['k:Esc']},
+      ]},
+
+      { title:'Marks', label:'set · jump <span class="mode-pill mode-n">N</span>', rows:[
+        {desc:'Set local mark a–z', keys:['k:m','·','k:&lt;a-z&gt;'],
+         sample:'ma    mark this position as \'a\'\n\'a    jump to line of mark a\n`a    jump to exact spot'},
+        {desc:'Set global mark A–Z', keys:['k:m','·','k:&lt;A-Z&gt;'],
+         sample:'<sc># global marks work across files</sc>\nmA    set global mark A\n\'A    jump to it from any buffer'},
+        {desc:'List marks', keys:['cmd::marks'],
+         sample:':marks\n<so>mark line  col file/text\n a    42    8 src/main.py\n A    18    0 README.md</so>'},
+      ]},
+
+      { title:'Registers', label:'cut · copy buffers <span class="mode-pill mode-n">N</span>', rows:[
+        {desc:'Yank / paste to named reg', keys:['k:"','k:&lt;reg&gt;','·','k:y','/','k:p'],
+         sample:'"ayy   yank line to register a\n"ap    paste register a\n"+y    yank to system clipboard\n"+p    paste from system clipboard'},
+        {desc:'List all registers', keys:['cmd::reg'],
+         sample:':reg\n<so>"a   recently yanked text\n"+   system clipboard contents\n":   :%s/foo/bar/g</so>'},
+        {desc:'Common registers', keys:[],
+         sample:'"     last yank/delete\n0     last yank only\n+ *   system clipboard\n_     blackhole (discard)\n.     last inserted text\n%     current filename'},
+      ]},
+
+      { title:'Macros', label:'record · replay <span class="mode-pill mode-n">N</span>', rows:[
+        {desc:'Record / stop', keys:['k:q','·','k:&lt;reg&gt;'],
+         sample:'qa    start recording into register a\n...   do your edits\nq     stop recording'},
+        {desc:'Play once / repeat last', keys:['k:@','·','k:&lt;reg&gt;'],
+         sample:'@a    play macro a\n@@    repeat last played macro\n10@a  play macro a 10 times'},
+      ]},
+
+      { title:'Folds', label:'collapse <span class="mode-pill mode-n">N</span>', rows:[
+        {desc:'Open / close fold', keys:['k:z','k:o','·','k:z','k:c']},
+        {desc:'Toggle fold', keys:['k:z','k:a']},
+        {desc:'Open all / close all', keys:['k:z','k:R','·','k:z','k:M']},
+      ]},
+
+      { title:'Buffers &amp; Windows', label:'files · layout', rows:[
+        {desc:'Next / prev buffer', keys:['k:Shift','+','k:L','·','k:H']},
+        {desc:'Close buffer', keys:['k:Space','k:b','k:d']},
+        {desc:'Buffer picker', keys:['k:Space','k:,']},
+        {desc:'Split horiz / vert', keys:['k:Ctrl','+','k:w','+','k:s','·','k:v']},
+        {desc:'Move windows', keys:['k:Ctrl','+','k:w','+','k:h','k:j','k:k','k:l']},
+        {desc:'Resize wider / narrower', keys:['k:Ctrl','+','k:w','+','k:&gt;','·','k:&lt;']},
+        {desc:'Resize taller / shorter', keys:['k:Ctrl','+','k:w','+','k:+','·','k:-']},
+        {desc:'Close / equalize', keys:['k:Ctrl','+','k:w','+','k:q','·','k:=']},
+      ]},
+
+      { title:'Quickfix &amp; Diagnostics', label:'lists', rows:[
+        {desc:'Quickfix list (LazyVim)', keys:['k:Space','k:x','k:q']},
+        {desc:'Next / prev quickfix', keys:['cmd::cnext','·','cmd::cprev']},
+        {desc:'Open / close list', keys:['cmd::copen','·','cmd::cclose']},
+        {desc:'Next / prev diagnostic', keys:['k:]','k:d','·','k:[','k:d']},
+      ]},
+
+      { title:'LazyVim · Find', label:'Telescope', rows:[
+        {desc:'Find files', keys:['k:Space','k:Space']},
+        {desc:'Live grep', keys:['k:Space','k:/']},
+        {desc:'Recent files', keys:['k:Space','k:f','k:r']},
+        {desc:'Find in buffer', keys:['k:Space','k:s','k:b']},
+        {desc:'Help / keymaps', keys:['k:Space','k:s','k:h','·','k:k']},
+        {desc:'Resume picker', keys:['k:Space','k:s','k:R']},
+      ]},
+
+      { title:'LazyVim · Code', label:'LSP · format', rows:[
+        {desc:'File explorer', keys:['k:Space','k:e']},
+        {desc:'Hover docs', keys:['k:K']},
+        {desc:'Go to def / refs', keys:['k:g','k:d','·','k:g','k:r']},
+        {desc:'Rename / action', keys:['k:Space','k:c','k:r','·','k:a']},
+        {desc:'Format buffer', keys:['k:Space','k:c','k:f']},
+        {desc:'Toggle terminal', keys:['k:Ctrl','+','k:/']},
+        {desc:'Plugins / LSP <span class="mode-pill mode-c">C</span>', keys:['cmd::Lazy','·','cmd::Mason'],
+         sample:':Lazy sync   update plugins\n:Mason       install LSP/linter/fmt\n:LspInfo     buffer LSP info'},
+      ]},
+    ]
+  },
+
+  /* ===================== GNOME ===================== */
+  {
+    id: 'gnome', label: 'GNOME',
+    note: '<strong>Note</strong>The Win/Cmd key is called <em>Super</em>. Some shortcuts vary between X11 and Wayland sessions.',
+    groups: [
+      { title:'Activities', label:'overview', rows:[
+        {desc:'Toggle overview', keys:['k:Super']},
+        {desc:'App grid', keys:['k:Super','+','k:A']},
+        {desc:'Search (in overview)', keys:['k:Super',' then type']},
+        {desc:'Lock screen', keys:['k:Super','+','k:L']},
+        {desc:'Run command', keys:['k:Alt','+','k:F2']},
+        {desc:'Close menu / overview', keys:['k:Esc']},
+      ]},
+
+      { title:'Workspaces', label:'virtual desktops', rows:[
+        {desc:'Prev / Next', keys:['k:Ctrl','+','k:Super','+','k:←','·','k:→']},
+        {desc:'Move window to prev / next', keys:['k:Super','+','k:Shift','+','k:PgUp','·','k:PgDn']},
+        {desc:'Switch to app N', keys:['k:Super','+','k:1']},
+      ]},
+
+      { title:'Window Management', label:'tile · move', rows:[
+        {desc:'Switch app / within app', keys:['k:Alt','+','k:Tab','·','k:`']},
+        {desc:'Reverse direction (with Alt+Tab)', keys:['+','k:Shift']},
+        {desc:'Maximize / restore', keys:['k:Super','+','k:↑','·','k:↓']},
+        {desc:'Tile L / R', keys:['k:Super','+','k:←','·','k:→']},
+        {desc:'Minimize / close', keys:['k:Super','+','k:H','·','k:Alt','+','k:F4']},
+        {desc:'Move / resize', keys:['k:Alt','+','k:F7','·','k:F8']},
+        {desc:'Drag to move / resize', keys:['k:Super','+ drag','·','+ middle-drag'],
+         sample:'<sc># Super + left-drag from anywhere on the window\n# Super + middle-drag to resize without grabbing edges</sc>'},
+        {desc:'Fullscreen', keys:['k:F11']},
+      ]},
+
+      { title:'Screenshots', label:'capture · video', rows:[
+        {desc:'Screenshot tool', keys:['k:Print']},
+        {desc:'Whole screen → file', keys:['k:Shift','+','k:Print']},
+        {desc:'Active window', keys:['k:Alt','+','k:Print']},
+        {desc:'Screen recording', keys:['k:Ctrl','+','k:Alt','+','k:Shift','+','k:R']},
+      ]},
+
+      { title:'Misc', label:'zoom', rows:[
+        {desc:'Zoom in / out', keys:['k:Ctrl','+','k:+','·','k:−']},
+      ]},
+    ]
+  },
+
+  /* ===================== BRIDGE ===================== */
+  {
+    id: 'bridge', label: 'Tmux ⇄ Neovim',
+    note: '<strong>Why</strong>By default, Tmux and Neovim each grab <kbd>Ctrl</kbd>+<kbd>h/j/k/l</kbd>. With <em>vim-tmux-navigator</em> on both sides, the same chord moves seamlessly across panes and splits.',
+    groups: [
+      { title:'Seamless Navigation', label:'vim-tmux-navigator', rows:[
+        {desc:'Move L / D / U / R', keys:['k:Ctrl','+','k:h','k:j','k:k','k:l']},
+        {desc:'Previous', keys:['k:Ctrl','+','k:\\\\']},
+        {desc:'Install (both sides)', keys:['cmd:christoomey/vim-tmux-navigator'],
+         sample:'<sc># tmux: ~/.tmux.conf via TPM</sc>\nset -g @plugin \'christoomey/vim-tmux-navigator\'\n\n<sc># nvim: plugins/navigator.lua</sc>\nreturn { "christoomey/vim-tmux-navigator", lazy = false }'},
+      ]},
+
+      { title:'~/.tmux.conf', label:'starter config', rows:[
+        {desc:'', keys:[],
+         sample:'<sc># prefix: Ctrl-a</sc>\nunbind C-b\nset -g prefix C-a\nbind C-a send-prefix\n\n<sc># general</sc>\nset -g mouse on\nset -g base-index 1\nsetw -g pane-base-index 1\nset -g renumber-windows on\nsetw -g mode-keys vi\nset -g history-limit 50000\nset -sg escape-time 10\nset -g focus-events on\n\n<sc># true color</sc>\nset -g default-terminal "tmux-256color"\nset -ga terminal-overrides ",*256col*:Tc"\n\n<sc># mnemonic splits, current path</sc>\nunbind \'"\'\nunbind %\nbind | split-window -h -c "#{pane_current_path}"\nbind - split-window -v -c "#{pane_current_path}"\n\n<sc># reload</sc>\nbind r source-file ~/.tmux.conf \\; \\\n       display "reloaded"'},
+      ]},
+
+      { title:'Clipboard Bridge', label:'copy → system', rows:[
+        {desc:'X11 yank (in tmux.conf)', keys:['cmd:xclip'],
+         sample:'bind -T copy-mode-vi y \\\n  send -X copy-pipe-and-cancel \\\n  "xclip -in -selection clipboard"'},
+        {desc:'Wayland yank', keys:['cmd:wl-copy'],
+         sample:'bind -T copy-mode-vi y \\\n  send -X copy-pipe-and-cancel "wl-copy"'},
+        {desc:'Neovim system clipboard', keys:['k:"','k:+','k:y'],
+         sample:'<sc># options.lua</sc>\nvim.opt.clipboard = "unnamedplus"'},
+      ]},
+
+      { title:'Sessions Workflow', label:'resurrect · continuum', rows:[
+        {desc:'Save sessions', keys:['k:prefix','+','k:Ctrl','+','k:s']},
+        {desc:'Restore sessions', keys:['k:prefix','+','k:Ctrl','+','k:r']},
+        {desc:'TPM plugin block', keys:['cmd:~/.tmux.conf'],
+         sample:'set -g @plugin \'tmux-plugins/tpm\'\nset -g @plugin \'tmux-plugins/tmux-sensible\'\nset -g @plugin \'tmux-plugins/tmux-resurrect\'\nset -g @plugin \'tmux-plugins/tmux-continuum\'\nset -g @continuum-restore \'on\'\n\n<sc># keep at the very bottom</sc>\nrun \'~/.tmux/plugins/tpm/tpm\''},
+        {desc:'Install plugins', keys:['k:prefix','+','k:I']},
+      ]},
+
+      { title:'Neovim Side', label:'init.lua', rows:[
+        {desc:'Tmux interop options', keys:['cmd:options.lua'],
+         sample:'vim.opt.termguicolors = true\nvim.opt.timeoutlen   = 300\nvim.opt.clipboard    = "unnamedplus"\nvim.opt.guicursor    = ""\n\n<sc># pairs with focus-events on in tmux.conf</sc>\nvim.opt.autoread     = true'},
+      ]},
+    ]
+  },
+];
+
+/* =====================================================================
+   RENDERER
+   ===================================================================== */
+
+function renderKey(token) {
+  if (token === '+' || token === '·' || token === '/' || token === '…') {
+    return `<span class="sep">${token}</span>`;
+  }
+  if (token.startsWith('cmd:')) {
+    return `<kbd class="cmd">${token.slice(4)}</kbd>`;
+  }
+  if (token.startsWith('k:')) {
+    return `<kbd>${token.slice(2)}</kbd>`;
+  }
+  // raw text (e.g. " then type")
+  return `<span class="sep">${token}</span>`;
+}
+
+function renderRow(row) {
+  const keys = (row.keys || []).map(renderKey).join('');
+  const main = row.desc
+    ? `<div class="row-main"><span class="desc">${row.desc}</span><span class="keys">${keys}</span></div>`
+    : '';
+  const sample = row.sample ? `<div class="sample">${row.sample}</div>` : '';
+
+  // build searchable text — strip HTML, lowercase
+  const searchable = [
+    row.desc || '',
+    (row.keys || []).map(k => k.replace(/^(cmd:|k:)/, '')).join(' '),
+    (row.sample || '').replace(/<[^>]+>/g, '')
+  ].join(' ').replace(/&[a-z]+;/g, ' ').toLowerCase();
+
+  return `<div class="row" data-search="${searchable.replace(/"/g, '&quot;')}">${main}${sample}</div>`;
+}
+
+function renderGroup(group) {
+  const rows = group.rows.map(renderRow).join('');
+  const groupSearch = group.title.toLowerCase();
+  return `<div class="group" data-search="${groupSearch}">
+    <div class="group-head">
+      <h3>${group.title}</h3>
+      <span class="label">${group.label}</span>
+    </div>
+    ${rows}
+  </div>`;
+}
+
+function renderPanel(tab, isActive) {
+  const note = tab.note ? `<div class="note">${tab.note}</div>` : '';
+  const groups = tab.groups.map(renderGroup).join('');
+  const divider = `<div class="panel-divider">${tab.label}</div>`;
+  return `<section id="panel-${tab.id}" class="panel${isActive ? ' active' : ''}" role="tabpanel" data-tab-label="${tab.label}">
+    ${divider}
+    ${note}
+    <div class="groups">${groups}</div>
+  </section>`;
+}
+
+function renderTab(tab, idx, isActive) {
+  const num = String(idx + 1).padStart(2, '0');
+  return `<button class="tab${isActive ? ' active' : ''}" data-tab="${tab.id}" role="tab"><span class="num">${num}</span>${tab.label}</button>`;
+}
+
+function build() {
+  const initialId = (location.hash || '#shell').slice(1);
+  const initial = data.find(t => t.id === initialId) ? initialId : 'shell';
+
+  document.getElementById('tabs').innerHTML =
+    data.map((t, i) => renderTab(t, i, t.id === initial)).join('');
+
+  document.getElementById('content').innerHTML =
+    data.map(t => renderPanel(t, t.id === initial)).join('');
+
+  // wire up click handlers
+  document.querySelectorAll('.tab').forEach(t => {
+    t.addEventListener('click', () => activate(t.dataset.tab));
+  });
+}
+
+function activate(name) {
+  document.querySelectorAll('.tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.tab === name);
+  });
+  document.querySelectorAll('.panel').forEach(p => {
+    p.classList.toggle('active', p.id === 'panel-' + name);
+  });
+  history.replaceState(null, '', '#' + name);
+  window.scrollTo({ top: 0, behavior: 'instant' });
+}
+
+build();
+
+/* ===== THEMES ===== */
+const themes = [
+  { id: 'paper',          label: 'Paper',          group: 'Light' },
+  { id: 'warm',           label: 'Warm',           group: 'Light' },
+  { id: 'mint',           label: 'Cool Mint',      group: 'Light' },
+  { id: 'sepia',          label: 'Sepia',          group: 'Light' },
+  { id: 'high-contrast',  label: 'High Contrast',  group: 'Light' },
+  { id: 'mono',           label: 'Monochrome',     group: 'Light' },
+  { id: 'slate',          label: 'Slate',          group: 'Dark' },
+  { id: 'solarized-dark', label: 'Solarized Dark', group: 'Dark' },
+  { id: 'github-dark',    label: 'GitHub Dark',    group: 'Dark' },
+  { id: 'tokyo-night',    label: 'Tokyo Night',    group: 'Dark' },
+];
+
+const themePicker = document.getElementById('themePicker');
+const themeButton = document.getElementById('themeButton');
+const themeMenu = document.getElementById('themeMenu');
+const themeLabel = document.getElementById('themeLabel');
+const themeSwatch = document.getElementById('themeSwatch');
+
+function readSavedTheme() {
+  try { return localStorage.getItem('cheatsheet-theme') || 'paper'; }
+  catch (e) { return 'paper'; }
+}
+function saveTheme(id) {
+  try { localStorage.setItem('cheatsheet-theme', id); } catch (e) {}
+}
+
+function applyTheme(id) {
+  document.documentElement.setAttribute('data-theme', id);
+  const theme = themes.find(t => t.id === id) || themes[0];
+  themeLabel.textContent = theme.label;
+  // build swatch from the 7 accent colors of the now-applied theme
+  // read computed values after applying so the swatch reflects the actual theme
+  requestAnimationFrame(() => {
+    const styles = getComputedStyle(document.documentElement);
+    const colors = ['--c-shell','--c-docker','--c-git','--c-tmux','--c-nvim','--c-gnome','--c-bridge']
+      .map(v => styles.getPropertyValue(v).trim());
+    themeSwatch.innerHTML = colors.map(c => `<span style="background:${c}"></span>`).join('');
+  });
+  // re-mark active item in menu
+  themeMenu.querySelectorAll('button').forEach(b => {
+    b.classList.toggle('active', b.dataset.themeId === id);
+  });
+  saveTheme(id);
+}
+
+function buildThemeMenu() {
+  const groups = {};
+  themes.forEach(t => {
+    (groups[t.group] = groups[t.group] || []).push(t);
+  });
+  let html = '';
+  Object.keys(groups).forEach(g => {
+    html += `<div class="group-label">${g}</div>`;
+    groups[g].forEach(t => {
+      html += `<button data-theme-id="${t.id}">${t.label}</button>`;
+    });
+  });
+  themeMenu.innerHTML = html;
+  themeMenu.querySelectorAll('button').forEach(b => {
+    b.addEventListener('click', () => {
+      applyTheme(b.dataset.themeId);
+      themePicker.classList.remove('open');
+    });
+  });
+}
+
+themeButton.addEventListener('click', e => {
+  e.stopPropagation();
+  themePicker.classList.toggle('open');
+});
+document.addEventListener('click', e => {
+  if (!themePicker.contains(e.target)) {
+    themePicker.classList.remove('open');
+  }
+});
+
+buildThemeMenu();
+applyTheme(readSavedTheme());
+
+/* ===== TOOLTIP for truncated descriptions ===== */
+const tooltip = document.createElement('div');
+tooltip.className = 'tooltip';
+document.body.appendChild(tooltip);
+
+function isTruncated(el) {
+  return el.scrollWidth > el.clientWidth;
+}
+
+document.addEventListener('mouseover', e => {
+  const desc = e.target.closest('.desc');
+  if (!desc || !isTruncated(desc)) {
+    tooltip.classList.remove('visible');
+    return;
+  }
+  // use the element's text (with mark tags stripped, so a search-highlighted
+  // truncated row still shows clean text in tooltip)
+  tooltip.textContent = desc.textContent;
+  const rect = desc.getBoundingClientRect();
+  tooltip.style.left = rect.left + 'px';
+  tooltip.style.top = (rect.top - tooltip.offsetHeight - 8) + 'px';
+  // recompute after content set so positioning uses real height
+  requestAnimationFrame(() => {
+    tooltip.style.top = (rect.top - tooltip.offsetHeight - 8) + 'px';
+    tooltip.classList.add('visible');
+  });
+});
+
+document.addEventListener('mouseout', e => {
+  if (e.target.closest('.desc')) {
+    tooltip.classList.remove('visible');
+  }
+});
+
+document.addEventListener('scroll', () => tooltip.classList.remove('visible'), true);
+
+/* ===== SEARCH ===== */
+const searchInput = document.getElementById('search');
+const statsEl = document.getElementById('stats');
+const searchHint = document.getElementById('searchHint');
+const allRows = document.querySelectorAll('.row');
+const allGroups = document.querySelectorAll('.group');
+
+function applySearch(query) {
+  const q = query.trim().toLowerCase();
+  const body = document.body;
+
+  if (!q) {
+    // clear search state
+    body.classList.remove('searching', 'empty');
+    allRows.forEach(r => {
+      r.classList.remove('hidden');
+      clearHighlights(r);
+    });
+    allGroups.forEach(g => g.classList.remove('hidden'));
+    document.querySelectorAll('.panel').forEach(p => p.style.display = '');
+    statsEl.textContent = '';
+    searchHint.textContent = '/';
+    return;
+  }
+
+  body.classList.add('searching');
+  searchHint.textContent = 'Esc';
+
+  let matchCount = 0;
+  // filter rows
+  allRows.forEach(r => {
+    const haystack = r.dataset.search || '';
+    const matches = haystack.includes(q);
+    r.classList.toggle('hidden', !matches);
+    if (matches) matchCount++;
+  });
+
+  // hide groups that have no visible rows
+  allGroups.forEach(g => {
+    const visible = g.querySelectorAll('.row:not(.hidden)').length;
+    g.classList.toggle('hidden', visible === 0);
+  });
+
+  // hide panels that have no visible groups
+  document.querySelectorAll('.panel').forEach(p => {
+    const visible = p.querySelectorAll('.group:not(.hidden)').length;
+    p.style.display = visible === 0 ? 'none' : '';
+  });
+
+  body.classList.toggle('empty', matchCount === 0);
+  statsEl.textContent = matchCount + ' match' + (matchCount === 1 ? '' : 'es');
+
+  // highlight matches in visible rows
+  highlightMatches(q);
+}
+
+function clearHighlights(root) {
+  root.querySelectorAll('mark').forEach(m => {
+    const parent = m.parentNode;
+    while (m.firstChild) parent.insertBefore(m.firstChild, m);
+    parent.removeChild(m);
+    parent.normalize();
+  });
+}
+
+function highlightMatches(q) {
+  if (!q) return;
+  // always clear previous highlights from visible rows before re-applying
+  document.querySelectorAll('.row:not(.hidden)').forEach(r => clearHighlights(r));
+
+  const escaped = escapeRegex(q);
+  document.querySelectorAll('.row:not(.hidden)').forEach(r => {
+    // highlight in description, sample, AND the keys (cmd labels, kbd text)
+    r.querySelectorAll('.desc, .sample, .keys kbd').forEach(el => {
+      walkAndHighlight(el, escaped);
+    });
+  });
+}
+
+function walkAndHighlight(node, escaped) {
+  const walker = document.createTreeWalker(node, NodeFilter.SHOW_TEXT, {
+    acceptNode: n => {
+      // never re-highlight text already inside a <mark>
+      if (n.parentNode && n.parentNode.nodeName === 'MARK') return NodeFilter.FILTER_REJECT;
+      return NodeFilter.FILTER_ACCEPT;
+    }
+  });
+  const textNodes = [];
+  let n;
+  while ((n = walker.nextNode())) textNodes.push(n);
+
+  textNodes.forEach(textNode => {
+    const text = textNode.nodeValue;
+    // fresh regex per text node — avoids stateful lastIndex issues
+    const re = new RegExp(escaped, 'gi');
+    if (!re.test(text)) return;
+
+    re.lastIndex = 0;
+    const frag = document.createDocumentFragment();
+    let lastIdx = 0;
+    let m;
+    while ((m = re.exec(text)) !== null) {
+      if (m.index > lastIdx) {
+        frag.appendChild(document.createTextNode(text.slice(lastIdx, m.index)));
+      }
+      const mark = document.createElement('mark');
+      mark.textContent = m[0];
+      frag.appendChild(mark);
+      lastIdx = m.index + m[0].length;
+      if (m[0].length === 0) re.lastIndex++;
+    }
+    if (lastIdx < text.length) {
+      frag.appendChild(document.createTextNode(text.slice(lastIdx)));
+    }
+    textNode.parentNode.replaceChild(frag, textNode);
+  });
+}
+
+function escapeRegex(s) {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+searchInput.addEventListener('input', e => applySearch(e.target.value));
+
+searchInput.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    searchInput.value = '';
+    applySearch('');
+    searchInput.blur();
+  }
+});
+
+// global keybindings
+document.addEventListener('keydown', (e) => {
+  // / focuses search (when not already in an input)
+  if (e.key === '/' && document.activeElement !== searchInput) {
+    e.preventDefault();
+    searchInput.focus();
+    searchInput.select();
+    return;
+  }
+  // Esc clears search and exits
+  if (e.key === 'Escape' && document.body.classList.contains('searching')) {
+    searchInput.value = '';
+    applySearch('');
+    searchInput.blur();
+    return;
+  }
+  // number-key tab switching (only when not searching and not in input)
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  if (e.altKey || e.ctrlKey || e.metaKey) return;
+  if (document.body.classList.contains('searching')) return;
+  const idx = parseInt(e.key, 10);
+  if (!isNaN(idx) && idx >= 1 && idx <= data.length) {
+    activate(data[idx - 1].id);
+  }
+});
+</script>
+</body>
+</html>
