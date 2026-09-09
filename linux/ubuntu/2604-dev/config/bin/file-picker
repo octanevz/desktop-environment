@@ -7,9 +7,9 @@ set -euo pipefail
 # - Sends its path into the calling pane, relative if the file is under the
 #   popup's working directory and absolute otherwise
 #
-# Deployed to ~/.local/bin by setup_8_configs.sh and bound to prefix+C-f by
+# Deployed to ~/.local/bin by setup_07_configs.sh and bound to prefix+C-f by
 # both tmux.conf and the herdr config.toml. It needs fd (fdfind on Ubuntu) and
-# fzf, which setup_0_packages.sh installs.
+# fzf, which setup_00_packages.sh installs.
 #
 # It works under both multiplexers because only the final send differs:
 # - tmux passes the pane id in TMUX_FILE_PICKER_TARGET (see tmux.conf)
@@ -29,7 +29,7 @@ root=$(git rev-parse --show-toplevel 2> /dev/null || echo "$cwd_abs")
 # -----------------------------------------------------------------------------
 # Find fd
 # -----------------------------------------------------------------------------
-# Ubuntu ships the binary as fdfind; setup_0_packages.sh also links it as fd,
+# Ubuntu ships the binary as fdfind; setup_00_packages.sh also links it as fd,
 # and either name will do.
 if command -v fdfind > /dev/null 2>&1; then
     fd_cmd=fdfind

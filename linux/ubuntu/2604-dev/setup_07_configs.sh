@@ -9,8 +9,8 @@ set -euo pipefail
 # - Installs the file-picker helper both multiplexers bind
 # - Pins the installed applications to the GNOME dock
 #
-# Run this AFTER setup_0_packages.sh (tmux, Tmux Plugin Manager, fzf, fd, git,
-# the JetBrains Mono font) and setup_1_devtools.sh (herdr). setup_5 installs
+# Run this AFTER setup_00_packages.sh (tmux, Tmux Plugin Manager, fzf, fd, git,
+# the JetBrains Mono font) and setup_01_devtools.sh (herdr). setup_04 installs
 # Alacritty itself, but the configuration is deployed here whether or not you
 # ran it - a config for a program that is not installed is harmless.
 #
@@ -67,7 +67,7 @@ install_config() {
 # Install the file picker
 # -----------------------------------------------------------------------------
 # Both tmux and herdr bind this, so it goes in first. It needs fzf and fd,
-# which setup_0_packages.sh installs.
+# which setup_00_packages.sh installs.
 log "Installing the file picker..."
 install_config "$CONFIG_DIR/bin/file-picker" "$HOME/.local/bin/file-picker"
 chmod +x "$HOME/.local/bin/file-picker"
@@ -78,7 +78,7 @@ chmod +x "$HOME/.local/bin/file-picker"
 log "Installing the tmux configuration..."
 install_config "$CONFIG_DIR/tmux.conf" "$HOME/.tmux.conf"
 
-# TPM is cloned by setup_0_packages.sh, but it only fetches the plugins the
+# TPM is cloned by setup_00_packages.sh, but it only fetches the plugins the
 # configuration declares. install_plugins is TPM's own non-interactive entry
 # point and is safe to re-run - it skips what is already cloned.
 TPM_INSTALL="$HOME/.tmux/plugins/tpm/bin/install_plugins"
@@ -90,7 +90,7 @@ if [ -x "$TPM_INSTALL" ]; then
         log "  TPM reported a problem - press prefix + I inside tmux to retry."
     fi
 else
-    log "  Tmux Plugin Manager is not installed - run setup_0_packages.sh,"
+    log "  Tmux Plugin Manager is not installed - run setup_00_packages.sh,"
     log "  then press prefix + I inside tmux."
 fi
 
@@ -161,10 +161,10 @@ fi
 # on its first launch, not at install, so it too appears after a re-run.
 DOCK_FAVORITES=(
     org.gnome.Nautilus.desktop # Files
-    Alacritty.desktop          # setup_5_alacritty.sh
+    Alacritty.desktop          # setup_04_alacritty.sh
     code.desktop               # Visual Studio Code
     orca-ide.desktop           # Orca ADE
-    jetbrains-toolbox.desktop  # setup_3_jetbrains_toolbox.sh, after first launch
+    jetbrains-toolbox.desktop  # setup_02_jetbrains_toolbox.sh, after first launch
     google-chrome.desktop
     gimp.desktop
     org.gnome.Settings.desktop
@@ -201,7 +201,7 @@ done
 # The previous favourites are saved before they are replaced, like every other
 # file this script touches, and an unchanged dock is left alone. The write goes
 # through dconf rather than gsettings set because gsettings exits 0 even when it
-# could not reach dconf (see setup_0_packages.sh); without the session bus, as
+# could not reach dconf (see setup_00_packages.sh); without the session bus, as
 # over SSH, the command to run inside the desktop is printed instead.
 if command -v gsettings > /dev/null 2>&1 &&
     gsettings list-schemas 2> /dev/null | grep -x "org.gnome.shell" > /dev/null; then

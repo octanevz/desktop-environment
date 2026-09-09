@@ -3,13 +3,13 @@ set -euo pipefail
 
 # =============================================================================
 # This script performs the following tasks:
-# - Verifies the LazyVim prerequisites installed by setup_0_packages.sh
+# - Verifies the LazyVim prerequisites installed by setup_00_packages.sh
 # - Installs the LazyVim starter into ~/.config/nvim
 # - Enables the lang.json and lang.markdown LazyVim extras
 # - Sets spelllang to en_us
 # - Installs the plugins headlessly so the first real start is ready to go
 #
-# Run this AFTER setup_0_packages.sh, which installs everything LazyVim needs
+# Run this AFTER setup_00_packages.sh, which installs everything LazyVim needs
 # (Neovim, git, curl, unzip, ripgrep, fd, fzf, lazygit, a C compiler, python3,
 # the clipboard tools and a Nerd Font). This script installs none of them - it
 # only checks they are there.
@@ -63,7 +63,7 @@ done
 # -----------------------------------------------------------------------------
 # Verify the prerequisites
 # -----------------------------------------------------------------------------
-# All of these come from setup_0_packages.sh. As in setup_5_alacritty.sh, this
+# All of these come from setup_00_packages.sh. As in setup_04_alacritty.sh, this
 # script installs nothing on the host - it reports what is missing and stops.
 REQUIRED_COMMANDS=(
     cc
@@ -85,7 +85,7 @@ for cmd in "${REQUIRED_COMMANDS[@]}"; do
     fi
 done
 
-# Ubuntu names the fd binary fdfind; setup_0_packages.sh also links it as fd.
+# Ubuntu names the fd binary fdfind; setup_00_packages.sh also links it as fd.
 if ! command -v fd > /dev/null 2>&1 && ! command -v fdfind > /dev/null 2>&1; then
     MISSING_COMMANDS+=("fd")
 fi
@@ -97,7 +97,7 @@ fi
 
 if [ "${#MISSING_COMMANDS[@]}" -gt 0 ]; then
     echo "Missing LazyVim prerequisites: ${MISSING_COMMANDS[*]}" >&2
-    echo "They are installed by setup_0_packages.sh - run that first, then" >&2
+    echo "They are installed by setup_00_packages.sh - run that first, then" >&2
     echo "re-run this script." >&2
     exit 1
 fi
@@ -108,7 +108,7 @@ fi
 # SIGPIPE and the pipeline fails although the font is there.
 if ! fc-list 2> /dev/null | grep -i "nerd font" > /dev/null; then
     log "Warning: no Nerd Font found. Icons will render as boxes."
-    log "setup_0_packages.sh installs the Nerd Font symbols."
+    log "setup_00_packages.sh installs the Nerd Font symbols."
 fi
 
 nvim --version | head -1

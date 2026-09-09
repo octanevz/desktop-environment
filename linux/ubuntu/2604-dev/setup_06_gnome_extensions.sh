@@ -9,7 +9,7 @@ set -euo pipefail
 # - Installs them per-user and enables them
 # - Loads their settings from config/dconf with dconf load
 #
-# Run this AFTER setup_0_packages.sh, which installs curl, python3, dconf-cli
+# Run this AFTER setup_00_packages.sh, which installs curl, python3, dconf-cli
 # and gnome-shell-extension-manager (for managing and configuring the
 # extensions from a GUI afterwards). This script installs no packages - it only
 # checks they are there. gnome-shell and its gnome-extensions tool are required
@@ -95,7 +95,7 @@ done
 
 if [ "${#MISSING_COMMANDS[@]}" -gt 0 ]; then
     echo "Missing prerequisites: ${MISSING_COMMANDS[*]}" >&2
-    echo "They are installed by setup_0_packages.sh - run that first, then" >&2
+    echo "They are installed by setup_00_packages.sh - run that first, then" >&2
     echo "re-run this script." >&2
     exit 1
 fi
@@ -114,12 +114,12 @@ if ! command -v gnome-extensions > /dev/null 2>&1; then
     exit 1
 fi
 
-# Extension Manager comes from setup_0_packages.sh; it is not needed to install
+# Extension Manager comes from setup_00_packages.sh; it is not needed to install
 # the extensions, only to configure them afterwards, so this is a warning.
 if ! command -v gnome-extensions-app > /dev/null 2>&1 &&
     ! command -v extension-manager > /dev/null 2>&1; then
     log "Warning: Extension Manager was not found."
-    log "setup_0_packages.sh installs gnome-shell-extension-manager for it."
+    log "setup_00_packages.sh installs gnome-shell-extension-manager for it."
 fi
 
 # -----------------------------------------------------------------------------

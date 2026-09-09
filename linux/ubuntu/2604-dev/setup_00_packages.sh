@@ -45,16 +45,16 @@ sudo add-apt-repository -y -n universe
 # libfuse2 / liblttng-ust1 / libssl3 names. libicu-dev pulls in the matching
 # libicuXX runtime, so no version-pinned libicu package is listed here.
 #
-# desktop-file-utils is here because setup_5_alacritty.sh needs
+# desktop-file-utils is here because setup_04_alacritty.sh needs
 # desktop-file-install to install what it builds, and that script performs no
 # apt installs of its own. dconf-cli is here for the same reason:
-# setup_7_gnome_extensions.sh loads the extension settings with it. The
+# setup_06_gnome_extensions.sh loads the extension settings with it. The
 # libfontconfig1, libfreetype6, libwayland-client0, libxcb-xfixes0 and
-# libxkbcommon* entries are the Alacritty runtime libraries setup_5 verifies -
+# libxkbcommon* entries are the Alacritty runtime libraries setup_04 verifies -
 # see that script for why the split exists.
 #
 # The archive alacritty package is deliberately NOT installed: it is 0.16.1,
-# and setup_5_alacritty.sh builds the current release from source. Ubuntu
+# and setup_04_alacritty.sh builds the current release from source. Ubuntu
 # ships GNOME Terminal, so the machine is never without a terminal in between.
 #
 # Separate statements rather than one && chain: set -e ignores a failure
@@ -363,7 +363,7 @@ fi
 
 # Matched as the exact line: the Oh My Zsh template already mentions
 # $HOME/.local/bin in a commented-out example, which a looser grep would take
-# for the real thing. setup_1_devtools.sh relies on this entry for everything
+# for the real thing. setup_01_devtools.sh relies on this entry for everything
 # it puts in ~/.local/bin (orca-ide, claude, herdr).
 # shellcheck disable=SC2016 # written to .zshrc verbatim, expands there
 if ! grep -qxF 'export PATH="$HOME/.local/bin:$PATH"' ~/.zshrc; then
@@ -407,9 +407,9 @@ esac
 # Remove the Firefox snap (opt-in only)
 # -----------------------------------------------------------------------------
 # Ubuntu Desktop ships Firefox as a snap. Google Chrome is installed by
-# setup_1_devtools.sh, so the snap is redundant - but removing it deletes the
+# setup_01_devtools.sh, so the snap is redundant - but removing it deletes the
 # profile, so it only happens when explicitly requested:
-#   REMOVE_FIREFOX_SNAP=1 ./setup_0_packages.sh
+#   REMOVE_FIREFOX_SNAP=1 ./setup_00_packages.sh
 if [ "${REMOVE_FIREFOX_SNAP:-0}" = "1" ] && snap list firefox > /dev/null 2>&1; then
     log "Removing the Firefox snap..."
     sudo snap remove --purge firefox

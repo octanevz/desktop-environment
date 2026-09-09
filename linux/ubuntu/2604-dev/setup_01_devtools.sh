@@ -139,7 +139,7 @@ sudo apt install -y code
 # libgtk-3-0t64 and libatspi2.0-0t64 Provide them, so apt resolves both. The
 # rest it pulls in - libayatana-appindicator3-1, libayatana-ido3-0.4-0,
 # libayatana-indicator3-7, libxdo3, xdotool, xvfb, xclip - are all present,
-# some from universe, which setup_0_packages.sh enables.
+# some from universe, which setup_00_packages.sh enables.
 log "Installing Orca ADE..."
 
 ORCA_ASSET_URL="$(curl -fsSL https://api.github.com/repos/stablyai/orca/releases/latest |
@@ -168,7 +168,7 @@ fi
 
 # The package installs to /opt/Orca and puts its CLI at
 # /opt/Orca/resources/bin/orca-ide. Link it into ~/.local/bin, which
-# setup_0_packages.sh puts on PATH.
+# setup_00_packages.sh puts on PATH.
 #
 # The CLI is called orca-ide, never plain orca, and it must stay that way:
 # "orca" is the GNOME screen reader package on Debian/Ubuntu and owns
@@ -230,7 +230,7 @@ log "Node.js installation completed successfully!"
 # Codex CLI and OpenCode are the two coding agents next to Claude Code, which
 # has its own installer below. pyright and typescript-language-server (with
 # typescript) are the servers the pyright-lsp and typescript-lsp Claude Code
-# plugins from setup_2_claude_code_plugins.sh expect to find on PATH.
+# plugins from install_claude_code_plugins.sh expect to find on PATH.
 log "Installing the npm packages..."
 npm install -g \
     @openai/codex \
@@ -253,7 +253,7 @@ npm install -g \
 #
 # Everything lands under ~/.dotnet, which is why DOTNET_ROOT and the PATH
 # entries below are needed. libicu and libssl, which the runtime needs, come
-# from setup_0_packages.sh.
+# from setup_00_packages.sh.
 DOTNET_CHANNEL="10.0"
 
 # An archive SDK from an earlier version of this script would shadow the
@@ -296,7 +296,7 @@ log ".NET installation completed successfully!"
 # -----------------------------------------------------------------------------
 # Install Claude Code
 # -----------------------------------------------------------------------------
-# The installer drops the binary in ~/.local/bin, which setup_0_packages.sh
+# The installer drops the binary in ~/.local/bin, which setup_00_packages.sh
 # already puts on PATH.
 log "Installing Claude Code..."
 curl -fsSL https://claude.ai/install.sh | bash
@@ -312,7 +312,7 @@ log "Claude Code installation completed successfully!"
 # repository and no dpkg entry for it.
 #
 # The installer drops the binary in $HOME/.local/bin (override with
-# HERDR_INSTALL_DIR), which setup_0_packages.sh already puts on PATH, so no
+# HERDR_INSTALL_DIR), which setup_00_packages.sh already puts on PATH, so no
 # second PATH entry is added here.
 #
 # It updates itself with "herdr update" - which update-all.sh runs - and
