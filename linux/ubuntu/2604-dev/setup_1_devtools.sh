@@ -9,8 +9,9 @@ set -euo pipefail
 # - Installs Orca ADE
 # - Installs GitHub CLI
 # - Installs Node.js 24 using nvm
-# - Installs npm packages (Codex CLI, markdown-tree-parser, Prettier,
-#   markdownlint-cli2, the Pyright and TypeScript language servers)
+# - Installs npm packages (Codex CLI, OpenCode, markdown-tree-parser,
+#   Prettier, markdownlint-cli2, the Pyright and TypeScript language
+#   servers)
 # - Installs .NET 10 LTS and the csharp-ls language server
 # - Installs Claude Code
 # - Installs herdr and its Zsh completion
@@ -225,12 +226,14 @@ log "Node.js installation completed successfully!"
 # -----------------------------------------------------------------------------
 # Install npm packages
 # -----------------------------------------------------------------------------
-# pyright and typescript-language-server (with typescript) are the servers the
-# pyright-lsp and typescript-lsp Claude Code plugins from
-# setup_2_claude_code_plugins.sh expect to find on PATH.
+# Codex CLI and OpenCode are the two coding agents next to Claude Code, which
+# has its own installer below. pyright and typescript-language-server (with
+# typescript) are the servers the pyright-lsp and typescript-lsp Claude Code
+# plugins from setup_2_claude_code_plugins.sh expect to find on PATH.
 log "Installing the npm packages..."
 npm install -g \
     @openai/codex \
+    opencode-ai \
     @kayvan/markdown-tree-parser \
     prettier \
     markdownlint-cli2 \
