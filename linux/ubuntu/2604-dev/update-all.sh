@@ -13,7 +13,7 @@ set -euo pipefail
 # - Updates the Oh My Zsh custom plugins
 # - Updates lazygit
 #
-# Registered as the update-all alias by setup_01_devtools.sh.
+# Registered as the update-all alias by setup-01-devtools.sh.
 # =============================================================================
 
 log() {
@@ -33,7 +33,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # -----------------------------------------------------------------------------
 # Update the .NET SDK
 # -----------------------------------------------------------------------------
-# setup_01_devtools.sh installs the SDK with dotnet-install.sh into ~/.dotnet,
+# setup-01-devtools.sh installs the SDK with dotnet-install.sh into ~/.dotnet,
 # outside apt, so the same call is repeated here. It resolves the newest SDK
 # of the channel and is a no-op when that version is already installed.
 DOTNET_CHANNEL="10.0"
@@ -77,7 +77,7 @@ done
 # -----------------------------------------------------------------------------
 # Update the global npm packages
 # -----------------------------------------------------------------------------
-# Codex CLI, the language servers and the rest of what setup_01_devtools.sh
+# Codex CLI, the language servers and the rest of what setup-01-devtools.sh
 # installs with npm.
 log "Updating the global npm packages..."
 npm update -g
@@ -98,7 +98,7 @@ claude update
 # -----------------------------------------------------------------------------
 # Update the agent skills
 # -----------------------------------------------------------------------------
-# The skills install_claude_code_plugins.sh installed globally with the skills
+# The skills setup-agents.sh installed globally with the skills
 # CLI, for Claude Code, Codex and OpenCode alike. Run through npx like the
 # install, so the CLI itself is always current too. Nothing to do until that
 # script has been run, which the CLI reports rather than fails on.
@@ -115,7 +115,7 @@ herdr update
 # -----------------------------------------------------------------------------
 # Update the Oh My Zsh custom plugins
 # -----------------------------------------------------------------------------
-# setup_00_packages.sh clones them from GitHub. Oh My Zsh's own updater pulls
+# setup-00-packages.sh clones them from GitHub. Oh My Zsh's own updater pulls
 # the framework only and leaves custom/plugins alone, so they are pulled here.
 for plugin in zsh-autosuggestions zsh-syntax-highlighting; do
     PLUGIN_DIR="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/plugins/$plugin"
@@ -129,14 +129,14 @@ for plugin in zsh-autosuggestions zsh-syntax-highlighting; do
             log "Updated $plugin ($PLUGIN_BEFORE -> $PLUGIN_AFTER)."
         fi
     else
-        log "$plugin is not installed - run setup_00_packages.sh."
+        log "$plugin is not installed - run setup-00-packages.sh."
     fi
 done
 
 # -----------------------------------------------------------------------------
 # Update lazygit
 # -----------------------------------------------------------------------------
-# setup_00_packages.sh installs it from its GitHub releases: it has no
+# setup-00-packages.sh installs it from its GitHub releases: it has no
 # self-update and apt knows nothing about it.
 #
 # The installed version is compared first, so a run with nothing to do costs

@@ -5,14 +5,14 @@ set -euo pipefail
 # This script performs the following tasks:
 # - Clones the Alacritty source tree
 # - Builds Alacritty from source inside an ubuntu:26.04 Docker container
-# - Verifies the runtime dependencies installed by setup_00_packages.sh
+# - Verifies the runtime dependencies installed by setup-00-packages.sh
 # - Installs the binary, terminfo, desktop entry, icon, man pages and
 #   the Zsh completion on the host
 #
-# Run this AFTER setup_00_packages.sh and setup_01_devtools.sh:
-# - setup_00_packages.sh installs the libraries the binary needs at run time,
+# Run this AFTER setup-00-packages.sh and setup-01-devtools.sh:
+# - setup-00-packages.sh installs the libraries the binary needs at run time,
 #   which this script verifies
-# - setup_01_devtools.sh installs Docker, which the build runs in
+# - setup-01-devtools.sh installs Docker, which the build runs in
 #
 # Update workflow: bump ALACRITTY_VERSION below to the new tag and re-run this
 # script. It re-points the clone at that tag, rebuilds and reinstalls.
@@ -58,7 +58,7 @@ log() {
 # Parse the arguments
 # -----------------------------------------------------------------------------
 # Rebuild and reinstall even when the installed version already matches, via
-# either FORCE=1 ./setup_04_alacritty.sh or ./setup_04_alacritty.sh --force
+# either FORCE=1 ./setup-04-alacritty.sh or ./setup-04-alacritty.sh --force
 FORCE="${FORCE:-0}"
 
 for arg in "$@"; do
@@ -78,13 +78,13 @@ done
 # Check the prerequisites
 # -----------------------------------------------------------------------------
 if ! command -v docker > /dev/null 2>&1; then
-    echo "Docker is not installed. Run setup_01_devtools.sh first." >&2
+    echo "Docker is not installed. Run setup-01-devtools.sh first." >&2
     exit 1
 fi
 
 if ! docker info > /dev/null 2>&1; then
     echo "Cannot talk to the Docker daemon. Make sure it is running and that" >&2
-    echo "you have logged out and back in since setup_01_devtools.sh added you" >&2
+    echo "you have logged out and back in since setup-01-devtools.sh added you" >&2
     echo "to the docker group." >&2
     exit 1
 fi
@@ -93,7 +93,7 @@ fi
 # Verify the runtime dependencies
 # -----------------------------------------------------------------------------
 # The libraries the finished binary needs at run time are installed by
-# setup_00_packages.sh, not here - this script only checks for them. Installing
+# setup-00-packages.sh, not here - this script only checks for them. Installing
 # them here as well would blur the line this split exists to draw: the host
 # gets runtime libraries, the container gets everything needed to compile.
 #
@@ -102,7 +102,7 @@ fi
 # and the Rust toolchain - are installed INSIDE the ubuntu:26.04 container
 # further down and must never be hoisted onto the host. Keeping the ~1.5 GB
 # toolchain and the -dev packages off the host is the whole point of building
-# in a container; adding them to setup_00_packages.sh would defeat it.
+# in a container; adding them to setup-00-packages.sh would defeat it.
 ALACRITTY_RUNTIME_LIBS=(
     libfontconfig1
     libfreetype6
@@ -122,19 +122,19 @@ done
 
 if [ "${#MISSING_LIBS[@]}" -gt 0 ]; then
     echo "Missing Alacritty runtime libraries: ${MISSING_LIBS[*]}" >&2
-    echo "They are installed by setup_00_packages.sh - run that first, then" >&2
+    echo "They are installed by setup-00-packages.sh - run that first, then" >&2
     echo "re-run this script." >&2
     exit 1
 fi
 
 # desktop-file-install (desktop-file-utils) installs the desktop entry. It is
 # an install-time helper rather than a runtime library, but it comes from
-# setup_00_packages.sh all the same, because this script performs no apt
+# setup-00-packages.sh all the same, because this script performs no apt
 # installs on the host at all. tic, the other helper, is in ncurses-bin, which
 # is Essential and cannot be missing.
 if ! command -v desktop-file-install > /dev/null 2>&1; then
     echo "desktop-file-install is missing. It comes from desktop-file-utils," >&2
-    echo "installed by setup_00_packages.sh - run that first, then re-run this" >&2
+    echo "installed by setup-00-packages.sh - run that first, then re-run this" >&2
     echo "script." >&2
     exit 1
 fi
@@ -310,10 +310,10 @@ sudo install -D -m 644 "$ALACRITTY_SRC/target/man/alacritty-escapes.7.gz" /usr/l
 # -----------------------------------------------------------------------------
 # Install the Zsh completion
 # -----------------------------------------------------------------------------
-# setup_00_packages.sh makes Zsh the default shell, so only the Zsh completion
+# setup-00-packages.sh makes Zsh the default shell, so only the Zsh completion
 # is installed here. It goes into Oh My Zsh's custom/completions directory,
 # which is on fpath before compinit runs (see the herdr completion in
-# setup_01_devtools.sh for why that matters).
+# setup-01-devtools.sh for why that matters).
 log "Installing the Zsh completion..."
 ZSH_COMPLETIONS="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/completions"
 mkdir -p "$ZSH_COMPLETIONS"

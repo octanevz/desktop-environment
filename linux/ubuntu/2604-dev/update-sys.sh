@@ -6,7 +6,7 @@ set -euo pipefail
 # - Updates and cleans up the Ubuntu packages
 # - Refreshes the snaps
 #
-# Registered as the update-sys alias by setup_01_devtools.sh, and run first by
+# Registered as the update-sys alias by setup-01-devtools.sh, and run first by
 # update-all.sh.
 # =============================================================================
 
