@@ -198,15 +198,30 @@ for app in "${DOCK_FAVORITES[@]}"; do
     fi
 done
 
-# gsettings needs the session bus, as in setup_0_packages.sh: over SSH it
-# cannot write, so the command to run inside the desktop is printed instead.
+# The previous favourites are saved before they are replaced, like every other
+# file this script touches, and an unchanged dock is left alone. The write goes
+# through dconf rather than gsettings set because gsettings exits 0 even when it
+# could not reach dconf (see setup_0_packages.sh); without the session bus, as
+# over SSH, the command to run inside the desktop is printed instead.
 if command -v gsettings > /dev/null 2>&1 &&
-    gsettings list-schemas 2> /dev/null | grep -qx "org.gnome.shell"; then
-    if gsettings set org.gnome.shell favorite-apps "[$FAVORITES]" 2> /dev/null; then
-        log "  Dock: $FAVORITES"
+    gsettings list-schemas 2> /dev/null | grep -x "org.gnome.shell" > /dev/null; then
+    # gsettings get prints an empty list as "@as []" and a populated one without
+    # the type prefix, so the prefix is stripped for the comparison; the write
+    # always carries it, because dconf cannot infer the type of a bare [].
+    CURRENT_FAVORITES="$(gsettings get org.gnome.shell favorite-apps)"
+    if [ "${CURRENT_FAVORITES#@as }" = "[$FAVORITES]" ]; then
+        log "  Dock is already up to date."
     else
-        log "  Could not reach dconf. Inside a desktop session, run:"
-        log "    gsettings set org.gnome.shell favorite-apps \"[$FAVORITES]\""
+        DOCK_BACKUP="$HOME/.local/state/gnome-dock/favorite-apps.bak-$TIMESTAMP"
+        mkdir -p "$(dirname "$DOCK_BACKUP")"
+        printf '%s\n' "$CURRENT_FAVORITES" > "$DOCK_BACKUP"
+        log "  Backed up the previous dock -> $DOCK_BACKUP"
+        if dconf write /org/gnome/shell/favorite-apps "@as [$FAVORITES]" 2> /dev/null; then
+            log "  Dock: $FAVORITES"
+        else
+            log "  Could not reach dconf. Inside a desktop session, run:"
+            log "    gsettings set org.gnome.shell favorite-apps \"[$FAVORITES]\""
+        fi
     fi
 else
     log "  No GNOME Shell schema found - skipping the dock."

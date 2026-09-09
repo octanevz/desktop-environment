@@ -103,8 +103,10 @@ if [ "${#MISSING_COMMANDS[@]}" -gt 0 ]; then
 fi
 
 # The Nerd Font is only needed for the icons, so a missing one is a warning
-# rather than a reason to stop.
-if ! fc-list 2> /dev/null | grep -qi "nerd font"; then
+# rather than a reason to stop. grep reads fc-list to the end rather than
+# quitting at the first match (-q): under pipefail an early quit sends fc-list
+# SIGPIPE and the pipeline fails although the font is there.
+if ! fc-list 2> /dev/null | grep -i "nerd font" > /dev/null; then
     log "Warning: no Nerd Font found. Icons will render as boxes."
     log "setup_0_packages.sh installs the Nerd Font symbols."
 fi

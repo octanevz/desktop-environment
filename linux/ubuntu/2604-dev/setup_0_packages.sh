@@ -164,7 +164,7 @@ log "Configuring the locale ($UI_LOCALE interface, $FORMATS_LOCALE formats)..."
 # so the dash is stripped and the comparison is case-insensitive.
 LOCALE_GEN_NEEDED=0
 for locale_name in "$UI_LOCALE" "$FORMATS_LOCALE"; do
-    if locale -a 2> /dev/null | grep -qix "${locale_name//-/}"; then
+    if locale -a 2> /dev/null | grep -ix "${locale_name//-/}" > /dev/null; then
         continue
     fi
 
@@ -200,10 +200,13 @@ log "  Wrote /etc/default/locale."
 # written. The two are set from the same variables above, so they cannot drift.
 #
 # The schema is org.gnome.system.locale, but the dconf path behind it is the
-# legacy /system/locale/ - NOT /org/gnome/system/locale/ - which is worth
-# knowing if you ever dump it alongside the extension settings in config/dconf.
-if gsettings list-schemas 2> /dev/null | grep -qx "org.gnome.system.locale"; then
-    if gsettings set org.gnome.system.locale region "$FORMATS_LOCALE" 2> /dev/null; then
+# legacy /system/locale/ - NOT /org/gnome/system/locale/ - which is why the
+# write below names that path. It is written with dconf rather than gsettings
+# set: gsettings exits 0 even when it could not reach dconf (it only prints a
+# warning), so its status says nothing, whereas dconf write fails properly and
+# the fallback below can trigger. Both tools need the session bus to write.
+if gsettings list-schemas 2> /dev/null | grep -x "org.gnome.system.locale" > /dev/null; then
+    if dconf write /system/locale/region "'$FORMATS_LOCALE'" 2> /dev/null; then
         log "  Set the GNOME Formats region to $FORMATS_LOCALE."
     else
         log "  Could not reach dconf. Inside a desktop session, run:"
@@ -251,7 +254,10 @@ if [ -d "$HOME/.oh-my-zsh" ]; then
     log "Oh My Zsh is already installed at $HOME/.oh-my-zsh. Skipping installation."
 else
     log "Installing Oh My Zsh..."
-    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+    # Downloaded into a variable first: a failed substitution inside a command
+    # argument does not trip set -e, and sh -c "" would "succeed" silently.
+    OMZ_INSTALLER="$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+    sh -c "$OMZ_INSTALLER" "" --unattended
 fi
 
 # Set Zsh as the default shell (chsh asks for a password, so only when needed)
