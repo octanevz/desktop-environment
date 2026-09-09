@@ -66,7 +66,7 @@ A set of scripts intended to be run sequentially on a fresh Ubuntu 26.04 LTS ins
 
 | Script | What it does |
 |--------|-------------|
-| `setup_0_packages.sh` | Enables `universe` and `multiverse`, updates the OS, installs essential packages (curl, git, gpg, mesa-utils, GIMP, Extension Manager, etc.), installs Oh My Zsh with autosuggestions and syntax highlighting, sets Zsh as the default shell, installs everything LazyVim needs (Neovim stable, ripgrep, fd-find, fzf, build-essential, tree-sitter-cli, lazygit, xclip/wl-clipboard, JetBrains Mono + Nerd Font symbols, python3/venv/pip), installs the runtime libraries Alacritty links against, sets an English interface with German formats, installs the Microsoft core fonts, installs Tmux Plugin Manager, and installs the VMware guest tools in a VMware VM or proprietary drivers on bare metal |
+| `setup_0_packages.sh` | Enables `universe` and `multiverse`, updates the OS, installs essential packages (curl, git, gpg, mesa-utils, tmux, GIMP, Extension Manager, etc.) and the runtime libraries Alacritty links against, sets an English interface with German formats, installs the Microsoft core fonts, installs Oh My Zsh with autosuggestions and syntax highlighting, sets Zsh as the default shell, installs everything LazyVim needs (Neovim stable, ripgrep, fd-find, fzf, build-essential, tree-sitter-cli, lazygit, xclip/wl-clipboard, JetBrains Mono + Nerd Font symbols, python3/venv/pip), installs Tmux Plugin Manager, installs the VMware guest tools in a VMware VM or proprietary drivers on bare metal, and optionally removes the Firefox snap (`REMOVE_FIREFOX_SNAP=1`) |
 | `setup_1_devtools.sh` | Installs Docker Engine, Google Chrome, Visual Studio Code, Orca ADE, GitHub CLI, Node.js 24 (via nvm), npm packages (Codex CLI, OpenCode, markdown-tree-parser, Prettier, markdownlint-cli2, Pyright and the TypeScript language server), .NET 10 LTS from the Ubuntu archive plus csharp-ls, Claude Code, herdr (with its Zsh completion), and registers `update-sys`/`update-all` shell aliases |
 | `setup_2_claude_code_plugins.sh` | Installs Claude Code plugins from the official marketplace (context7, feature-dev, frontend-design, hookify, and others), plus `codex-debate` from the `octanevz` marketplace. The three `*-lsp` plugins use the language servers `setup_1` installs |
 | `setup_3_jetbrains_toolbox.sh` | Installs JetBrains Toolbox |
@@ -119,6 +119,7 @@ Assuming the repo has been cloned to `~/github/octanevz/desktop-environment`:
 ## Repository Structure
 
 ```
+cheatsheet.html # Shell/Docker/Git/Tmux/Neovim/GNOME cheatsheet
 linux/
   debian/
     13-trixie-dev/ # Debian 13 Trixie development setup
@@ -131,6 +132,14 @@ linux/
       updall.sh
   ubuntu/
     2604-dev/ # Ubuntu 26.04 LTS development setup
+      config/
+        alacritty/alacritty.toml # deployed by setup_8
+        bin/file-picker # deployed by setup_8
+        dconf/ # loaded by setup_7
+          caffeine.ini
+          tiling-shell.ini
+        herdr/config.toml # deployed by setup_8
+        tmux.conf # deployed by setup_8
       setup_0_packages.sh
       setup_1_devtools.sh
       setup_2_claude_code_plugins.sh
@@ -140,16 +149,8 @@ linux/
       setup_6_lazyvim.sh
       setup_7_gnome_extensions.sh
       setup_8_configs.sh
-      config/
-        tmux.conf # deployed by setup_8
-        alacritty/alacritty.toml
-        herdr/config.toml
-        bin/file-picker
-        dconf/ # loaded by setup_7
-          caffeine.ini
-          tiling-shell.ini
-      update-sys.sh
       update-all.sh
+      update-sys.sh
 ```
 
 ## License
