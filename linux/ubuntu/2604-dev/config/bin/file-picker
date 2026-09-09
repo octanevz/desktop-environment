@@ -1,0 +1,80 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# =============================================================================
+# This script performs the following tasks:
+# - Fuzzy-picks a file with fd and fzf
+# - Sends its path into the calling pane, relative if the file is under the
+#   popup's working directory and absolute otherwise
+#
+# Deployed to ~/.local/bin by setup_8_configs.sh and bound to prefix+C-f by
+# both tmux.conf and the herdr config.toml. It needs fd (fdfind on Ubuntu) and
+# fzf, which setup_0_packages.sh installs.
+#
+# It works under both multiplexers because only the final send differs:
+# - tmux passes the pane id in TMUX_FILE_PICKER_TARGET (see tmux.conf)
+# - herdr passes it in HERDR_ACTIVE_PANE_ID for custom commands
+# With neither set the path is printed on stdout, so it stays usable on its
+# own and in a pipeline.
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Determine the search root
+# -----------------------------------------------------------------------------
+# The whole git project if the popup's working directory is inside one, the
+# working directory itself otherwise.
+cwd_abs=$(realpath -- "$PWD")
+root=$(git rev-parse --show-toplevel 2> /dev/null || echo "$cwd_abs")
+
+# -----------------------------------------------------------------------------
+# Find fd
+# -----------------------------------------------------------------------------
+# Ubuntu ships the binary as fdfind; setup_0_packages.sh also links it as fd,
+# and either name will do.
+if command -v fdfind > /dev/null 2>&1; then
+    fd_cmd=fdfind
+elif command -v fd > /dev/null 2>&1; then
+    fd_cmd=fd
+else
+    printf 'file-picker: fd/fdfind not found\n' >&2
+    exit 1
+fi
+
+# -----------------------------------------------------------------------------
+# Pick a file
+# -----------------------------------------------------------------------------
+# Hidden files are included, the .git directory is not. Cancelling fzf (Esc or
+# Ctrl-C) exits non-zero, which is not an error here: nothing gets sent.
+selection=$(
+    "$fd_cmd" --type f --hidden --exclude .git . "$root" |
+        fzf --reverse --prompt 'file > ' --no-multi --height 100%
+) || exit 0
+
+[ -z "$selection" ] && exit 0
+
+# -----------------------------------------------------------------------------
+# Make the path relative when it is under the popup's working directory
+# -----------------------------------------------------------------------------
+# fd prints paths under $root, which may be above the working directory, so
+# the result is normalised first and then stripped of the cwd prefix when it
+# has one. Anything outside the working directory stays absolute.
+abs=$(realpath -- "$selection")
+
+case "$abs" in
+    "$cwd_abs"/*) out=${abs#"$cwd_abs"/} ;;
+    "$cwd_abs") out='.' ;;
+    *) out="$abs" ;;
+esac
+
+# -----------------------------------------------------------------------------
+# Send the path into the calling pane
+# -----------------------------------------------------------------------------
+# tmux types it literally (-l) into the pane the binding recorded; herdr does
+# the same through its pane API. Without a pane it goes to stdout.
+if [ -n "${TMUX_FILE_PICKER_TARGET:-}" ]; then
+    tmux send-keys -l -t "$TMUX_FILE_PICKER_TARGET" -- "$out"
+elif [ -n "${HERDR_ACTIVE_PANE_ID:-}" ]; then
+    "${HERDR_BIN_PATH:-herdr}" pane send-text "$HERDR_ACTIVE_PANE_ID" "$out"
+else
+    printf '%s\n' "$out"
+fi
