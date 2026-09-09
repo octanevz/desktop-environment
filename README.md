@@ -83,7 +83,7 @@ Two maintenance scripts are also included and registered as shell aliases during
 | Script | Alias | What it does |
 |--------|-------|-------------|
 | `update-sys.sh` | `update-sys` | Updates and cleans up Ubuntu packages and snaps |
-| `update-all.sh` | `update-all` | Runs `update-sys.sh`, then updates the .NET SDK, global npm packages, csharp-ls, Claude Code, herdr, the Oh My Zsh plugins, and lazygit |
+| `update-all.sh` | `update-all` | Runs `update-sys.sh`, then updates the .NET SDK (pruning older SDKs and runtimes), global npm packages, csharp-ls, Claude Code, herdr, the Oh My Zsh plugins, and lazygit |
 
 ### Running the scripts
 

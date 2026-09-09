@@ -4,7 +4,7 @@ set -euo pipefail
 # =============================================================================
 # This script performs the following tasks:
 # - Runs update-sys.sh (apt packages and snaps)
-# - Updates the .NET SDK
+# - Updates the .NET SDK and prunes the older SDKs and runtimes
 # - Updates the global npm packages
 # - Updates csharp-ls
 # - Updates Claude Code
@@ -37,13 +37,43 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # setup_1_devtools.sh installs the SDK with dotnet-install.sh into ~/.dotnet,
 # outside apt, so the same call is repeated here. It resolves the newest SDK
 # of the channel and is a no-op when that version is already installed.
-# Older SDKs and runtimes are left in place next to the new one - remove them
-# from ~/.dotnet/sdk and ~/.dotnet/shared by hand if they pile up.
 DOTNET_CHANNEL="10.0"
+DOTNET_ROOT="${DOTNET_ROOT:-$HOME/.dotnet}"
 
 log "Updating the .NET SDK..."
 curl -fsSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin --channel "$DOTNET_CHANNEL"
 dotnet --version
+
+# The installer adds the new version next to the old ones and never removes
+# anything, so every versioned directory under ~/.dotnet is pruned to its
+# newest entry: the SDKs, the shared runtimes (Microsoft.NETCore.App and
+# Microsoft.AspNetCore.App), the host resolver, the targeting packs and the
+# templates. Only ~/.dotnet is touched - an SDK from apt lives elsewhere.
+# Note that a project whose global.json pins an older SDK would stop
+# building after this; none here do.
+prune_versions() {
+    local dir="$1"
+    [ -d "$dir" ] || return 0
+    local versions
+    versions="$(find "$dir" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | sort -V)"
+    [ -n "$versions" ] || return 0
+    local newest
+    newest="$(printf '%s\n' "$versions" | tail -n 1)"
+    local version
+    while IFS= read -r version; do
+        [ "$version" = "$newest" ] && continue
+        rm -rf "${dir:?}/$version"
+        log "  Removed ${dir#"$DOTNET_ROOT/"}/$version (kept $newest)."
+    done <<< "$versions"
+}
+
+log "Pruning the older .NET SDKs and runtimes..."
+prune_versions "$DOTNET_ROOT/sdk"
+prune_versions "$DOTNET_ROOT/host/fxr"
+prune_versions "$DOTNET_ROOT/templates"
+for dir in "$DOTNET_ROOT"/shared/*/ "$DOTNET_ROOT"/packs/*/; do
+    [ -d "$dir" ] && prune_versions "${dir%/}"
+done
 
 # -----------------------------------------------------------------------------
 # Update the global npm packages
