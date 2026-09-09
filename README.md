@@ -62,8 +62,6 @@ Assuming the repo has been cloned to `~/github/octanevz/desktop-environment`:
 
 Location: `linux/ubuntu/2604-dev/`
 
-[Explore the graphical workstation overview](ubuntu-setup-overview.html) — an interactive map of the setup stages, prerequisites, tools, and maintenance commands. Open the HTML file in a browser; it works offline and includes a print/PDF layout.
-
 A set of scripts intended to be run sequentially on a fresh Ubuntu 26.04 LTS installation. Each script handles a specific layer of the setup:
 
 | Script | What it does |
