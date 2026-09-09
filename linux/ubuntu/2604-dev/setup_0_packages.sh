@@ -155,34 +155,48 @@ FORMAT_CATEGORIES=(
 
 log "Configuring the locale ($UI_LOCALE interface, $FORMATS_LOCALE formats)..."
 
-# Both locales are generated, not just the German one: update-locale validates
-# every value it is given and refuses the entire call if any of them is
-# missing, so assuming the installer already produced en_US.UTF-8 would make
-# this fail on an install done in another language.
+# Both locales are made available, not just the German one: update-locale
+# validates every value it is given and refuses the entire call if any of
+# them is missing, so assuming the installer already produced en_US.UTF-8
+# would make this fail on an install done in another language.
 #
-# "locale -a" prints the generated names in their normalised form (de_DE.utf8),
-# so the dash is stripped and the comparison is case-insensitive.
-LOCALE_GEN_NEEDED=0
+# Ubuntu locales come from language packs, not from /etc/locale.gen: each
+# language-pack-XX-base registers its locales in /var/lib/locales/supported.d
+# and compiles them, and GNOME's Formats list only offers regions whose
+# language pack is installed. So the pack for each locale's language is
+# installed first, which also brings the translations.
+#
+# Do NOT edit /etc/locale.gen and run a bare "locale-gen" instead. Ubuntu's
+# locale-gen pipes that file through "sort -u", and under the en_US.UTF-8
+# collation the template line "# de_DE.UTF-8 UTF-8" compares equal to the
+# real entry "de_DE.UTF-8 UTF-8". sort keeps the first of the two - the
+# comment - and the locale is silently never generated. Called with the
+# locale names as arguments, locale-gen resolves them against
+# /usr/share/i18n/SUPPORTED itself, compiles them and keeps the archive,
+# which is the form used here after the packs, as a belt-and-braces step.
+LANGUAGE_PACKS=()
 for locale_name in "$UI_LOCALE" "$FORMATS_LOCALE"; do
-    if locale -a 2> /dev/null | grep -ix "${locale_name//-/}" > /dev/null; then
-        continue
-    fi
+    LANGUAGE_PACKS+=("language-pack-${locale_name%%_*}-base")
+done
+log "  Installing the language packs (${LANGUAGE_PACKS[*]})..."
+sudo apt install -y "${LANGUAGE_PACKS[@]}"
 
-    if ! grep -qxF "$locale_name UTF-8" /etc/locale.gen; then
-        echo "$locale_name UTF-8" | sudo tee -a /etc/locale.gen > /dev/null
+log "  Generating the locales..."
+sudo locale-gen "$UI_LOCALE" "$FORMATS_LOCALE"
+
+# The same check update-locale performs, so a missing locale is reported
+# here by name rather than as a rejected update-locale call further down.
+for locale_name in "$UI_LOCALE" "$FORMATS_LOCALE"; do
+    if ! LC_ALL="$locale_name" locale charmap > /dev/null 2>&1; then
+        echo "The locale $locale_name is not available after locale-gen." >&2
+        echo "Check the locale-gen output above; 'locale -a' lists what exists." >&2
+        exit 1
     fi
-    LOCALE_GEN_NEEDED=1
 done
 
-if [ "$LOCALE_GEN_NEEDED" = "1" ]; then
-    log "  Generating the locales..."
-    sudo locale-gen
-else
-    log "  $UI_LOCALE and $FORMATS_LOCALE are already generated."
-fi
-
-# update-locale writes /etc/default/locale, which PAM puts into the environment
-# of every login - terminals, SSH sessions and cron alike.
+# update-locale writes /etc/locale.conf (Ubuntu 26.04 links the old
+# /etc/default/locale to it), which PAM puts into the environment of every
+# login - terminals, SSH sessions and cron alike.
 LOCALE_ASSIGNMENTS=(
     "LANG=$UI_LOCALE"
     "LANGUAGE=${UI_LOCALE%%.*}:${UI_LOCALE%%_*}"
@@ -192,9 +206,9 @@ for category in "${FORMAT_CATEGORIES[@]}"; do
 done
 
 sudo update-locale "${LOCALE_ASSIGNMENTS[@]}"
-log "  Wrote /etc/default/locale."
+log "  Wrote /etc/locale.conf."
 
-# GNOME does not take its formats from /etc/default/locale: gnome-session
+# GNOME does not take its formats from /etc/locale.conf: gnome-session
 # exports the same categories from its own Formats setting, so that has to be
 # set as well or the desktop session would quietly override what was just
 # written. The two are set from the same variables above, so they cannot drift.
