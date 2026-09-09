@@ -5,7 +5,6 @@ set -euo pipefail
 # This script performs the following tasks:
 # - Updates the OS and installs required packages
 # - Sets an English UI with German date, number and paper formats
-# - Installs the Microsoft core fonts (auto-accepting their EULA)
 # - Installs Oh My Zsh with autosuggestions and syntax highlighting plugins
 # - Sets Zsh as the default shell
 # - Installs Neovim (LazyVim prerequisites) and its ecosystem tools
@@ -28,16 +27,15 @@ log() {
 }
 
 # -----------------------------------------------------------------------------
-# Enable the universe and multiverse components
+# Enable the universe component
 # -----------------------------------------------------------------------------
-# universe carries btop, eza, xdotool and friends; multiverse is needed for
-# ttf-mscorefonts-installer further down. Ubuntu Desktop enables both out of
+# universe carries btop, eza, ripgrep, the GNOME tweak tools and friends;
+# everything else below is in main. Ubuntu Desktop enables universe out of
 # the box, so this is a no-op there; it matters on an install that was trimmed
-# to main. -n skips the apt update add-apt-repository would otherwise run per
-# call - the next section updates once for everything.
+# to main. -n skips the apt update add-apt-repository would otherwise run -
+# the next section updates once for everything.
 sudo apt install -y software-properties-common
 sudo add-apt-repository -y -n universe
-sudo add-apt-repository -y -n multiverse
 
 # -----------------------------------------------------------------------------
 # Update OS and install some required packages
@@ -231,33 +229,6 @@ else
 fi
 
 log "  Log out and back in for the new locale to take effect."
-
-# -----------------------------------------------------------------------------
-# Install the Microsoft core fonts
-# -----------------------------------------------------------------------------
-# ttf-mscorefonts-installer lives in multiverse (enabled above) and asks the
-# user to accept the Microsoft EULA through debconf, which would hang an
-# unattended run. The line below PRE-ACCEPTS THE MICROSOFT EULA on your
-# behalf - that is a deliberate choice made here, not a hidden side effect.
-# Remove this section if you do not want to agree to it.
-#
-# The question is a boolean (verified against ttf-mscorefonts-installer
-# 3.8.1ubuntu2 in resolute), and debconf-set-selections comes from debconf
-# itself, which is Priority: required, so nothing extra is needed for it.
-#
-# The package ships no fonts: it downloads them from a SourceForge mirror at
-# install time. That means it needs working network beyond the apt mirrors and
-# can fail on its own if the mirror is unreachable - which is why it is
-# installed separately here, so a font mirror outage cannot take the rest of
-# the package installation down with it.
-log "Installing the Microsoft core fonts (this accepts the Microsoft EULA)..."
-echo "ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula boolean true" |
-    sudo debconf-set-selections
-
-if ! sudo DEBIAN_FRONTEND=noninteractive apt install -y ttf-mscorefonts-installer; then
-    log "The Microsoft core fonts failed to install (the font mirror may be down)."
-    log "Re-run: sudo DEBIAN_FRONTEND=noninteractive apt install -y ttf-mscorefonts-installer"
-fi
 
 # -----------------------------------------------------------------------------
 # Install Oh My Zsh and plugins
