@@ -62,12 +62,14 @@ Assuming the repo has been cloned to `~/github/octanevz/desktop-environment`:
 
 Location: `linux/ubuntu/2604-dev/`
 
+[Explore the graphical workstation overview](ubuntu-setup-overview.html) — an interactive map of the setup stages, prerequisites, tools, and maintenance commands. Open the HTML file in a browser; it works offline and includes a print/PDF layout.
+
 A set of scripts intended to be run sequentially on a fresh Ubuntu 26.04 LTS installation. Each script handles a specific layer of the setup:
 
 | Script | What it does |
 |--------|-------------|
 | `setup_0_packages.sh` | Enables `universe` and `multiverse`, updates the OS, installs essential packages (curl, git, gpg, mesa-utils, tmux, GIMP, Extension Manager, etc.) and the runtime libraries Alacritty links against, sets an English interface with German formats, installs the Microsoft core fonts, installs Oh My Zsh with autosuggestions and syntax highlighting, sets Zsh as the default shell, installs everything LazyVim needs (Neovim stable, ripgrep, fd-find, fzf, build-essential, tree-sitter-cli, lazygit, xclip/wl-clipboard, JetBrains Mono + Nerd Font symbols, python3/venv/pip), installs Tmux Plugin Manager, installs the VMware guest tools in a VMware VM or proprietary drivers on bare metal, and optionally removes the Firefox snap (`REMOVE_FIREFOX_SNAP=1`) |
-| `setup_1_devtools.sh` | Installs Docker Engine, Google Chrome, Visual Studio Code, Orca ADE, GitHub CLI, Node.js 24 (via nvm), npm packages (Codex CLI, OpenCode, markdown-tree-parser, Prettier, markdownlint-cli2, Pyright and the TypeScript language server), .NET 10 LTS from the Ubuntu archive plus csharp-ls, Claude Code, herdr (with its Zsh completion), and registers `update-sys`/`update-all` shell aliases |
+| `setup_1_devtools.sh` | Installs Docker Engine, Google Chrome, Visual Studio Code, Orca ADE, GitHub CLI, Node.js 24 (via nvm), npm packages (Codex CLI, OpenCode, markdown-tree-parser, Prettier, markdownlint-cli2, Pyright and the TypeScript language server), .NET 10 LTS via Microsoft's `dotnet-install.sh` (so the newest SDK is available the day it is published) plus csharp-ls, Claude Code, herdr (with its Zsh completion), and registers `update-sys`/`update-all` shell aliases |
 | `setup_2_claude_code_plugins.sh` | Installs Claude Code plugins from the official marketplace (context7, feature-dev, frontend-design, hookify, and others), plus `codex-debate` from the `octanevz` marketplace. The three `*-lsp` plugins use the language servers `setup_1` installs |
 | `setup_3_jetbrains_toolbox.sh` | Installs JetBrains Toolbox |
 | `setup_4_docker_images.sh` | Pulls Docker images: PostgreSQL 18, Jupyter SciPy Notebook, Jupyter PyTorch Notebook, and the `ubuntu:26.04` image `setup_5` builds in, removing the previous version of each |
@@ -81,7 +83,7 @@ Two maintenance scripts are also included and registered as shell aliases during
 | Script | Alias | What it does |
 |--------|-------|-------------|
 | `update-sys.sh` | `update-sys` | Updates and cleans up Ubuntu packages and snaps |
-| `update-all.sh` | `update-all` | Runs `update-sys.sh` (which also covers the .NET SDK, since it comes from the archive), then updates global npm packages, csharp-ls, Claude Code, herdr, the Oh My Zsh plugins, and lazygit |
+| `update-all.sh` | `update-all` | Runs `update-sys.sh`, then updates the .NET SDK, global npm packages, csharp-ls, Claude Code, herdr, the Oh My Zsh plugins, and lazygit |
 
 ### Running the scripts
 

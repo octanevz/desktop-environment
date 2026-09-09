@@ -12,7 +12,8 @@ set -euo pipefail
 # - Installs npm packages (Codex CLI, OpenCode, markdown-tree-parser,
 #   Prettier, markdownlint-cli2, the Pyright and TypeScript language
 #   servers)
-# - Installs .NET 10 LTS and the csharp-ls language server
+# - Installs .NET 10 LTS with Microsoft's dotnet-install.sh and the csharp-ls
+#   language server
 # - Installs Claude Code
 # - Installs herdr and its Zsh completion
 # - Registers update-sys and update-all aliases in .zshrc
@@ -244,10 +245,35 @@ npm install -g \
 # -----------------------------------------------------------------------------
 # Install .NET 10 LTS and csharp-ls
 # -----------------------------------------------------------------------------
-# Ubuntu packages .NET itself, so the SDK comes from the archive and update-sys
-# keeps it patched - unlike the dotnet-install.sh route, which nothing updates.
-log "Installing .NET 10 LTS..."
-sudo apt install -y dotnet-sdk-10.0
+# Installed with Microsoft's dotnet-install.sh rather than the archive's
+# dotnet-sdk-10.0: Ubuntu tracks the 1xx SDK feature band, while the script
+# resolves the newest band of the channel (currently 4xx), so the latest
+# tooling is available the day Microsoft publishes it. The price is that apt
+# knows nothing about it - update-all.sh re-runs the same install to keep up.
+#
+# Everything lands under ~/.dotnet, which is why DOTNET_ROOT and the PATH
+# entries below are needed. libicu and libssl, which the runtime needs, come
+# from setup_0_packages.sh.
+DOTNET_CHANNEL="10.0"
+
+# An archive SDK from an earlier version of this script would shadow the
+# user-local one, since /usr/bin comes first on PATH.
+if dpkg-query -W dotnet-sdk-10.0 > /dev/null 2>&1; then
+    log "Removing the archive .NET SDK in favour of the dotnet-install.sh one..."
+    sudo apt remove -y dotnet-sdk-10.0
+    sudo apt autoremove -y
+fi
+
+log "Installing .NET $DOTNET_CHANNEL LTS..."
+curl -fsSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin --channel "$DOTNET_CHANNEL"
+
+# shellcheck disable=SC2016 # written to .zshrc verbatim, expands there
+if ! grep -qxF 'export DOTNET_ROOT="$HOME/.dotnet"' ~/.zshrc; then
+    echo 'export DOTNET_ROOT="$HOME/.dotnet"' >> ~/.zshrc
+    echo 'export PATH="$PATH:$DOTNET_ROOT"' >> ~/.zshrc
+fi
+export DOTNET_ROOT="$HOME/.dotnet"
+export PATH="$PATH:$DOTNET_ROOT"
 dotnet --version
 
 # csharp-ls is the server the csharp-lsp Claude Code plugin expects. Global

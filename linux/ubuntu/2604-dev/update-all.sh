@@ -3,7 +3,8 @@ set -euo pipefail
 
 # =============================================================================
 # This script performs the following tasks:
-# - Runs update-sys.sh (apt packages, the .NET SDK among them, and snaps)
+# - Runs update-sys.sh (apt packages and snaps)
+# - Updates the .NET SDK
 # - Updates the global npm packages
 # - Updates csharp-ls
 # - Updates Claude Code
@@ -29,6 +30,20 @@ log() {
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 "$SCRIPT_DIR/update-sys.sh"
+
+# -----------------------------------------------------------------------------
+# Update the .NET SDK
+# -----------------------------------------------------------------------------
+# setup_1_devtools.sh installs the SDK with dotnet-install.sh into ~/.dotnet,
+# outside apt, so the same call is repeated here. It resolves the newest SDK
+# of the channel and is a no-op when that version is already installed.
+# Older SDKs and runtimes are left in place next to the new one - remove them
+# from ~/.dotnet/sdk and ~/.dotnet/shared by hand if they pile up.
+DOTNET_CHANNEL="10.0"
+
+log "Updating the .NET SDK..."
+curl -fsSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin --channel "$DOTNET_CHANNEL"
+dotnet --version
 
 # -----------------------------------------------------------------------------
 # Update the global npm packages
