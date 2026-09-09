@@ -8,6 +8,7 @@ set -euo pipefail
 # - Updates the global npm packages
 # - Updates csharp-ls
 # - Updates Claude Code
+# - Updates the agent skills
 # - Updates herdr
 # - Updates the Oh My Zsh custom plugins
 # - Updates lazygit
@@ -95,6 +96,16 @@ dotnet tool update --global csharp-ls
 # -----------------------------------------------------------------------------
 log "Updating Claude Code..."
 claude update
+
+# -----------------------------------------------------------------------------
+# Update the agent skills
+# -----------------------------------------------------------------------------
+# The skills install_claude_code_plugins.sh installed globally with the skills
+# CLI, for Claude Code, Codex and OpenCode alike. Run through npx like the
+# install, so the CLI itself is always current too. Nothing to do until that
+# script has been run, which the CLI reports rather than fails on.
+log "Updating the agent skills..."
+npx -y skills update -g -y
 
 # -----------------------------------------------------------------------------
 # Update herdr

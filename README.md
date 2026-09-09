@@ -74,14 +74,14 @@ A set of scripts intended to be run sequentially on a fresh Ubuntu 26.04 LTS ins
 | `setup_05_lazyvim.sh` | Installs the LazyVim starter into `~/.config/nvim`, enables the `lang.json` and `lang.markdown` extras, sets `spelllang` to `en_us`, and installs the plugins headlessly. Needs `setup_00` (prerequisites) |
 | `setup_06_gnome_extensions.sh` | Installs the Caffeine and Tiling Shell GNOME Shell extensions from extensions.gnome.org, matched to the running GNOME Shell version, enables them, and loads their settings from `config/dconf/` with `dconf load`. Needs `setup_00` (prerequisites) |
 | `setup_07_configs.sh` | Installs the configuration files from `config/`: `.tmux.conf` (plus the TPM plugins), the Alacritty config and the theme repository it imports, the herdr config, and the shared `file-picker` helper, and pins the installed applications to the GNOME dock. Backs up anything it replaces |
-| `install_claude_code_plugins.sh` | Installs Claude Code plugins from the official marketplace (context7, feature-dev, frontend-design, hookify, and others), plus `codex-debate` from the `octanevz` marketplace. The three `*-lsp` plugins use the language servers `setup_01` installs. Not part of the numbered sequence; checks that Claude Code is logged in first |
+| `install_claude_code_plugins.sh` | Installs Claude Code plugins from the official marketplace (context7, feature-dev, frontend-design, hookify, and others), plus `codex-debate` from the `octanevz` marketplace. The three `*-lsp` plugins use the language servers `setup_01` installs. Also installs the Orca ADE skills (computer-use, orca-cli, orchestration) and find-skills for Claude Code, Codex and OpenCode at once via `npx skills`. Not part of the numbered sequence; checks that Claude Code is logged in first |
 
 Two maintenance scripts are also included and registered as shell aliases during setup:
 
 | Script | Alias | What it does |
 |--------|-------|-------------|
 | `update-sys.sh` | `update-sys` | Updates and cleans up Ubuntu packages and snaps |
-| `update-all.sh` | `update-all` | Runs `update-sys.sh`, then updates the .NET SDK (pruning older SDKs and runtimes), global npm packages, csharp-ls, Claude Code, herdr, the Oh My Zsh plugins, and lazygit |
+| `update-all.sh` | `update-all` | Runs `update-sys.sh`, then updates the .NET SDK (pruning older SDKs and runtimes), global npm packages, csharp-ls, Claude Code, the agent skills, herdr, the Oh My Zsh plugins, and lazygit |
 
 ### Running the scripts
 

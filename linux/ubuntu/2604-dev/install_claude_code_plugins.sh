@@ -6,6 +6,7 @@ set -euo pipefail
 # - Verifies that Claude Code is installed and logged in
 # - Installs the Claude Code plugins from the official marketplace
 # - Adds the octanevz marketplace and installs codex-debate from it
+# - Installs agent skills for Claude Code, Codex and OpenCode at once
 #
 # Not part of the numbered sequence: it can be run at any time after
 # setup_01_devtools.sh (Claude Code, the Codex CLI and the language servers
@@ -63,4 +64,38 @@ claude plugin install typescript-lsp@claude-plugins-official
 claude plugin marketplace add octanevz/codex-debate
 claude plugin install codex-debate@octanevz
 
-log "Claude Code plugins installed successfully!"
+# -----------------------------------------------------------------------------
+# Install agent skills for Claude Code, Codex and OpenCode
+# -----------------------------------------------------------------------------
+# Skills are shared between the agents, so they are installed once with the
+# skills CLI (https://skills.sh) rather than per agent: it puts them under
+# ~/.agents/skills, which Codex and OpenCode read directly, and symlinks them
+# into ~/.claude/skills for Claude Code. Run through npx so nothing has to be
+# installed or updated - update-all.sh runs "skills update" the same way.
+#
+# Each entry is a GitHub repository followed by the skills to take from it.
+# The Orca ones are the three Orca ADE itself installs on first launch;
+# find-skills is the skills CLI's own discovery skill. -a and -s are
+# repeated per value - the CLI does not split comma-separated lists.
+SKILL_AGENTS=(claude-code codex opencode)
+SKILL_SOURCES=(
+    "stablyai/orca computer-use orca-cli orchestration"
+    "vercel-labs/skills find-skills"
+)
+
+AGENT_ARGS=()
+for agent in "${SKILL_AGENTS[@]}"; do
+    AGENT_ARGS+=(-a "$agent")
+done
+
+for source in "${SKILL_SOURCES[@]}"; do
+    read -r repo skills <<< "$source"
+    SKILL_ARGS=()
+    for skill in $skills; do
+        SKILL_ARGS+=(-s "$skill")
+    done
+    log "Installing $skills from $repo for ${SKILL_AGENTS[*]}..."
+    npx -y skills add "$repo" -g -y "${AGENT_ARGS[@]}" "${SKILL_ARGS[@]}"
+done
+
+log "Claude Code plugins and agent skills installed successfully!"
