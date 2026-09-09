@@ -11,15 +11,11 @@ set -euo pipefail
 #
 # Run this AFTER setup_00_packages.sh, which installs everything LazyVim needs
 # (Neovim, git, curl, unzip, ripgrep, fd, fzf, lazygit, a C compiler, python3,
-# the clipboard tools and a Nerd Font). This script installs none of them - it
-# only checks they are there.
+# the clipboard tools and a Nerd Font); this script verifies they are there.
 #
 # Everything is left at LazyVim defaults apart from the two extras and
 # spelllang. The extras are a plugin SELECTION rather than configuration:
 # without them the JSON and Markdown tooling is not installed at all.
-#
-# No lazy-lock.json is carried over, so a fresh machine resolves current
-# plugin versions instead of inheriting another machine's pins.
 #
 # The plugins are installed at the end by running Neovim headlessly, so the
 # first interactive start does not drop you into a cloning progress screen.
@@ -63,8 +59,8 @@ done
 # -----------------------------------------------------------------------------
 # Verify the prerequisites
 # -----------------------------------------------------------------------------
-# All of these come from setup_00_packages.sh. As in setup_04_alacritty.sh, this
-# script installs nothing on the host - it reports what is missing and stops.
+# All of these come from setup_00_packages.sh. As in setup_04_alacritty.sh, the
+# script reports what is missing and stops.
 REQUIRED_COMMANDS=(
     cc
     curl
@@ -174,9 +170,7 @@ EOF
 # Set spelllang to en_us
 # -----------------------------------------------------------------------------
 # The only option overridden here. LazyVim defaults to { "en" }, which accepts
-# both US and British spellings; this narrows it to US English. Everything
-# else - conceallevel, wrap, linebreak, spell, shiftwidth, tabstop - is
-# already the LazyVim default and is deliberately not repeated.
+# both US and British spellings; this narrows it to US English.
 log "Setting spelllang to en_us..."
 cat >> "$NVIM_CONFIG/lua/config/options.lua" << 'EOF'
 
@@ -191,12 +185,11 @@ EOF
 # updates and cleans every plugin in the spec without opening a UI. Without it
 # the first interactive start spends its first minute cloning ~37 plugins.
 #
-# What this does NOT do is install the treesitter parsers and the Mason tools.
-# Those are fetched by nvim-treesitter and mason.nvim once they load, and in a
-# headless sync they never load - :TSUpdateSync and :MasonInstall do not even
-# exist there. They are downloaded on the first interactive start instead, and
-# mason logging that it aborted an installation during this sync is expected
-# and leaves nothing behind.
+# The treesitter parsers and the Mason tools are downloaded on the first
+# interactive start instead: nvim-treesitter and mason.nvim fetch them once
+# they load, and in a headless sync they never load. mason logging that it
+# aborted an installation during this sync is expected and leaves nothing
+# behind.
 #
 # The output is verbose and mixes in those abort notices, so it goes to a log
 # and is only shown if the sync actually fails. A failure is not fatal: the

@@ -11,9 +11,9 @@ set -euo pipefail
 #
 # Run this AFTER setup_00_packages.sh, which installs curl, python3, dconf-cli
 # and gnome-shell-extension-manager (for managing and configuring the
-# extensions from a GUI afterwards). This script installs no packages - it only
-# checks they are there. gnome-shell and its gnome-extensions tool are required
-# and expected to be present already; the script stops if they are not.
+# extensions from a GUI afterwards); this script verifies they are there.
+# gnome-shell and its gnome-extensions tool are required and expected to be
+# present already; the script stops if they are not.
 #
 # Extension builds are per shell version, so the shell version is detected at
 # runtime rather than hardcoded, and the script refuses to install anything
@@ -219,10 +219,6 @@ fi
 #
 # last-version-name-installed in tiling-shell.ini is written by the extension
 # and suppresses its "what's new" screen; it is carried over as dumped.
-# overridden-settings, which records the GNOME keybindings Tiling Shell
-# replaced so it can restore them when disabled, is deliberately NOT in the
-# dump: it is per-machine undo state, and a pre-seeded value would be restored
-# in place of this machine's own bindings.
 for entry in "${DCONF_SETTINGS[@]}"; do
     DCONF_PATH="${entry%%|*}"
     DUMP_NAME="${entry##*|}"

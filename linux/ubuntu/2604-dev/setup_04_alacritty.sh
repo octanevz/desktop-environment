@@ -10,15 +10,14 @@ set -euo pipefail
 #   the Zsh completion on the host
 #
 # Run this AFTER setup_00_packages.sh and setup_01_devtools.sh:
-# - setup_00_packages.sh installs the libraries the binary needs at run time
-#   (this script only verifies them, it does not install them)
+# - setup_00_packages.sh installs the libraries the binary needs at run time,
+#   which this script verifies
 # - setup_01_devtools.sh installs Docker, which the build runs in
 #
 # Update workflow: bump ALACRITTY_VERSION below to the new tag and re-run this
-# script. It re-points the clone at that tag, rebuilds and reinstalls. Nothing
-# else updates Alacritty - it has no apt repository, and it is deliberately
-# kept out of update-all.sh so that routine updates stay fast. Terminals that
-# are already open keep running the old binary until they are restarted.
+# script. It re-points the clone at that tag, rebuilds and reinstalls.
+# Terminals that are already open keep running the old binary until they are
+# restarted.
 #
 # Why build at all: the archive ships 0.16.1 and Alacritty publishes no Linux
 # binaries. Why a container: the ~1.5 GB Rust toolchain is only needed to

@@ -53,10 +53,6 @@ sudo add-apt-repository -y -n universe
 # libxkbcommon* entries are the Alacritty runtime libraries setup_04 verifies -
 # see that script for why the split exists.
 #
-# The archive alacritty package is deliberately NOT installed: it is 0.16.1,
-# and setup_04_alacritty.sh builds the current release from source. Ubuntu
-# ships GNOME Terminal, so the machine is never without a terminal in between.
-#
 # Separate statements rather than one && chain: set -e ignores a failure
 # anywhere but the last link of a chain, so a failed upgrade would otherwise
 # go unnoticed.
@@ -291,7 +287,6 @@ done
 # -----------------------------------------------------------------------------
 # Install Neovim (LazyVim prerequisites)
 # -----------------------------------------------------------------------------
-# LazyVim itself is NOT installed here - only what it needs.
 # The Ubuntu archive freezes Neovim at the version available at release time,
 # which goes stale long before the next LTS, so the official upstream
 # "stable" tarball is installed to /opt instead of the apt package.
@@ -345,9 +340,6 @@ rm -f /tmp/NerdFontsSymbolsOnly.zip
 fc-cache -f "$HOME/.local/share/fonts" > /dev/null
 
 log "Nerd Font symbols installed."
-
-# Note: luarocks is deliberately NOT installed. LazyVim only needs it for the
-# optional rocks.nvim / lazy.nvim luarocks support, which is unused here.
 
 # -----------------------------------------------------------------------------
 # Install fd shim for LazyVim

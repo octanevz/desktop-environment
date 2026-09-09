@@ -231,11 +231,6 @@ log "Node.js installation completed successfully!"
 # has its own installer below. pyright and typescript-language-server (with
 # typescript) are the servers the pyright-lsp and typescript-lsp Claude Code
 # plugins from install_claude_code_plugins.sh expect to find on PATH.
-#
-# Deliberately not installed: the skills CLI (https://skills.sh), which
-# installs an agent skill into all three agents at once. It is meant to be
-# run as "npx skills add owner/repo", which fetches the current version each
-# time, so there is nothing to install or keep updated.
 log "Installing the npm packages..."
 npm install -g \
     @openai/codex \

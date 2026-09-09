@@ -13,9 +13,7 @@ set -euo pipefail
 # - Updates the Oh My Zsh custom plugins
 # - Updates lazygit
 #
-# Registered as the update-all alias by setup_01_devtools.sh. Deliberately NOT
-# updated here: Neovim (see below) and Alacritty (a source build, see
-# setup_04_alacritty.sh), so that routine updates stay fast and predictable.
+# Registered as the update-all alias by setup_01_devtools.sh.
 # =============================================================================
 
 log() {
@@ -139,9 +137,7 @@ done
 # Update lazygit
 # -----------------------------------------------------------------------------
 # setup_00_packages.sh installs it from its GitHub releases: it has no
-# self-update and apt knows nothing about it. Neovim is installed the same way
-# but is deliberately NOT updated here - a surprise Neovim bump can break
-# LazyVim plugins, so re-run setup_00_packages.sh when you want it moved.
+# self-update and apt knows nothing about it.
 #
 # The installed version is compared first, so a run with nothing to do costs
 # one API call instead of a 10 MB download. The match is anchored to the
