@@ -9,9 +9,9 @@ set -euo pipefail
 # - Installs Orca ADE
 # - Installs GitHub CLI
 # - Installs Node.js 24 using nvm
-# - Installs npm packages (Codex CLI, OpenCode, the skills CLI,
-#   markdown-tree-parser, Prettier, markdownlint-cli2, the Pyright and
-#   TypeScript language servers)
+# - Installs npm packages (Codex CLI, OpenCode, markdown-tree-parser,
+#   Prettier, markdownlint-cli2, the Pyright and TypeScript language
+#   servers)
 # - Installs .NET 10 LTS with Microsoft's dotnet-install.sh and the csharp-ls
 #   language server
 # - Installs Claude Code
@@ -228,17 +228,18 @@ log "Node.js installation completed successfully!"
 # Install npm packages
 # -----------------------------------------------------------------------------
 # Codex CLI and OpenCode are the two coding agents next to Claude Code, which
-# has its own installer below. skills (https://skills.sh) installs an agent
-# skill from a Git repository into all three at once - "skills add
-# owner/repo" - so a skill does not have to be added per agent. pyright and
-# typescript-language-server (with typescript) are the servers the
-# pyright-lsp and typescript-lsp Claude Code plugins from
-# install_claude_code_plugins.sh expect to find on PATH.
+# has its own installer below. pyright and typescript-language-server (with
+# typescript) are the servers the pyright-lsp and typescript-lsp Claude Code
+# plugins from install_claude_code_plugins.sh expect to find on PATH.
+#
+# Deliberately not installed: the skills CLI (https://skills.sh), which
+# installs an agent skill into all three agents at once. It is meant to be
+# run as "npx skills add owner/repo", which fetches the current version each
+# time, so there is nothing to install or keep updated.
 log "Installing the npm packages..."
 npm install -g \
     @openai/codex \
     opencode-ai \
-    skills \
     @kayvan/markdown-tree-parser \
     prettier \
     markdownlint-cli2 \
