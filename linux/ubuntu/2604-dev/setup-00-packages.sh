@@ -7,6 +7,7 @@ set -euo pipefail
 # - Sets an English UI with German date, number and paper formats
 # - Installs Oh My Zsh with autosuggestions and syntax highlighting plugins
 # - Sets Zsh as the default shell
+# - Aliases l, lf and ld to eza
 # - Installs the LazyVim prerequisites (ripgrep, fd, fzf, tree-sitter, a Nerd
 #   Font and friends)
 # - Installs Tmux Plugin Manager
@@ -282,6 +283,31 @@ for plugin in zsh-autosuggestions zsh-syntax-highlighting; do
         log "$plugin is enabled in .zshrc."
     else
         log "Could not enable $plugin - add it to the plugins=(...) line in ~/.zshrc by hand."
+    fi
+done
+
+# -----------------------------------------------------------------------------
+# Alias l, lf and ld to eza
+# -----------------------------------------------------------------------------
+# eza (installed above) replaces the ls behind Oh My Zsh's l alias: icons and
+# colours whether or not the output is a terminal, file names as clickable
+# hyperlinks, and ISO timestamps. lf lists only files and ld only
+# directories. Appended after the Oh My Zsh block, so l overrides the alias
+# Oh My Zsh defines.
+log "Aliasing l, lf and ld to eza in .zshrc..."
+EZA_OPTS="--icons=always -la --color=always --hyperlink --time-style long-iso"
+EZA_ALIASES=(
+    "l=$EZA_OPTS"
+    "lf=$EZA_OPTS --only-files"
+    "ld=$EZA_OPTS --only-dirs"
+)
+for entry in "${EZA_ALIASES[@]}"; do
+    name="${entry%%=*}"
+    if ! grep -q "^alias $name=" ~/.zshrc; then
+        echo "alias $name='eza ${entry#*=}'" >> ~/.zshrc
+        log "Added $name alias to .zshrc."
+    else
+        log "$name alias already exists in .zshrc."
     fi
 done
 
