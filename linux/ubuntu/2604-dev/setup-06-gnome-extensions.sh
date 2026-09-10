@@ -185,19 +185,51 @@ done
 # -----------------------------------------------------------------------------
 # Enable the extensions
 # -----------------------------------------------------------------------------
-# "gnome-extensions enable" writes to the current user's session settings, so
-# it needs a session to talk to. Without one the extensions stay installed but
-# disabled, and can be enabled after logging in.
-if [ -n "${WAYLAND_DISPLAY:-}" ] || [ -n "${DISPLAY:-}" ]; then
-    for uuid in "${EXTENSION_UUIDS[@]}"; do
-        if gnome-extensions enable "$uuid" 2> /dev/null; then
-            log "Enabled $uuid."
+# "gnome-extensions enable" is not used: it first asks the running shell
+# whether the extension exists, and a freshly unzipped extension is unknown to
+# the shell until the next login, so it fails with "does not exist" and the
+# extensions stayed disabled. Enabling is only the enabled-extensions key in
+# org.gnome.shell, so that key is written directly - the shell reads it when
+# it next starts. The UUIDs are appended to whatever is already enabled and
+# dropped from disabled-extensions, which takes precedence over it.
+#
+# The write goes through dconf rather than gsettings set because gsettings
+# exits 0 even when it could not reach dconf (see setup-00-packages.sh);
+# without the session bus, as over SSH, the commands to run inside the
+# desktop are printed instead.
+if command -v gsettings > /dev/null 2>&1 &&
+    gsettings list-schemas 2> /dev/null | grep -x "org.gnome.shell" > /dev/null; then
+    for key in enabled-extensions disabled-extensions; do
+        CURRENT="$(gsettings get org.gnome.shell "$key")"
+
+        # Prints the list with the UUIDs added (enabled) or removed
+        # (disabled) as a GVariant literal, or nothing when it is unchanged.
+        # The type prefix is always carried, because dconf cannot infer the
+        # type of a bare [].
+        WANTED="$(python3 -c "
+import ast, sys
+key, current = sys.argv[1], sys.argv[2]
+uuids = sys.argv[3:]
+items = ast.literal_eval(current.removeprefix('@as '))
+if key == 'enabled-extensions':
+    new = items + [u for u in uuids if u not in items]
+else:
+    new = [u for u in items if u not in uuids]
+if new != items:
+    print('@as [' + ', '.join(repr(u) for u in new) + ']')
+" "$key" "$CURRENT" "${EXTENSION_UUIDS[@]}")"
+
+        if [ -z "$WANTED" ]; then
+            log "$key is already up to date."
+        elif dconf write "/org/gnome/shell/$key" "$WANTED" 2> /dev/null; then
+            log "Updated $key: ${WANTED#@as }"
         else
-            log "Could not enable $uuid - enable it after logging back in."
+            log "Could not reach dconf. Inside a desktop session, run:"
+            log "  gsettings set org.gnome.shell $key \"${WANTED#@as }\""
         fi
     done
 else
-    log "No GNOME session detected - the extensions were installed but not"
+    log "No GNOME Shell schema found - the extensions were installed but not"
     log "enabled. After logging in, run:"
     for uuid in "${EXTENSION_UUIDS[@]}"; do
         log "  gnome-extensions enable $uuid"
