@@ -6,19 +6,27 @@ set -euo pipefail
 # - Verifies Neovim and the LazyVim prerequisites installed by setup-00 and
 #   setup-01
 # - Installs the LazyVim starter into ~/.config/nvim
-# - Enables the lang.json and lang.markdown LazyVim extras
+# - Enables the lang.json and lang.markdown LazyVim extras plus the
+#   recommended ai.copilot, coding.yanky, editor.dial, editor.inc-rename,
+#   editor.snacks_explorer, editor.snacks_picker, test.core, util.dot and
+#   util.mini-hipatterns extras
 # - Sets spelllang to en_us
 # - Installs the plugins headlessly so the first real start is ready to go
 #
 # Run this AFTER setup-00-packages.sh, which installs the LazyVim
 # prerequisites (git, curl, unzip, ripgrep, fd, fzf, a C compiler, python3,
 # the clipboard tools and a Nerd Font), and setup-01-devtools.sh, which
-# installs Neovim itself and lazygit for LazyVim's lazygit integration; this
-# script verifies they are there.
+# installs Neovim itself, lazygit for LazyVim's lazygit integration and
+# Node.js for the Copilot language server; this script verifies they are
+# there.
 #
-# Everything is left at LazyVim defaults apart from the two extras and
-# spelllang. The extras are a plugin SELECTION rather than configuration:
-# without them the JSON and Markdown tooling is not installed at all.
+# Everything is left at LazyVim defaults apart from the extras and spelllang.
+# The extras are a plugin SELECTION rather than configuration: without them
+# the JSON and Markdown tooling, Copilot and the rest are not installed at
+# all.
+#
+# Copilot still has to be signed in once by hand: start nvim and run
+# :Copilot auth, which shows a device code to enter on GitHub.
 #
 # The plugins are installed at the end by running Neovim headlessly, so the
 # first interactive start does not drop you into a cloning progress screen.
@@ -63,15 +71,17 @@ setup_begin "$@"
 # -----------------------------------------------------------------------------
 # Verify the prerequisites
 # -----------------------------------------------------------------------------
-# All of these come from setup-00-packages.sh except nvim and lazygit, which
-# setup-01-devtools.sh installs. As in setup-04-alacritty.sh, the script
-# reports what is missing and stops.
+# All of these come from setup-00-packages.sh except nvim, lazygit and node,
+# which setup-01-devtools.sh installs (node is needed by the Copilot language
+# server). As in setup-04-alacritty.sh, the script reports what is missing
+# and stops.
 REQUIRED_COMMANDS=(
     cc
     curl
     fzf
     git
     lazygit
+    node
     nvim
     python3
     rg
@@ -98,9 +108,9 @@ fi
 
 if [ "${#MISSING_COMMANDS[@]}" -gt 0 ]; then
     echo "Missing LazyVim prerequisites: ${MISSING_COMMANDS[*]}" >&2
-    echo "They are installed by setup-00-packages.sh (nvim and lazygit by" >&2
-    echo "setup-01-devtools.sh) - run those first, then" >&2
-    echo "re-run this script." >&2
+    echo "They are installed by setup-00-packages.sh (nvim, lazygit and node" >&2
+    echo "by setup-01-devtools.sh) - run those first, then re-run this" >&2
+    echo "script." >&2
     exit 1
 fi
 
@@ -151,8 +161,22 @@ rm -rf "$NVIM_CONFIG/.git"
 # -----------------------------------------------------------------------------
 # Enable the LazyVim extras
 # -----------------------------------------------------------------------------
-# lazyvim.json is the file :LazyExtras writes. Only the two language extras
-# are enabled; everything else stays at the LazyVim default selection.
+# lazyvim.json is the file :LazyExtras writes. The two language extras are
+# enabled together with the extras :LazyExtras marks as recommended:
+#
+#   ai.copilot             GitHub Copilot suggestions (needs :Copilot auth)
+#   coding.yanky           yank history with a picker and put cycling
+#   editor.dial            <C-a>/<C-x> on dates, booleans, semver and more
+#   editor.inc-rename      incremental LSP rename with a live preview
+#   editor.snacks_explorer the snacks.nvim file explorer
+#   editor.snacks_picker   the snacks.nvim picker for files, grep and more
+#   test.core              neotest and its keymaps under <leader>t
+#   util.dot               dotfile support (bash, zsh, tmux, ... treesitter)
+#   util.mini-hipatterns   highlights color codes like #ff0000 in their color
+#
+# snacks_explorer and snacks_picker are what LazyVim picks by default when no
+# other explorer or picker extra is enabled; listing them pins that choice.
+# Everything else stays at the LazyVim default selection.
 #
 # The "version" field is NOT optional. LazyVim compares it against its own
 # schema version and runs a migration when they differ, and the migration for
@@ -161,12 +185,21 @@ rm -rf "$NVIM_CONFIG/.git"
 # "lazyvim.plugins.extras.lazyvim.plugins.extras.lang.json" and the extras
 # would silently not load. 8 is the current schema version; a later LazyVim
 # simply migrates it forward.
-log "Enabling the lang.json and lang.markdown extras..."
+log "Enabling the LazyVim extras..."
 cat > "$NVIM_CONFIG/lazyvim.json" << 'EOF'
 {
   "extras": [
+    "lazyvim.plugins.extras.ai.copilot",
+    "lazyvim.plugins.extras.coding.yanky",
+    "lazyvim.plugins.extras.editor.dial",
+    "lazyvim.plugins.extras.editor.inc-rename",
+    "lazyvim.plugins.extras.editor.snacks_explorer",
+    "lazyvim.plugins.extras.editor.snacks_picker",
     "lazyvim.plugins.extras.lang.json",
-    "lazyvim.plugins.extras.lang.markdown"
+    "lazyvim.plugins.extras.lang.markdown",
+    "lazyvim.plugins.extras.test.core",
+    "lazyvim.plugins.extras.util.dot",
+    "lazyvim.plugins.extras.util.mini-hipatterns"
   ],
   "version": 8
 }
@@ -195,7 +228,8 @@ EOF
 # interactive start instead: nvim-treesitter and mason.nvim fetch them once
 # they load, and in a headless sync they never load. mason logging that it
 # aborted an installation during this sync is expected and leaves nothing
-# behind.
+# behind. The same goes for copilot.lua's build step (:Copilot auth): it
+# cannot complete without you, so it is repeated by hand on the first start.
 #
 # The output is verbose and mixes in those abort notices, so it goes to a log
 # and is only shown if the sync actually fails. A failure is not fatal: the
@@ -216,6 +250,7 @@ fi
 # Verify the installation
 # -----------------------------------------------------------------------------
 log "LazyVim installation completed successfully!"
-log "Start nvim and run :checkhealth to confirm everything is in order."
+log "Start nvim and run :checkhealth to confirm everything is in order,"
+log "then :Copilot auth to sign in to GitHub Copilot."
 
 setup_end
