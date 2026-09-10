@@ -3,15 +3,16 @@ set -euo pipefail
 
 # =============================================================================
 # This script performs the following tasks:
-# - Verifies that Claude Code is installed and logged in
+# - Verifies that Claude Code and the Codex CLI are installed and logged in
 # - Installs the Claude Code plugins from the official marketplace
 # - Adds the octanevz marketplace and installs codex-debate from it
 # - Installs agent skills for Claude Code, Codex and OpenCode at once
 #
 # Not part of the numbered sequence: it can be run at any time after
 # setup-01-devtools.sh (Claude Code, the Codex CLI and the language servers
-# the plugins wrap) and after the first "claude" login. Re-running it is
-# harmless - an installed plugin is reported as such and left alone.
+# the plugins wrap) and after the first "claude" and "codex" logins.
+# Re-running it is harmless - an installed plugin is reported as such and
+# left alone.
 # =============================================================================
 
 log() {
@@ -36,6 +37,24 @@ if ! claude auth status 2> /dev/null | grep -q '"loggedIn": *true'; then
     exit 1
 fi
 log "Claude Code is logged in."
+
+# -----------------------------------------------------------------------------
+# Verify the Codex CLI is installed and logged in
+# -----------------------------------------------------------------------------
+# codex-debate drives the Codex CLI, and the skills below are installed for
+# Codex too, so a missing login is caught here rather than on the first
+# debate. "codex login status" exits 0 when logged in and 1 otherwise.
+if ! command -v codex > /dev/null 2>&1; then
+    echo "The Codex CLI is not installed - run setup-01-devtools.sh first." >&2
+    exit 1
+fi
+
+if ! codex login status > /dev/null 2>&1; then
+    echo "The Codex CLI is not logged in. Run 'codex login' and sign in, then" >&2
+    echo "re-run this script." >&2
+    exit 1
+fi
+log "The Codex CLI is logged in."
 
 # -----------------------------------------------------------------------------
 # Install Claude Code Plugins (official marketplace)
