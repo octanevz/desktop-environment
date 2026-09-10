@@ -19,9 +19,9 @@ DOCKER_IMAGES=(
     ubuntu:26.04
 )
 
-log() {
-    echo -e "\e[32m$1\e[0m"
-}
+# shellcheck source=common.sh
+source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
+setup_begin "$@"
 
 # -----------------------------------------------------------------------------
 # Install the required Docker images
@@ -68,3 +68,5 @@ for image in "${DOCKER_IMAGES[@]}"; do
 done
 
 log "Docker images are up to date."
+
+setup_end

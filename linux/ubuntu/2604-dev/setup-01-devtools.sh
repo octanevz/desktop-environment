@@ -21,9 +21,9 @@ set -euo pipefail
 # - Registers update-sys and update-all aliases in .zshrc
 # =============================================================================
 
-log() {
-    echo -e "\e[32m$1\e[0m"
-}
+# shellcheck source=common.sh
+source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
+setup_begin "$@"
 
 # Downloads an apt signing key into /etc/apt/keyrings. apt accepts armored
 # (.asc) and binary (.gpg) keys alike in Signed-By, so nothing is dearmored.
@@ -426,6 +426,8 @@ else
 fi
 
 log "Aliases registered successfully!"
+
+setup_end
 
 # -----------------------------------------------------------------------------
 # Reboot after installation

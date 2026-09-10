@@ -23,9 +23,9 @@ set -euo pipefail
 UI_LOCALE="en_US.UTF-8"
 FORMATS_LOCALE="de_DE.UTF-8"
 
-log() {
-    echo -e "\e[32m$1\e[0m"
-}
+# shellcheck source=common.sh
+source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
+setup_begin "$@"
 
 # -----------------------------------------------------------------------------
 # Enable the universe component
@@ -368,6 +368,8 @@ if [ "${REMOVE_FIREFOX_SNAP:-0}" = "1" ] && snap list firefox > /dev/null 2>&1; 
 else
     log "Keeping the Firefox snap (set REMOVE_FIREFOX_SNAP=1 to remove it)."
 fi
+
+setup_end
 
 # -----------------------------------------------------------------------------
 # Reboot after installation

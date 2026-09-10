@@ -59,9 +59,8 @@ DCONF_SETTINGS=(
 DCONF_BACKUP_DIR="$HOME/.local/state/gnome-extension-settings"
 TIMESTAMP="$(date +%Y%m%d%H%M%S)"
 
-log() {
-    echo -e "\e[32m$1\e[0m"
-}
+# shellcheck source=common.sh
+source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 
 # -----------------------------------------------------------------------------
 # Parse the arguments
@@ -82,6 +81,8 @@ for arg in "$@"; do
             ;;
     esac
 done
+
+setup_begin "$@"
 
 # -----------------------------------------------------------------------------
 # Verify the prerequisites
@@ -283,3 +284,5 @@ log "enough. The settings loaded above are picked up at the same time."
 log ""
 log "After changing anything in Extension Manager, re-dump it into the repo"
 log "so the next machine gets it - see the comment at the top of this script."
+
+setup_end

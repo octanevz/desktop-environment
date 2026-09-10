@@ -62,7 +62,7 @@ Assuming the repo has been cloned to `~/github/octanevz/desktop-environment`:
 
 Location: `linux/ubuntu/2604-dev/`
 
-A set of scripts intended to be run sequentially on a fresh Ubuntu 26.04 LTS installation. Each script handles a specific layer of the setup:
+A set of scripts intended to be run sequentially on a fresh Ubuntu 26.04 LTS installation. Each script handles a specific layer of the setup. The numbered scripts run once: each records its completion under `~/.local/state/desktop-environment/`, exits immediately when run again (pass `--force` to override), and refuses to run before every lower-numbered script has completed. `setup-agents.sh` and the maintenance scripts can be run at any time.
 
 | Script | What it does |
 |--------|-------------|
@@ -104,16 +104,16 @@ Assuming the repo has been cloned to `~/github/octanevz/desktop-environment`:
    ```bash
    ./setup-01-devtools.sh # reboot when prompted
    ```
-5. After reboot, open your terminal and navigate back to the setup directory. Then run any of the optional scripts as needed:
+5. After reboot, open your terminal and navigate back to the setup directory. Then run the remaining scripts in order:
    ```bash
    cd ~/github/octanevz/desktop-environment/linux/ubuntu/2604-dev
-   ./setup-02-jetbrains-toolbox.sh # optional
-   ./setup-03-docker-images.sh # optional, needs setup-01 (Docker)
-   ./setup-04-alacritty.sh # optional, needs setup-00 (libraries) and setup-01 (Docker)
-   ./setup-05-lazyvim.sh # optional, needs setup-00 (prerequisites) and setup-01 (Neovim, lazygit)
-   ./setup-06-gnome-extensions.sh # optional, needs setup-00 (prerequisites)
-   ./setup-07-configs.sh # optional, needs setup-00 and setup-01
-   ./setup-agents.sh # optional, any time after setup-01 and a Claude Code login
+   ./setup-02-jetbrains-toolbox.sh
+   ./setup-03-docker-images.sh
+   ./setup-04-alacritty.sh
+   ./setup-05-lazyvim.sh
+   ./setup-06-gnome-extensions.sh
+   ./setup-07-configs.sh
+   ./setup-agents.sh # any time after setup-01 and a Claude Code login
    ```
 
 ## Repository Structure
@@ -140,6 +140,7 @@ linux/
           tiling-shell.ini
         herdr/config.toml # deployed by setup-07
         tmux.conf # deployed by setup-07
+      common.sh # sourced by the numbered scripts
       setup-00-packages.sh
       setup-01-devtools.sh
       setup-02-jetbrains-toolbox.sh

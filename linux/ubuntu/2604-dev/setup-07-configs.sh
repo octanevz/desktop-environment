@@ -30,9 +30,9 @@ ALACRITTY_THEME_DIR="$HOME/.config/alacritty/themes/alacritty-theme"
 
 TIMESTAMP="$(date +%Y%m%d%H%M%S)"
 
-log() {
-    echo -e "\e[32m$1\e[0m"
-}
+# shellcheck source=common.sh
+source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
+setup_begin "$@"
 
 # -----------------------------------------------------------------------------
 # Install one configuration file
@@ -233,3 +233,5 @@ fi
 log "Configuration files installed successfully!"
 log "Reload tmux with: tmux source-file ~/.tmux.conf"
 log "Alacritty and herdr pick their configuration up on the next start."
+
+setup_end

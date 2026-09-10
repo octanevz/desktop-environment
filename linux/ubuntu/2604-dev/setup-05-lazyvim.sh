@@ -34,9 +34,8 @@ NVIM_DATA="$HOME/.local/share/nvim"
 NVIM_STATE="$HOME/.local/state/nvim"
 NVIM_CACHE="$HOME/.cache/nvim"
 
-log() {
-    echo -e "\e[32m$1\e[0m"
-}
+# shellcheck source=common.sh
+source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 
 # -----------------------------------------------------------------------------
 # Parse the arguments
@@ -58,6 +57,8 @@ for arg in "$@"; do
             ;;
     esac
 done
+
+setup_begin "$@"
 
 # -----------------------------------------------------------------------------
 # Verify the prerequisites
@@ -216,3 +217,5 @@ fi
 # -----------------------------------------------------------------------------
 log "LazyVim installation completed successfully!"
 log "Start nvim and run :checkhealth to confirm everything is in order."
+
+setup_end

@@ -50,9 +50,8 @@ BUILD_IMAGE="ubuntu:26.04"
 # the toolchain again. Remove it with: docker volume rm alacritty-rust-cache
 CACHE_VOLUME="alacritty-rust-cache"
 
-log() {
-    echo -e "\e[32m$1\e[0m"
-}
+# shellcheck source=common.sh
+source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 
 # -----------------------------------------------------------------------------
 # Parse the arguments
@@ -73,6 +72,8 @@ for arg in "$@"; do
             ;;
     esac
 done
+
+setup_begin "$@"
 
 # -----------------------------------------------------------------------------
 # Check the prerequisites
@@ -325,3 +326,5 @@ install -m 644 "$ALACRITTY_SRC/extra/completions/_alacritty" "$ZSH_COMPLETIONS/_
 log "Alacritty installation completed successfully!"
 /usr/local/bin/alacritty --version
 log "Terminals that are already open keep the old binary until restarted."
+
+setup_end
