@@ -3,15 +3,18 @@ set -euo pipefail
 
 # =============================================================================
 # This script performs the following tasks:
-# - Verifies the LazyVim prerequisites installed by setup-00-packages.sh
+# - Verifies Neovim and the LazyVim prerequisites installed by setup-00 and
+#   setup-01
 # - Installs the LazyVim starter into ~/.config/nvim
 # - Enables the lang.json and lang.markdown LazyVim extras
 # - Sets spelllang to en_us
 # - Installs the plugins headlessly so the first real start is ready to go
 #
-# Run this AFTER setup-00-packages.sh, which installs everything LazyVim needs
-# (Neovim, git, curl, unzip, ripgrep, fd, fzf, lazygit, a C compiler, python3,
-# the clipboard tools and a Nerd Font); this script verifies they are there.
+# Run this AFTER setup-00-packages.sh, which installs the LazyVim
+# prerequisites (git, curl, unzip, ripgrep, fd, fzf, a C compiler, python3,
+# the clipboard tools and a Nerd Font), and setup-01-devtools.sh, which
+# installs Neovim itself and lazygit for LazyVim's lazygit integration; this
+# script verifies they are there.
 #
 # Everything is left at LazyVim defaults apart from the two extras and
 # spelllang. The extras are a plugin SELECTION rather than configuration:
@@ -59,8 +62,9 @@ done
 # -----------------------------------------------------------------------------
 # Verify the prerequisites
 # -----------------------------------------------------------------------------
-# All of these come from setup-00-packages.sh. As in setup-04-alacritty.sh, the
-# script reports what is missing and stops.
+# All of these come from setup-00-packages.sh except nvim and lazygit, which
+# setup-01-devtools.sh installs. As in setup-04-alacritty.sh, the script
+# reports what is missing and stops.
 REQUIRED_COMMANDS=(
     cc
     curl
@@ -93,7 +97,8 @@ fi
 
 if [ "${#MISSING_COMMANDS[@]}" -gt 0 ]; then
     echo "Missing LazyVim prerequisites: ${MISSING_COMMANDS[*]}" >&2
-    echo "They are installed by setup-00-packages.sh - run that first, then" >&2
+    echo "They are installed by setup-00-packages.sh (nvim and lazygit by" >&2
+    echo "setup-01-devtools.sh) - run those first, then" >&2
     echo "re-run this script." >&2
     exit 1
 fi

@@ -7,7 +7,8 @@ set -euo pipefail
 # - Sets an English UI with German date, number and paper formats
 # - Installs Oh My Zsh with autosuggestions and syntax highlighting plugins
 # - Sets Zsh as the default shell
-# - Installs Neovim (LazyVim prerequisites) and its ecosystem tools
+# - Installs the LazyVim prerequisites (ripgrep, fd, fzf, tree-sitter, a Nerd
+#   Font and friends)
 # - Installs Tmux Plugin Manager
 # - Installs the VMware guest tools in a VMware VM, proprietary drivers on
 #   bare metal
@@ -283,47 +284,6 @@ for plugin in zsh-autosuggestions zsh-syntax-highlighting; do
         log "Could not enable $plugin - add it to the plugins=(...) line in ~/.zshrc by hand."
     fi
 done
-
-# -----------------------------------------------------------------------------
-# Install Neovim (LazyVim prerequisites)
-# -----------------------------------------------------------------------------
-# The Ubuntu archive freezes Neovim at the version available at release time,
-# which goes stale long before the next LTS, so the official upstream
-# "stable" tarball is installed to /opt instead of the apt package.
-log "Installing Neovim (stable) from the official tarball..."
-
-NVIM_TARBALL="nvim-linux-x86_64.tar.gz"
-NVIM_PREFIX="/opt/nvim-linux-x86_64"
-
-curl -fsSL -o "/tmp/$NVIM_TARBALL" "https://github.com/neovim/neovim/releases/download/stable/$NVIM_TARBALL"
-sudo rm -rf "$NVIM_PREFIX"
-sudo tar -C /opt -xzf "/tmp/$NVIM_TARBALL"
-rm -f "/tmp/$NVIM_TARBALL"
-
-if ! grep -q "$NVIM_PREFIX/bin" ~/.zshrc; then
-    echo "export PATH=\"\$PATH:$NVIM_PREFIX/bin\"" >> ~/.zshrc
-    log "Added Neovim to PATH in .zshrc."
-else
-    log "Neovim already on PATH in .zshrc."
-fi
-export PATH="$PATH:$NVIM_PREFIX/bin"
-
-nvim --version | head -1
-
-# -----------------------------------------------------------------------------
-# Install lazygit
-# -----------------------------------------------------------------------------
-# Not taken from apt for the same reason as Neovim: the archive version is
-# pinned for the lifetime of the release.
-log "Installing lazygit..."
-
-LAZYGIT_VERSION="$(curl -fsSL https://api.github.com/repos/jesseduffield/lazygit/releases/latest | grep -Po '"tag_name": *"v\K[^"]*')"
-curl -fsSL -o /tmp/lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/download/v${LAZYGIT_VERSION}/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz"
-tar -C /tmp -xzf /tmp/lazygit.tar.gz lazygit
-sudo install -m 0755 /tmp/lazygit /usr/local/bin/lazygit
-rm -f /tmp/lazygit.tar.gz /tmp/lazygit
-
-lazygit --version
 
 # -----------------------------------------------------------------------------
 # Install Nerd Fonts

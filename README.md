@@ -66,12 +66,12 @@ A set of scripts intended to be run sequentially on a fresh Ubuntu 26.04 LTS ins
 
 | Script | What it does |
 |--------|-------------|
-| `setup-00-packages.sh` | Enables `universe`, updates the OS, installs essential packages (curl, git, gpg, mesa-utils, tmux, GIMP, Extension Manager, etc.) and the runtime libraries Alacritty links against, sets an English interface with German formats (installing the matching language packs), installs Oh My Zsh with autosuggestions and syntax highlighting, sets Zsh as the default shell, installs everything LazyVim needs (Neovim stable, ripgrep, fd-find, fzf, build-essential, tree-sitter-cli, lazygit, xclip/wl-clipboard, JetBrains Mono + Nerd Font symbols, python3/venv/pip), installs Tmux Plugin Manager, installs the VMware guest tools in a VMware VM or proprietary drivers on bare metal, and optionally removes the Firefox snap (`REMOVE_FIREFOX_SNAP=1`) |
-| `setup-01-devtools.sh` | Installs Docker Engine, Google Chrome, Visual Studio Code, Orca ADE, GitHub CLI, Node.js 24 (via nvm), npm packages (Codex CLI, OpenCode, markdown-tree-parser, Prettier, markdownlint-cli2, Pyright and the TypeScript language server), .NET 10 LTS via Microsoft's `dotnet-install.sh` (so the newest SDK is available the day it is published) plus csharp-ls, Claude Code, herdr (with its Zsh completion), and registers `update-sys`/`update-all` shell aliases |
+| `setup-00-packages.sh` | Enables `universe`, updates the OS, installs essential packages (curl, git, gpg, mesa-utils, tmux, GIMP, Extension Manager, etc.) and the runtime libraries Alacritty links against, sets an English interface with German formats (installing the matching language packs), installs Oh My Zsh with autosuggestions and syntax highlighting, sets Zsh as the default shell, installs the LazyVim prerequisites (ripgrep, fd-find, fzf, build-essential, tree-sitter-cli, xclip/wl-clipboard, JetBrains Mono + Nerd Font symbols, python3/venv/pip), installs Tmux Plugin Manager, installs the VMware guest tools in a VMware VM or proprietary drivers on bare metal, and optionally removes the Firefox snap (`REMOVE_FIREFOX_SNAP=1`) |
+| `setup-01-devtools.sh` | Installs Docker Engine, Neovim (upstream stable), lazygit, lazydocker, Google Chrome, Visual Studio Code, Orca ADE, GitHub CLI, Node.js 24 (via nvm), npm packages (Codex CLI, OpenCode, markdown-tree-parser, Prettier, markdownlint-cli2, Pyright and the TypeScript language server), .NET 10 LTS via Microsoft's `dotnet-install.sh` (so the newest SDK is available the day it is published) plus csharp-ls, Claude Code, herdr (with its Zsh completion), and registers `update-sys`/`update-all` shell aliases |
 | `setup-02-jetbrains-toolbox.sh` | Installs JetBrains Toolbox |
 | `setup-03-docker-images.sh` | Pulls Docker images: PostgreSQL 18, Jupyter SciPy Notebook, Jupyter PyTorch Notebook, and the `ubuntu:26.04` image `setup-04` builds in, removing the previous version of each |
 | `setup-04-alacritty.sh` | Builds Alacritty from source in an `ubuntu:26.04` Docker container and installs the binary, terminfo, desktop entry, icon, man pages and Zsh completion on the host. Needs `setup-00` (runtime libraries) and `setup-01` (Docker) |
-| `setup-05-lazyvim.sh` | Installs the LazyVim starter into `~/.config/nvim`, enables the `lang.json` and `lang.markdown` extras, sets `spelllang` to `en_us`, and installs the plugins headlessly. Needs `setup-00` (prerequisites) |
+| `setup-05-lazyvim.sh` | Installs the LazyVim starter into `~/.config/nvim`, enables the `lang.json` and `lang.markdown` extras, sets `spelllang` to `en_us`, and installs the plugins headlessly. Needs `setup-00` (prerequisites) and `setup-01` (Neovim, lazygit) |
 | `setup-06-gnome-extensions.sh` | Installs the Caffeine and Tiling Shell GNOME Shell extensions from extensions.gnome.org, matched to the running GNOME Shell version, enables them, and loads their settings from `config/dconf/` with `dconf load`. Needs `setup-00` (prerequisites) |
 | `setup-07-configs.sh` | Installs the configuration files from `config/`: `.tmux.conf` (plus the TPM plugins), the Alacritty config and the theme repository it imports, the herdr config, and the shared `file-picker` helper, and pins the installed applications to the GNOME dock. Backs up anything it replaces |
 | `setup-agents.sh` | Installs Claude Code plugins from the official marketplace (context7, feature-dev, frontend-design, hookify, and others), plus `codex-debate` from the `octanevz` marketplace. The three `*-lsp` plugins use the language servers `setup-01` installs. Also installs the Orca ADE skills (computer-use, orca-cli, orchestration) and find-skills for Claude Code, Codex and OpenCode at once via `npx skills`. Not part of the numbered sequence; checks that Claude Code is logged in first |
@@ -81,7 +81,7 @@ Two maintenance scripts are also included and registered as shell aliases during
 | Script | Alias | What it does |
 |--------|-------|-------------|
 | `update-sys.sh` | `update-sys` | Updates and cleans up Ubuntu packages and snaps |
-| `update-all.sh` | `update-all` | Runs `update-sys.sh`, then updates the .NET SDK (pruning older SDKs and runtimes), global npm packages, csharp-ls, Claude Code, the agent skills, herdr, the Oh My Zsh plugins, and lazygit |
+| `update-all.sh` | `update-all` | Runs `update-sys.sh`, then updates the .NET SDK (pruning older SDKs and runtimes), global npm packages, csharp-ls, Claude Code, the agent skills, herdr, the Oh My Zsh plugins, lazygit, and lazydocker |
 
 ### Running the scripts
 
@@ -110,7 +110,7 @@ Assuming the repo has been cloned to `~/github/octanevz/desktop-environment`:
    ./setup-02-jetbrains-toolbox.sh # optional
    ./setup-03-docker-images.sh # optional, needs setup-01 (Docker)
    ./setup-04-alacritty.sh # optional, needs setup-00 (libraries) and setup-01 (Docker)
-   ./setup-05-lazyvim.sh # optional, needs setup-00 (prerequisites)
+   ./setup-05-lazyvim.sh # optional, needs setup-00 (prerequisites) and setup-01 (Neovim, lazygit)
    ./setup-06-gnome-extensions.sh # optional, needs setup-00 (prerequisites)
    ./setup-07-configs.sh # optional, needs setup-00 and setup-01
    ./setup-agents.sh # optional, any time after setup-01 and a Claude Code login

@@ -11,7 +11,7 @@ set -euo pipefail
 # - Updates the agent skills
 # - Updates herdr
 # - Updates the Oh My Zsh custom plugins
-# - Updates lazygit
+# - Updates lazygit and lazydocker
 #
 # Registered as the update-all alias by setup-01-devtools.sh.
 # =============================================================================
@@ -136,7 +136,7 @@ done
 # -----------------------------------------------------------------------------
 # Update lazygit
 # -----------------------------------------------------------------------------
-# setup-00-packages.sh installs it from its GitHub releases: it has no
+# setup-01-devtools.sh installs it from its GitHub releases: it has no
 # self-update and apt knows nothing about it.
 #
 # The installed version is compared first, so a run with nothing to do costs
@@ -155,6 +155,27 @@ else
     sudo install -m 0755 /tmp/lazygit /usr/local/bin/lazygit
     rm -f /tmp/lazygit.tar.gz /tmp/lazygit
     lazygit --version
+fi
+
+# -----------------------------------------------------------------------------
+# Update lazydocker
+# -----------------------------------------------------------------------------
+# Installed by setup-01-devtools.sh from its GitHub releases, and updated the
+# same way as lazygit above. "lazydocker --version" prints "Version: x.y.z"
+# on its first line.
+LAZYDOCKER_LATEST="$(curl -fsSL https://api.github.com/repos/jesseduffield/lazydocker/releases/latest |
+    grep -Po '"tag_name": *"v\K[^"]*')"
+LAZYDOCKER_INSTALLED="$(lazydocker --version | grep -Po '^Version: \K.*')"
+
+if [ "$LAZYDOCKER_INSTALLED" = "$LAZYDOCKER_LATEST" ]; then
+    log "lazydocker $LAZYDOCKER_INSTALLED is up to date."
+else
+    log "Updating lazydocker $LAZYDOCKER_INSTALLED -> $LAZYDOCKER_LATEST..."
+    curl -fsSL -o /tmp/lazydocker.tar.gz "https://github.com/jesseduffield/lazydocker/releases/download/v${LAZYDOCKER_LATEST}/lazydocker_${LAZYDOCKER_LATEST}_Linux_x86_64.tar.gz"
+    tar -C /tmp -xzf /tmp/lazydocker.tar.gz lazydocker
+    sudo install -m 0755 /tmp/lazydocker /usr/local/bin/lazydocker
+    rm -f /tmp/lazydocker.tar.gz /tmp/lazydocker
+    lazydocker --version | head -1
 fi
 
 log "Everything is up to date."
