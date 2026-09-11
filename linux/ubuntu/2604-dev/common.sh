@@ -21,8 +21,12 @@ STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/desktop-environment"
 SETUP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SETUP_NAME="$(basename "$0" .sh)"
 
+# printf, not echo -e: echo -e interprets backslashes in what it is given, so
+# a path containing one - or the output of printf '%q' - would be printed
+# wrong, and a command line printed for the user to copy would be wrong with
+# it. No caller passes an escape sequence of its own.
 log() {
-    echo -e "\e[32m$1\e[0m"
+    printf '\033[32m%s\033[0m\n' "$1"
 }
 
 # Call at the top of a numbered script, after its own argument parsing, with
