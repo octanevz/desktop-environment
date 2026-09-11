@@ -8,6 +8,7 @@ set -euo pipefail
 # - Sets the Git behaviour this setup assumes (rebase on pull, prune on
 #   fetch, an upstream on the first push, and friends)
 # - Configures delta as the pager when it is installed
+# - Registers the Git LFS filters when git-lfs is installed
 # - Registers the GitHub CLI as the credential helper for HTTPS remotes
 # - Offers to add the SSH keys found in ~/.ssh to the agent
 #
@@ -16,8 +17,9 @@ set -euo pipefail
 # container - and a commit is refused rather than made unsigned. Sign the
 # commits that want it with "git commit -S" instead.
 #
-# Run this AFTER setup-00-packages.sh (git, git-delta), setup-01-devtools.sh
-# (Neovim as the editor, the GitHub CLI) and setup-07-configs.sh.
+# Run this AFTER setup-00-packages.sh (git, git-delta, git-lfs),
+# setup-01-devtools.sh (Neovim as the editor, the GitHub CLI) and
+# setup-07-configs.sh.
 #
 # Unlike the other scripts here, this one ASKS rather than assuming: the
 # identity is personal, and hardcoding one would put the author's address into
@@ -354,6 +356,30 @@ if command -v delta > /dev/null 2>&1; then
 else
     log "delta is not installed - leaving the default pager in place."
     log "  Install it with: sudo apt install -y git-delta"
+fi
+
+# -----------------------------------------------------------------------------
+# Register the Git LFS filters
+# -----------------------------------------------------------------------------
+# git-lfs comes from setup-00-packages.sh. Without the filters registered, a
+# clone of a repository that uses LFS succeeds and leaves every large file as a
+# one-line text pointer - which is why this is set up before such a repository
+# is ever met, rather than after the confusing part.
+#
+# --skip-repo writes the global filter configuration and nothing else: a plain
+# "git lfs install" also drops hooks into whatever repository happens to be the
+# working directory, which is not this script's business.
+#
+# Checked rather than run blindly, so a re-run stays as quiet as set_config
+# does. filter.lfs.clean is the key "git lfs install" sets first.
+if ! command -v git-lfs > /dev/null 2>&1; then
+    log "git-lfs is not installed - skipping the LFS filters."
+    log "  Install it with: sudo apt install -y git-lfs"
+elif [ -n "$(git config --global --get filter.lfs.clean || true)" ]; then
+    log "The Git LFS filters are already registered."
+else
+    log "Registering the Git LFS filters..."
+    git lfs install --skip-repo
 fi
 
 # -----------------------------------------------------------------------------

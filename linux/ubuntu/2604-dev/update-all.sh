@@ -6,6 +6,7 @@ set -euo pipefail
 # - Runs update-sys.sh (apt packages and snaps)
 # - Updates the .NET SDK and prunes the older SDKs and runtimes
 # - Updates the global npm packages
+# - Updates uv and the uv tools (Ruff)
 # - Updates csharp-ls
 # - Updates Claude Code
 # - Updates the agent skills
@@ -81,6 +82,23 @@ done
 # installs with npm.
 log "Updating the global npm packages..."
 npm update -g
+
+# -----------------------------------------------------------------------------
+# Update uv
+# -----------------------------------------------------------------------------
+# setup-01-devtools.sh installs it with the Astral installer, outside apt, and
+# it replaces its own binary in place. Only the installer's build can do that -
+# a uv from apt or pip refuses - so a failure here means uv came from somewhere
+# else, and saying so beats aborting the rest of the updates.
+log "Updating uv..."
+uv self update || log "  Could not update uv - is it the one setup-01-devtools.sh installed?"
+
+# The tools uv installed, which is Ruff and whatever has been added by hand
+# since - they are versioned independently of uv itself and do not move with
+# it. --all rather than naming Ruff, so a tool added later is not forgotten
+# here.
+log "Updating the uv tools..."
+uv tool upgrade --all
 
 # -----------------------------------------------------------------------------
 # Update csharp-ls

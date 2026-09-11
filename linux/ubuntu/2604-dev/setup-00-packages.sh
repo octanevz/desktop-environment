@@ -8,8 +8,11 @@ set -euo pipefail
 # - Installs Oh My Zsh with autosuggestions and syntax highlighting plugins
 # - Sets Zsh as the default shell
 # - Aliases l, lf and ld to eza
+# - Sets up atuin as the Ctrl-R shell history
+# - Sets up zoxide as the z directory jumper
 # - Installs the LazyVim prerequisites (ripgrep, fd, fzf, tree-sitter, a Nerd
 #   Font and friends)
+# - Shims fdfind as fd and batcat as bat in ~/.local/bin
 # - Installs Tmux Plugin Manager
 # - Installs the VMware guest tools in a VMware VM, proprietary drivers on
 #   bare metal
@@ -67,7 +70,9 @@ sudo apt update -y
 sudo apt upgrade -y
 sudo apt install -y \
     apt-transport-https \
+    atuin \
     bash-completion \
+    bat \
     btop \
     build-essential \
     ca-certificates \
@@ -84,11 +89,13 @@ sudo apt install -y \
     gimp \
     git \
     git-delta \
+    git-lfs \
     gnome-keyring \
     gnome-shell-extension-manager \
     gnome-shell-extensions \
     gnome-tweaks \
     gnupg \
+    jq \
     libfontconfig1 \
     libfreetype6 \
     libfuse2t64 \
@@ -123,6 +130,7 @@ sudo apt install -y \
     wget \
     wl-clipboard \
     xclip \
+    zoxide \
     zsh
 sudo apt autoremove -y
 sudo apt clean -y
@@ -318,6 +326,106 @@ for entry in "${EZA_ALIASES[@]}"; do
 done
 
 # -----------------------------------------------------------------------------
+# Configure atuin as the Ctrl-R shell history
+# -----------------------------------------------------------------------------
+# atuin (installed above) replaces the Ctrl-R history search with a search over
+# a SQLite database that also records the working directory, the exit code and
+# the duration of every command. The database matters beyond the extra columns:
+# ~/.zsh_history is one file that every shell appends to, so parallel tmux
+# panes overwrite each other's history, and a pane brought back by
+# tmux-resurrect starts out with none of it. atuin has neither problem.
+#
+# Sync is opt-in and stays off unless "atuin register" is run - nothing here
+# contacts a server, and the database never leaves the machine.
+log "Configuring atuin..."
+
+# The config is only written when there is none, so later hand edits survive a
+# re-run. history_filter is the reason not to skip it: gh, claude and the
+# installer curls all put credentials on the command line sooner or later, and
+# a filtered command is never recorded in the first place.
+ATUIN_CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/atuin"
+if [ ! -f "$ATUIN_CONFIG_DIR/config.toml" ]; then
+    mkdir -p "$ATUIN_CONFIG_DIR"
+    cat > "$ATUIN_CONFIG_DIR/config.toml" << 'EOF'
+# Search below the prompt rather than taking over the screen.
+inline_height = 20
+style = "compact"
+search_mode = "fuzzy"
+
+# Enter runs the selected command; Tab puts it on the prompt to edit first.
+enter_accept = true
+
+# Commands matching these are never written to the history database.
+history_filter = [
+  "(?i)^curl .*(token|key|secret|password)",
+  "(?i)^export .*(TOKEN|KEY|SECRET|PASSWORD)",
+]
+EOF
+    log "  Wrote $ATUIN_CONFIG_DIR/config.toml."
+else
+    log "  $ATUIN_CONFIG_DIR/config.toml already exists. Keeping it."
+fi
+
+# Imported before the shell integration is in place, so the existing history is
+# already searchable the first time Ctrl-R is pressed. Only on the first run:
+# an import is not idempotent, so running it again would duplicate every entry.
+# "atuin import auto" is deliberately not used - it picks the importer from
+# $SHELL, which is whatever shell this script was started from, and the chsh
+# above has just made that stale.
+if [ ! -e "${XDG_DATA_HOME:-$HOME/.local/share}/atuin/history.db" ]; then
+    for shell_name in zsh bash; do
+        if [ -s "$HOME/.${shell_name}_history" ]; then
+            log "  Importing the $shell_name history..."
+            atuin import "$shell_name" || log "  Could not import it - run 'atuin import $shell_name' by hand."
+        fi
+    done
+else
+    log "  The atuin database already exists - not importing again."
+fi
+
+# Appended after the Oh My Zsh block for the same reason the eza aliases are:
+# the init binds Ctrl-R, and anything Oh My Zsh binds has to be in place first.
+#
+# --disable-up-arrow keeps the arrow key on plain "previous command" and leaves
+# atuin on Ctrl-R alone. Drop the flag to have the arrow open atuin too,
+# filtered to the current directory.
+# shellcheck disable=SC2016 # written to .zshrc verbatim, expands there
+ATUIN_INIT='eval "$(atuin init zsh --disable-up-arrow)"'
+if ! grep -qxF "$ATUIN_INIT" ~/.zshrc; then
+    echo "$ATUIN_INIT" >> ~/.zshrc
+    log "  Added the atuin init to .zshrc."
+else
+    log "  The atuin init is already in .zshrc."
+fi
+
+atuin --version
+
+# -----------------------------------------------------------------------------
+# Configure zoxide as the z directory jumper
+# -----------------------------------------------------------------------------
+# zoxide (installed above) learns the directories that are actually visited and
+# adds "z", which jumps to the best match for a fragment of a path - "z herdr"
+# rather than the full path to it - and "zi", which picks one interactively
+# through fzf, installed above. cd is left alone, so nothing that already works
+# changes; pass --cmd cd below to have z take cd over entirely.
+#
+# Appended after the Oh My Zsh block like the entries above, and for one extra
+# reason: the init defines completions, and compinit - which oh-my-zsh.sh runs -
+# has to have gone first for them to register.
+log "Configuring zoxide..."
+
+# shellcheck disable=SC2016 # written to .zshrc verbatim, expands there
+ZOXIDE_INIT='eval "$(zoxide init zsh)"'
+if ! grep -qxF "$ZOXIDE_INIT" ~/.zshrc; then
+    echo "$ZOXIDE_INIT" >> ~/.zshrc
+    log "  Added the zoxide init to .zshrc."
+else
+    log "  The zoxide init is already in .zshrc."
+fi
+
+zoxide --version
+
+# -----------------------------------------------------------------------------
 # Install Nerd Fonts
 # -----------------------------------------------------------------------------
 # fonts-jetbrains-mono (installed above) provides the text face; the Nerd Font
@@ -334,16 +442,30 @@ fc-cache -f "$HOME/.local/share/fonts" > /dev/null
 log "Nerd Font symbols installed."
 
 # -----------------------------------------------------------------------------
-# Install fd shim for LazyVim
+# Install the fd and bat shims
 # -----------------------------------------------------------------------------
-# Ubuntu ships the fd binary as fdfind; a lot of tooling looks for plain "fd".
-if [ ! -e "$HOME/.local/bin/fd" ]; then
-    log "Linking fdfind as fd in ~/.local/bin..."
-    mkdir -p "$HOME/.local/bin"
-    ln -s "$(which fdfind)" "$HOME/.local/bin/fd"
-else
-    log "fd shim already present. Skipping."
-fi
+# Both binaries are renamed in the Ubuntu packages - fd ships as fdfind and bat
+# as batcat, in each case to keep clear of an unrelated package that already
+# owned the short name - while the tooling that drives them (LazyVim, fzf
+# previews, the documentation of either project) looks for the short name. So
+# each gets a symlink under ~/.local/bin, which is on PATH from the entry
+# further down.
+#
+# bat itself is the syntax-highlighting, git-aware pager cat never was. It is
+# deliberately NOT aliased over cat: only interactive zsh would see such an
+# alias, so a script piping cat and a prompt running it would behave
+# differently, and that is a poor trade for six saved keystrokes.
+mkdir -p "$HOME/.local/bin"
+for shim_entry in fd:fdfind bat:batcat; do
+    shim_name="${shim_entry%%:*}"
+    shim_target="${shim_entry#*:}"
+    if [ -e "$HOME/.local/bin/$shim_name" ]; then
+        log "$shim_name shim already present. Skipping."
+        continue
+    fi
+    log "Linking $shim_target as $shim_name in ~/.local/bin..."
+    ln -s "$(which "$shim_target")" "$HOME/.local/bin/$shim_name"
+done
 
 # Matched as the exact line: the Oh My Zsh template already mentions
 # $HOME/.local/bin in a commented-out example, which a looser grep would take
