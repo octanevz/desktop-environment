@@ -132,7 +132,7 @@ Assuming the repo has been cloned to `~/github/octanevz/desktop-environment`:
    ./setup-05-lazyvim.sh
    ./setup-06-gnome-extensions.sh
    ./setup-07-configs.sh
-   ./setup-08-git.sh # needs your SSH keys in ~/.ssh; asks for your name and email
+   ./setup-08-git.sh # asks for your name and email
    ./setup-agents.sh # any time after setup-01 and the Claude Code and Codex logins
    ```
 

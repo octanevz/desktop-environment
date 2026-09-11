@@ -3,14 +3,16 @@ set -euo pipefail
 
 # =============================================================================
 # This script performs the following tasks:
-# - Stops when ~/.ssh holds no private key, before anything is written
 # - Asks for the Git identity (name and email) and sets it
 # - Sets the Git behaviour this setup assumes (rebase on pull, prune on
 #   fetch, an upstream on the first push, and friends)
 # - Configures delta as the pager when it is installed
 # - Registers the Git LFS filters when git-lfs is installed
 # - Registers the GitHub CLI as the credential helper for HTTPS remotes
-# - Offers to add the SSH keys found in ~/.ssh to the agent
+#
+# It does NOT touch SSH: the keys are restored into ~/.ssh and added to the
+# agent by hand, which is a per-login matter rather than configuration. Put
+# "AddKeysToAgent yes" in ~/.ssh/config to have every key added on first use.
 #
 # It does NOT configure commit signing: signing everything by default fails
 # closed wherever the key cannot be reached - an SSH session, cron, a
@@ -56,17 +58,14 @@ GIT_USER_EMAIL="${GIT_USER_EMAIL:-}"
 GIT_DEFAULT_BRANCH="main"
 GIT_EDITOR="nvim"
 
-SSH_DIR="$HOME/.ssh"
-
 # The steps that could not be carried out, as opposed to the ones deliberately
 # turned down. The script records itself as complete only when this is empty,
-# so a step that was blocked by something fixable - an unauthenticated gh, a
-# key that is not there yet - is retried on the next plain run instead of
-# needing --force that nobody remembers to pass.
+# so a step that was blocked by something fixable - an unauthenticated gh -
+# is retried on the next plain run instead of needing --force that nobody
+# remembers to pass.
 #
-# Nothing that is not persistent configuration lands here, such as which keys
-# the running agent happens to hold, and neither does a tool that is simply
-# not installed - absent reads as unwanted.
+# A tool that is simply not installed does not land here - absent reads as
+# unwanted.
 INCOMPLETE=()
 
 # Whether there is someone to ask. Everything interactive below is skipped
@@ -148,83 +147,6 @@ ask() {
         echo "  A value is required." >&2
     done
 }
-
-# -----------------------------------------------------------------------------
-# Find the SSH keys
-# -----------------------------------------------------------------------------
-# The keys are restored by hand rather than generated here, so this only looks
-# at what is already in ~/.ssh. A private key is recognised either by having a
-# .pub next to it or by its PEM header, which covers keys whose public half
-# was not copied along. Everything OpenSSH keeps in that directory for its own
-# purposes is skipped by name.
-#
-# Prints one path per line; prints nothing at all when there is no ~/.ssh.
-discover_ssh_keys() {
-    local file
-
-    [ -d "$SSH_DIR" ] || return 0
-
-    for file in "$SSH_DIR"/*; do
-        # An unmatched glob comes back as the pattern itself, which is not a
-        # file - so this also covers an empty directory.
-        [ -f "$file" ] || continue
-
-        case "${file##*/}" in
-            *.pub | known_hosts* | config | authorized_keys | environment | rc | agent-* | *.bak-*)
-                continue
-                ;;
-        esac
-
-        # Readable, because an unusable key must not satisfy the gate below.
-        #
-        # This is candidate detection and nothing more: the names above are
-        # excluded by name rather than by content, and a file that merely has
-        # a .pub beside it is taken at its word. Neither test proves a usable
-        # private key is there - only that something in this directory means
-        # to be one.
-        [ -r "$file" ] || continue
-
-        if [ -f "$file.pub" ] || head -n 1 "$file" 2> /dev/null | grep -q "PRIVATE KEY"; then
-            printf '%s\n' "$file"
-        fi
-    done
-}
-
-SSH_KEYS=()
-while IFS= read -r line; do
-    SSH_KEYS+=("$line")
-done < <(discover_ssh_keys)
-
-# -----------------------------------------------------------------------------
-# Stop when there are no SSH keys
-# -----------------------------------------------------------------------------
-# Checked here, before a single setting has been written, so a machine whose
-# keys have not been restored yet is left exactly as it was rather than half
-# configured.
-#
-# The check is for a PRIVATE key: a lone .pub cannot be added to the agent, so
-# a ~/.ssh holding only public halves counts as empty here.
-#
-# The way through for a machine that genuinely has no keys - one that talks to
-# its remotes over HTTPS through the GitHub CLI - is to say so explicitly:
-#
-#   ALLOW_NO_SSH_KEYS=1 ./setup-08-git.sh
-#
-# which is also the way through for keys that live outside ~/.ssh entirely -
-# resident on a hardware token, or held by an agent this script cannot see.
-if [ ${#SSH_KEYS[@]} -eq 0 ] && [ "${ALLOW_NO_SSH_KEYS:-0}" != "1" ]; then
-    echo "No SSH private keys found in $SSH_DIR." >&2
-    echo "Restore your keys there first, then run this script again - nothing" >&2
-    echo "has been configured yet." >&2
-    echo >&2
-    echo "To configure Git anyway (HTTPS remotes, or keys held elsewhere):" >&2
-    echo "  ALLOW_NO_SSH_KEYS=1 $0" >&2
-    exit 1
-fi
-
-if [ ${#SSH_KEYS[@]} -gt 0 ]; then
-    log "Found ${#SSH_KEYS[@]} SSH key(s) in $SSH_DIR."
-fi
 
 # -----------------------------------------------------------------------------
 # Set the identity
@@ -411,89 +333,6 @@ else
     # the account.
     log "The GitHub CLI is not logged in - skipping the credential helper."
     INCOMPLETE+=("the GitHub CLI credential helper - run 'gh auth login --hostname github.com --git-protocol ssh --skip-ssh-key --web'")
-fi
-
-# -----------------------------------------------------------------------------
-# Add the SSH keys to the agent
-# -----------------------------------------------------------------------------
-# ssh-add talks to the agent named by SSH_AUTH_SOCK, which a GNOME session
-# provides through gnome-keyring (installed by setup-00-packages.sh). Over SSH
-# or on a bare TTY there may be none, and starting one here would be useless:
-# the agent would belong to this script's own process and die with it, taking
-# the variable the parent shell never saw with it.
-#
-# Note what this does NOT do: keys added here live in the running agent only,
-# until the next logout. Put "AddKeysToAgent yes" in ~/.ssh/config to have
-# every key added on first use instead, which is the setting that makes this
-# step unnecessary from then on.
-if [ ${#SSH_KEYS[@]} -eq 0 ]; then
-    log "No SSH keys found in $SSH_DIR - skipping the agent."
-elif [ -z "${SSH_AUTH_SOCK:-}" ]; then
-    log "No SSH agent in this session (SSH_AUTH_SOCK is unset)."
-    log "  Found ${#SSH_KEYS[@]} key(s); add them from a desktop session, or run:"
-    # %q on every path: these lines are meant to be copied, and a key whose
-    # name contains a space would otherwise be pasted as two arguments.
-    QUOTED_KEYS=""
-    for key in "${SSH_KEYS[@]}"; do
-        QUOTED_KEYS="$QUOTED_KEYS $(printf '%q' "$key")"
-    done
-    log "    eval \"\$(ssh-agent -s)\" && ssh-add$QUOTED_KEYS"
-elif [ "$INTERACTIVE" != "1" ]; then
-    log "Not running on a terminal - not adding keys to the agent."
-else
-    log "Adding the SSH keys to the agent..."
-
-    # The fingerprints already loaded, so a key is not offered twice. ssh-add
-    # -l exits 1 for an empty agent and 2 when it cannot reach one; neither is
-    # an error here, and the empty result simply offers every key.
-    LOADED="$(ssh-add -l 2> /dev/null || true)"
-
-    for key in "${SSH_KEYS[@]}"; do
-        # Field 2 of ssh-keygen -l is the SHA256 fingerprint, and it is the
-        # same for the private key and its .pub, so the agent listing can be
-        # matched against it directly.
-        # || true: under pipefail a candidate ssh-keygen cannot read - a
-        # file that only looked like a key - would fail this assignment and,
-        # with set -e, abort the script here, after everything above has
-        # already been written. A missing fingerprint only costs the
-        # duplicate check.
-        FINGERPRINT="$(ssh-keygen -lf "$key" 2> /dev/null | awk '{print $2}' || true)"
-
-        if [ -n "$FINGERPRINT" ] && [[ "$LOADED" == *"$FINGERPRINT"* ]]; then
-            log "  ${key##*/} is already in the agent."
-            continue
-        fi
-
-        # ssh-add refuses a key others can read, with an error that does not
-        # mention the fix - so the fix is offered before it has a chance to.
-        #
-        # -L because a key is often a symlink into a synced directory, and the
-        # link's own mode is a meaningless 777. What ssh-add actually objects
-        # to is any group or other bit, so that is what is tested rather than
-        # an exact 600: 700 is just as acceptable.
-        # || continue rather than letting set -e abort: the file can be gone
-        # by now, or be a symlink whose target is.
-        PERMISSIONS="$(stat -Lc '%a' "$key")" || continue
-        if [ $((8#$PERMISSIONS & 077)) -ne 0 ]; then
-            log "  ${key##*/} is mode $PERMISSIONS - group or other bits are set."
-            log "    Fix it with: chmod 600 $(printf '%q' "$key")"
-            continue
-        fi
-
-        # End of input declines, rather than aborting a script that has
-        # already written its configuration.
-        read -r -p "  Add ${key##*/} to the agent? (y/N): " reply || reply=""
-        if [[ "$reply" =~ ^[JjYy]$ ]]; then
-            # A passphrase-protected key asks for it here, which is why this
-            # is not run unattended. A refused or mistyped passphrase must not
-            # take the whole script down with it.
-            if ssh-add "$key"; then
-                log "    Added ${key##*/}."
-            else
-                log "    Could not add ${key##*/} - skipping it."
-            fi
-        fi
-    done
 fi
 
 # -----------------------------------------------------------------------------
