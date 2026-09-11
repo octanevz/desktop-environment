@@ -84,6 +84,7 @@ setup_invalidate
 # -----------------------------------------------------------------------------
 # Both tmux and herdr bind this, so it goes in first. It needs fzf and fd,
 # which setup-00-packages.sh installs.
+step "Install the file picker"
 log "Installing the file picker..."
 install_config "$CONFIG_DIR/bin/file-picker" "$HOME/.local/bin/file-picker"
 chmod +x "$HOME/.local/bin/file-picker"
@@ -91,6 +92,7 @@ chmod +x "$HOME/.local/bin/file-picker"
 # -----------------------------------------------------------------------------
 # Install the tmux configuration
 # -----------------------------------------------------------------------------
+step "Install the tmux configuration"
 log "Installing the tmux configuration..."
 install_config "$CONFIG_DIR/tmux.conf" "$HOME/.tmux.conf"
 
@@ -113,6 +115,7 @@ fi
 # -----------------------------------------------------------------------------
 # Install the Alacritty configuration
 # -----------------------------------------------------------------------------
+step "Install the Alacritty configuration"
 log "Installing the Alacritty configuration..."
 install_config "$CONFIG_DIR/alacritty/alacritty.toml" \
     "$HOME/.config/alacritty/alacritty.toml"
@@ -155,6 +158,7 @@ fi
 # Two of the bindings deliberately differ from tmux, because herdr rejects the
 # tokens tmux uses: | is written shift+backslash, and copy mode is prefix+[
 # rather than PageUp, which herdr has no key name for.
+step "Install the herdr configuration"
 log "Installing the herdr configuration..."
 install_config "$CONFIG_DIR/herdr/config.toml" "$HOME/.config/herdr/config.toml"
 
@@ -184,6 +188,7 @@ fi
 # dconf read works from the database file alone, but writing needs the dconf
 # service on the session bus, which is not there over SSH. The first failed
 # write ends the loop with the command to run inside the desktop instead.
+step "Apply the GNOME settings"
 GNOME_SETTINGS="$CONFIG_DIR/dconf/gnome-settings.ini"
 GNOME_SETTINGS_BACKUP="$HOME/.local/state/gnome-settings/gnome-settings.ini.bak-$TIMESTAMP"
 
@@ -269,6 +274,7 @@ fi
 # optional script that was not run leaves no dead icon behind - re-run this
 # script after it to add the icon. JetBrains Toolbox writes its .desktop file
 # on its first launch, not at install, so it too appears after a re-run.
+step "Pin the applications to the dock"
 DOCK_FAVORITES=(
     org.gnome.Nautilus.desktop # Files
     Alacritty.desktop          # setup-04-alacritty.sh
@@ -340,6 +346,7 @@ fi
 # -----------------------------------------------------------------------------
 # Verify the installation
 # -----------------------------------------------------------------------------
+step "Verify the installation"
 log "Configuration files installed successfully!"
 log "Reload tmux with: tmux source-file ~/.tmux.conf"
 log "Alacritty and herdr pick their configuration up on the next start."

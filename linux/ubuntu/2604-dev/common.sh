@@ -2,7 +2,8 @@
 
 # =============================================================================
 # Sourced by the numbered setup scripts - not run on its own. It provides:
-# - log: prints a green status line
+# - log: prints a green status line, indented under the step header
+# - step: prints a colour-ruled header that opens a step of the script
 # - setup_begin: stops the script when a lower-numbered script has not
 #   completed yet, or when the script itself has already completed
 # - setup_end: records the script's completion
@@ -14,7 +15,8 @@
 # script, so the sequence is run in order and no step is skipped.
 #
 # The scripts that are meant to run repeatedly - setup-agents.sh, update-sys.sh
-# and update-all.sh - do not source this file.
+# and update-all.sh - source this file for log and step only and never call
+# setup_begin or setup_end, so they carry no marker and run every time.
 # =============================================================================
 
 STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/desktop-environment"
@@ -26,7 +28,32 @@ SETUP_NAME="$(basename "$0" .sh)"
 # wrong, and a command line printed for the user to copy would be wrong with
 # it. No caller passes an escape sequence of its own.
 log() {
-    printf '\033[32m%s\033[0m\n' "$1"
+    printf '  \033[32m%s\033[0m\n' "$1"
+}
+
+# A header for each step of a script: a blank line, a rule of "/" in gradient
+# colours, the title in bold white let into a second such rule, the rule
+# again, a blank line. The rule is 79 characters, the width the comment rules in the
+# scripts have.
+step() {
+    # A 256-colour gradient from orange through yellow and green to cyan,
+    # stretched once over the width of the rule.
+    local colors=(208 214 220 226 190 154 118 82 46 47 48 49 50 51)
+    local i seg rule="" tail=""
+    for ((i = 0; i < 79; i++)); do
+        printf -v seg '\033[38;5;%sm/' "${colors[i * ${#colors[@]} / 79]}"
+        rule+="$seg"
+        # The title line is the rule with the title in bold white let into
+        # it: "// ", the title, a space, then slashes to the right edge in
+        # the colours those columns have in the rule.
+        if [ "$i" -ge $((${#1} + 4)) ]; then
+            tail+="$seg"
+        fi
+    done
+    printf '\n%s\033[0m\n' "$rule"
+    printf '\033[38;5;%sm// \033[1;37m%s\033[0m %s\033[0m\n' \
+        "${colors[0]}" "$1" "$tail"
+    printf '%s\033[0m\n\n' "$rule"
 }
 
 # Call at the top of a numbered script, after its own argument parsing, with

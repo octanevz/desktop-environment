@@ -17,9 +17,8 @@ set -euo pipefail
 # Registered as the update-all alias by setup-01-devtools.sh.
 # =============================================================================
 
-log() {
-    echo -e "\e[32m$1\e[0m"
-}
+# shellcheck source=common.sh
+source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 
 # -----------------------------------------------------------------------------
 # Update the system packages
@@ -27,6 +26,7 @@ log() {
 # Done by running update-sys.sh rather than repeating what it does, so the two
 # stay in step. Resolved relative to this script, so it works no matter where
 # it is called from.
+step "Update the system packages"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 "$SCRIPT_DIR/update-sys.sh"
@@ -37,6 +37,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # setup-01-devtools.sh installs the SDK with dotnet-install.sh into ~/.dotnet,
 # outside apt, so the same call is repeated here. It resolves the newest SDK
 # of the channel and is a no-op when that version is already installed.
+step "Update the .NET SDK"
 DOTNET_CHANNEL="10.0"
 DOTNET_ROOT="${DOTNET_ROOT:-$HOME/.dotnet}"
 
@@ -80,6 +81,7 @@ done
 # -----------------------------------------------------------------------------
 # Codex CLI, the language servers and the rest of what setup-01-devtools.sh
 # installs with npm.
+step "Update the global npm packages"
 log "Updating the global npm packages..."
 npm update -g
 
@@ -90,6 +92,7 @@ npm update -g
 # it replaces its own binary in place. Only the installer's build can do that -
 # a uv from apt or pip refuses - so a failure here means uv came from somewhere
 # else, and saying so beats aborting the rest of the updates.
+step "Update uv"
 log "Updating uv..."
 uv self update || log "  Could not update uv - is it the one setup-01-devtools.sh installed?"
 
@@ -104,12 +107,14 @@ uv tool upgrade --all
 # Update csharp-ls
 # -----------------------------------------------------------------------------
 # A .NET global tool, which apt knows nothing about.
+step "Update csharp-ls"
 log "Updating csharp-ls..."
 dotnet tool update --global csharp-ls
 
 # -----------------------------------------------------------------------------
 # Update Claude Code
 # -----------------------------------------------------------------------------
+step "Update Claude Code"
 log "Updating Claude Code..."
 claude update
 
@@ -120,6 +125,7 @@ claude update
 # CLI, for Claude Code, Codex and OpenCode alike. Run through npx like the
 # install, so the CLI itself is always current too. Nothing to do until that
 # script has been run, which the CLI reports rather than fails on.
+step "Update the agent skills"
 log "Updating the agent skills..."
 npx -y skills update -g -y
 
@@ -127,6 +133,7 @@ npx -y skills update -g -y
 # Update herdr
 # -----------------------------------------------------------------------------
 # A fast static-binary swap through its own updater.
+step "Update herdr"
 log "Updating herdr..."
 herdr update
 
@@ -135,6 +142,7 @@ herdr update
 # -----------------------------------------------------------------------------
 # setup-00-packages.sh clones them from GitHub. Oh My Zsh's own updater pulls
 # the framework only and leaves custom/plugins alone, so they are pulled here.
+step "Update the Oh My Zsh custom plugins"
 for plugin in zsh-autosuggestions zsh-syntax-highlighting; do
     PLUGIN_DIR="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/plugins/$plugin"
     if [ -d "$PLUGIN_DIR/.git" ]; then
@@ -160,6 +168,7 @@ done
 # The installed version is compared first, so a run with nothing to do costs
 # one API call instead of a 10 MB download. The match is anchored to the
 # ", version=" field because "lazygit --version" also prints "git version=".
+step "Update lazygit"
 LAZYGIT_LATEST="$(curl -fsSL https://api.github.com/repos/jesseduffield/lazygit/releases/latest |
     grep -Po '"tag_name": *"v\K[^"]*')"
 LAZYGIT_INSTALLED="$(lazygit --version | grep -Po ', version=\K[^,]*')"
@@ -181,6 +190,7 @@ fi
 # Installed by setup-01-devtools.sh from its GitHub releases, and updated the
 # same way as lazygit above. "lazydocker --version" prints "Version: x.y.z"
 # on its first line.
+step "Update lazydocker"
 LAZYDOCKER_LATEST="$(curl -fsSL https://api.github.com/repos/jesseduffield/lazydocker/releases/latest |
     grep -Po '"tag_name": *"v\K[^"]*')"
 LAZYDOCKER_INSTALLED="$(lazydocker --version | grep -Po '^Version: \K.*')"
@@ -201,6 +211,7 @@ fi
 # -----------------------------------------------------------------------------
 # Installed by setup-01-devtools.sh from its GitHub releases, and updated the
 # same way as the two above. "dive --version" prints "dive 0.13.1".
+step "Update dive"
 DIVE_LATEST="$(curl -fsSL https://api.github.com/repos/wagoodman/dive/releases/latest |
     grep -Po '"tag_name": *"v\K[^"]*')"
 DIVE_INSTALLED="$(dive --version | grep -Po '^dive \K.*')"
@@ -222,6 +233,7 @@ fi
 # Installed by setup-01-devtools.sh from its GitHub releases, and updated the
 # same way as the three above. "yq --version" prints the project URL before
 # the version, hence the anchored match rather than a bare field.
+step "Update yq"
 YQ_LATEST="$(curl -fsSL https://api.github.com/repos/mikefarah/yq/releases/latest |
     grep -Po '"tag_name": *"v\K[^"]*')"
 YQ_INSTALLED="$(yq --version | grep -Po 'version v\K.*')"

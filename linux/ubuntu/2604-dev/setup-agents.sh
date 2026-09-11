@@ -15,9 +15,8 @@ set -euo pipefail
 # left alone.
 # =============================================================================
 
-log() {
-    echo -e "\e[32m$1\e[0m"
-}
+# shellcheck source=common.sh
+source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 
 # -----------------------------------------------------------------------------
 # Verify Claude Code is installed and logged in
@@ -26,6 +25,7 @@ log() {
 # CLI would otherwise stop to ask for a login mid-run. "claude auth status"
 # prints JSON with a loggedIn field; it is grepped rather than parsed so this
 # script needs nothing beyond what setup-00 installs.
+step "Verify Claude Code is installed and logged in"
 if ! command -v claude > /dev/null 2>&1; then
     echo "Claude Code is not installed - run setup-01-devtools.sh first." >&2
     exit 1
@@ -44,6 +44,7 @@ log "Claude Code is logged in."
 # codex-debate drives the Codex CLI, and the skills below are installed for
 # Codex too, so a missing login is caught here rather than on the first
 # debate. "codex login status" exits 0 when logged in and 1 otherwise.
+step "Verify the Codex CLI is installed and logged in"
 if ! command -v codex > /dev/null 2>&1; then
     echo "The Codex CLI is not installed - run setup-01-devtools.sh first." >&2
     exit 1
@@ -61,6 +62,7 @@ log "The Codex CLI is logged in."
 # -----------------------------------------------------------------------------
 # The three *-lsp plugins only wrap a language server: csharp-ls, pyright and
 # typescript-language-server, all installed by setup-01-devtools.sh.
+step "Install Claude Code Plugins (official marketplace)"
 claude plugin install claude-code-setup@claude-plugins-official
 claude plugin install code-simplifier@claude-plugins-official
 claude plugin install commit-commands@claude-plugins-official
@@ -80,6 +82,7 @@ claude plugin install typescript-lsp@claude-plugins-official
 # -----------------------------------------------------------------------------
 # codex-debate drives the Codex CLI, which setup-01-devtools.sh installs via
 # npm install -g @openai/codex - so run this script after setup-01-devtools.sh.
+step "Install Claude Code Plugins (own marketplace)"
 claude plugin marketplace add octanevz/codex-debate
 claude plugin install codex-debate@octanevz
 
@@ -96,6 +99,7 @@ claude plugin install codex-debate@octanevz
 # The Orca ones are the three Orca ADE itself installs on first launch;
 # find-skills is the skills CLI's own discovery skill. -a and -s are
 # repeated per value - the CLI does not split comma-separated lists.
+step "Install agent skills for Claude Code, Codex and OpenCode"
 SKILL_AGENTS=(claude-code codex opencode)
 SKILL_SOURCES=(
     "stablyai/orca computer-use orca-cli orchestration"

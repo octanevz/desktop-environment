@@ -75,6 +75,7 @@ setup_begin "$@"
 # which setup-01-devtools.sh installs (node is needed by the Copilot language
 # server). As in setup-04-alacritty.sh, the script reports what is missing
 # and stops.
+step "Verify the prerequisites"
 REQUIRED_COMMANDS=(
     cc
     curl
@@ -132,6 +133,7 @@ nvim --version | head -1
 # directories are moved aside whether or not the configuration exists: LazyVim
 # owns them all, and a leftover data or state directory would mix an old
 # plugin state into the new configuration.
+step "Move an existing configuration aside"
 if [ -e "$NVIM_CONFIG" ] && [ "$FORCE" != "1" ]; then
     log "$NVIM_CONFIG already exists - leaving it untouched."
     log "Re-run with --force to back it up and install LazyVim fresh."
@@ -158,6 +160,7 @@ fi
 # -----------------------------------------------------------------------------
 # The .git directory is removed so the configuration becomes yours to commit
 # elsewhere, which is what the LazyVim installation instructions do.
+step "Install the LazyVim starter"
 log "Cloning the LazyVim starter into $NVIM_CONFIG..."
 git clone "$LAZYVIM_STARTER" "$NVIM_CONFIG"
 rm -rf "$NVIM_CONFIG/.git"
@@ -189,6 +192,7 @@ rm -rf "$NVIM_CONFIG/.git"
 # "lazyvim.plugins.extras.lazyvim.plugins.extras.lang.json" and the extras
 # would silently not load. 8 is the current schema version; a later LazyVim
 # simply migrates it forward.
+step "Enable the LazyVim extras"
 log "Enabling the LazyVim extras..."
 cat > "$NVIM_CONFIG/lazyvim.json" << 'EOF'
 {
@@ -214,6 +218,7 @@ EOF
 # -----------------------------------------------------------------------------
 # The only option overridden here. LazyVim defaults to { "en" }, which accepts
 # both US and British spellings; this narrows it to US English.
+step "Set spelllang to en_us"
 log "Setting spelllang to en_us..."
 cat >> "$NVIM_CONFIG/lua/config/options.lua" << 'EOF'
 
@@ -238,6 +243,7 @@ EOF
 # The output is verbose and mixes in those abort notices, so it goes to a log
 # and is only shown if the sync actually fails. A failure is not fatal: the
 # configuration is in place and ":Lazy sync" inside Neovim does the same job.
+step "Install the plugins"
 log "Installing the plugins (this takes a minute)..."
 SYNC_LOG="$(mktemp)"
 if nvim --headless "+Lazy! sync" +qa > "$SYNC_LOG" 2>&1; then
@@ -253,6 +259,7 @@ fi
 # -----------------------------------------------------------------------------
 # Verify the installation
 # -----------------------------------------------------------------------------
+step "Verify the installation"
 log "LazyVim installation completed successfully!"
 log "Start nvim and run :checkhealth to confirm everything is in order,"
 log "then :Copilot auth to sign in to GitHub Copilot."

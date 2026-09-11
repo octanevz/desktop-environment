@@ -48,6 +48,7 @@ install_keyring() {
 # -----------------------------------------------------------------------------
 # Install Docker Engine and Containerd
 # -----------------------------------------------------------------------------
+step "Install Docker Engine and Containerd"
 
 # uninstall all conflicting packages
 for pkg in docker.io docker-doc docker-compose docker-compose-v2 podman-docker containerd runc; do sudo apt remove -y $pkg || true; done
@@ -85,6 +86,7 @@ sudo usermod -aG docker "$USER"
 # "stable" tarball is installed to /opt instead of the apt package. Re-run
 # this script to move it to a newer stable; update-all.sh leaves it alone so
 # that a Neovim bump cannot break the LazyVim plugins unannounced.
+step "Install Neovim"
 log "Installing Neovim (stable) from the official tarball..."
 
 NVIM_TARBALL="nvim-linux-x86_64.tar.gz"
@@ -120,6 +122,7 @@ nvim --version | head -1
 # -----------------------------------------------------------------------------
 # Installed from its GitHub releases rather than the archive, whose version
 # is pinned for the lifetime of the release. update-all.sh refreshes it.
+step "Install lazygit"
 log "Installing lazygit..."
 
 LAZYGIT_VERSION="$(curl -fsSL https://api.github.com/repos/jesseduffield/lazygit/releases/latest | grep -Po '"tag_name": *"v\K[^"]*')"
@@ -136,6 +139,7 @@ lazygit --version
 # A terminal UI for Docker from the lazygit author, installed the same way:
 # from its GitHub releases, since Ubuntu does not package it. update-all.sh
 # refreshes it.
+step "Install lazydocker"
 log "Installing lazydocker..."
 
 LAZYDOCKER_VERSION="$(curl -fsSL https://api.github.com/repos/jesseduffield/lazydocker/releases/latest | grep -Po '"tag_name": *"v\K[^"]*')"
@@ -157,6 +161,7 @@ lazydocker --version | head -1
 # The release carries a .deb as well, but the tarball is used for the same
 # reason it is for the other two: nothing else here needs dpkg to know about
 # the binary, and /usr/local/bin keeps all three together.
+step "Install dive"
 log "Installing dive..."
 
 DIVE_VERSION="$(curl -fsSL https://api.github.com/repos/wagoodman/dive/releases/latest | grep -Po '"tag_name": *"v\K[^"]*')"
@@ -180,6 +185,7 @@ dive --version
 # From its GitHub releases like lazygit, lazydocker and dive above; the asset
 # is a bare binary rather than a tarball, so there is nothing to unpack.
 # update-all.sh refreshes it.
+step "Install yq"
 log "Installing yq..."
 
 # The archive package owns /usr/bin/yq. /usr/local/bin comes first on PATH, so
@@ -208,6 +214,7 @@ yq --version
 # -----------------------------------------------------------------------------
 # Install Google Chrome
 # -----------------------------------------------------------------------------
+step "Install Google Chrome"
 
 # Add Google signing key and repository
 log "Installing the Google signing key and repository..."
@@ -237,6 +244,7 @@ google-chrome --version
 # -----------------------------------------------------------------------------
 # Install Visual Studio Code
 # -----------------------------------------------------------------------------
+step "Install Visual Studio Code"
 # Installed from the Microsoft apt repository rather than the snap, so that
 # update-sys/update-all keep it current together with everything else.
 
@@ -278,6 +286,7 @@ sudo apt install -y code
 # rest it pulls in - libayatana-appindicator3-1, libayatana-ido3-0.4-0,
 # libayatana-indicator3-7, libxdo3, xdotool, xvfb, xclip - are all present,
 # some from universe, which setup-00-packages.sh enables.
+step "Install Orca ADE"
 log "Installing Orca ADE..."
 
 ORCA_ASSET_URL="$(curl -fsSL https://api.github.com/repos/stablyai/orca/releases/latest |
@@ -320,6 +329,7 @@ dpkg-query -W -f='Orca ADE ${Version} installed successfully!\n' orca-ide
 # -----------------------------------------------------------------------------
 # Install GitHub CLI
 # -----------------------------------------------------------------------------
+step "Install GitHub CLI"
 # The Ubuntu archive version is frozen per release, so the upstream repo is used.
 
 log "Installing the GitHub CLI signing key and repository..."
@@ -342,6 +352,7 @@ gh --version
 # -----------------------------------------------------------------------------
 # Install Node.js 24 using nvm
 # -----------------------------------------------------------------------------
+step "Install Node.js 24 using nvm"
 log "Installing Node.js..."
 
 # Download and install nvm
@@ -369,6 +380,7 @@ log "Node.js installation completed successfully!"
 # has its own installer below. pyright and typescript-language-server (with
 # typescript) are the servers the pyright-lsp and typescript-lsp Claude Code
 # plugins from setup-agents.sh expect to find on PATH.
+step "Install npm packages"
 log "Installing the npm packages..."
 npm install -g \
     @openai/codex \
@@ -398,6 +410,7 @@ npm install -g \
 # own PATH line to the shell profile. It installs into ~/.local/bin, which
 # setup-00-packages.sh has already put on PATH, so that line would be a
 # duplicate entry pointing at the same directory.
+step "Install uv"
 if command -v uv > /dev/null 2>&1; then
     log "uv is already installed ($(uv --version)). Skipping the installer."
     log "Update it with: uv self update"
@@ -442,6 +455,7 @@ uv --version
 #
 # Checked before installing, the same way csharp-ls is below: "uv tool install"
 # on a tool that is already there does not upgrade it.
+step "Install Ruff"
 log "Installing Ruff..."
 if uv tool list 2> /dev/null | grep -q '^ruff '; then
     uv tool upgrade ruff
@@ -467,6 +481,7 @@ ruff --version
 # Everything lands under ~/.dotnet, which is why DOTNET_ROOT and the PATH
 # entries below are needed. libicu and libssl, which the runtime needs, come
 # from setup-00-packages.sh.
+step "Install .NET 10 LTS and csharp-ls"
 DOTNET_CHANNEL="10.0"
 
 # An archive SDK from an earlier version of this script would shadow the
@@ -511,6 +526,7 @@ log ".NET installation completed successfully!"
 # -----------------------------------------------------------------------------
 # The installer drops the binary in ~/.local/bin, which setup-00-packages.sh
 # already puts on PATH.
+step "Install Claude Code"
 log "Installing Claude Code..."
 curl -fsSL https://claude.ai/install.sh | bash
 export PATH="$HOME/.local/bin:$PATH"
@@ -531,6 +547,7 @@ log "Claude Code installation completed successfully!"
 # It updates itself with "herdr update" - which update-all.sh runs - and
 # switches release channels with "herdr channel set stable|preview".
 # Its config lives at ~/.config/herdr/config.toml.
+step "Install herdr"
 if command -v herdr > /dev/null 2>&1; then
     log "herdr is already installed ($(herdr --version)). Skipping the installer."
     log "Update it with: herdr update"
@@ -556,6 +573,7 @@ log "herdr installation completed successfully!"
 # -----------------------------------------------------------------------------
 # Register update-sys and update-all aliases in .zshrc
 # -----------------------------------------------------------------------------
+step "Register update-sys and update-all aliases in .zshrc"
 log "Installing update-sys and update-all aliases in .zshrc..."
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -587,6 +605,7 @@ setup_end
 # Not a question: the changes above only take effect at the next login, and
 # the next script depends on them. Enter reboots; Ctrl-C is the way out for
 # whoever wants to reboot later - the completion marker is written already.
+step "Reboot after installation"
 log "The machine has to reboot for the changes to take effect."
 read -r -p "Press Enter to reboot..."
 echo "Rebooting..."

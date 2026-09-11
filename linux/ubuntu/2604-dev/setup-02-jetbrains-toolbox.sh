@@ -14,6 +14,7 @@ setup_invalidate
 # terminal, so its output lands on the prompt and, worse, whatever captures
 # this script's output (a pipe, tee, a log) waits until Toolbox exits. The
 # launch happens below instead, detached.
+step "Install JetBrains Toolbox"
 curl -fsSL https://raw.githubusercontent.com/nagygergo/jetbrains-toolbox-install/4184247d1d12888024181f27dea7b7868d8f9e81/jetbrains-toolbox.sh | CI=1 bash
 
 # The first launch is what writes the .desktop file (setup-07-configs.sh pins

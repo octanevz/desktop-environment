@@ -36,6 +36,7 @@ setup_invalidate
 # pulled here is removed, by remembering its ID across the pull - a blanket
 # "docker image prune" would also delete unrelated untagged images that have
 # nothing to do with this script.
+step "Install the required Docker images"
 for image in "${DOCKER_IMAGES[@]}"; do
     OLD_ID="$(docker image inspect --format '{{.Id}}' "$image" 2> /dev/null || true)"
 

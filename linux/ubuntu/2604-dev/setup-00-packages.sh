@@ -45,6 +45,7 @@ setup_invalidate
 # the box, so this is a no-op there; it matters on an install that was trimmed
 # to main. -n skips the apt update add-apt-repository would otherwise run -
 # the next section updates once for everything.
+step "Enable the universe component"
 sudo apt install -y software-properties-common
 sudo add-apt-repository -y -n universe
 
@@ -68,6 +69,7 @@ sudo add-apt-repository -y -n universe
 # Separate statements rather than one && chain: set -e ignores a failure
 # anywhere but the last link of a chain, so a failed upgrade would otherwise
 # go unnoticed.
+step "Update OS and install some required packages"
 sudo apt update -y
 sudo apt upgrade -y
 sudo apt install -y \
@@ -171,6 +173,7 @@ sudo apt clean -y
 # and tools that parse numbers in the C format can misread them. Remove
 # LC_NUMERIC from the list if that gets in the way; nothing else here depends
 # on it.
+step "Configure the locale"
 FORMAT_CATEGORIES=(
     LC_ADDRESS
     LC_MEASUREMENT
@@ -263,6 +266,7 @@ log "  Log out and back in for the new locale to take effect."
 # -----------------------------------------------------------------------------
 # Install Oh My Zsh and plugins
 # -----------------------------------------------------------------------------
+step "Install Oh My Zsh and plugins"
 
 # Install Oh My Zsh if not already installed
 if [ -d "$HOME/.oh-my-zsh" ]; then
@@ -326,6 +330,7 @@ done
 # hyperlinks, and ISO timestamps. lf lists only files and ld only
 # directories. Appended after the Oh My Zsh block, so l overrides the alias
 # Oh My Zsh defines.
+step "Alias l, lf and ld to eza"
 log "Aliasing l, lf and ld to eza in .zshrc..."
 EZA_OPTS="--icons=always -la --color=always --hyperlink --time-style long-iso"
 EZA_ALIASES=(
@@ -359,6 +364,7 @@ done
 # means .gitignore is respected and .git is skipped, and the previews use bat
 # and eza. All three are installed above; fd and bat are reached through the
 # shims further down, which is why nothing here calls fdfind or batcat.
+step "Configure the fzf key bindings"
 log "Configuring the fzf key bindings..."
 
 # "fzf --zsh" prints the integration; it exists from fzf 0.48 on. Checked
@@ -398,6 +404,7 @@ fi
 #
 # Sync is opt-in and stays off unless "atuin register" is run - nothing here
 # contacts a server, and the database never leaves the machine.
+step "Configure atuin as the Ctrl-R shell history"
 log "Configuring atuin..."
 
 # The config is only written when there is none, so later hand edits survive a
@@ -473,6 +480,7 @@ atuin --version
 # Appended after the Oh My Zsh block like the entries above, and for one extra
 # reason: the init defines completions, and compinit - which oh-my-zsh.sh runs -
 # has to have gone first for them to register.
+step "Configure zoxide as the z directory jumper"
 log "Configuring zoxide..."
 
 # shellcheck disable=SC2016 # written to .zshrc verbatim, expands there
@@ -503,6 +511,7 @@ zoxide --version
 #
 # direnv announces every load and unload on stderr, which gets noisy when z is
 # how one moves around. Add DIRENV_LOG_FORMAT="" to .zshrc to silence it.
+step "Hook direnv into the shell"
 log "Hooking direnv into the shell..."
 
 # shellcheck disable=SC2016 # written to .zshrc verbatim, expands there
@@ -521,6 +530,7 @@ direnv --version
 # -----------------------------------------------------------------------------
 # fonts-jetbrains-mono (installed above) provides the text face; the Nerd Font
 # symbol-only patch supplies the icons LazyVim and the Tmux theme render.
+step "Install Nerd Fonts"
 log "Installing Nerd Font symbols..."
 
 FONT_DIR="$HOME/.local/share/fonts/SymbolsNerdFont"
@@ -546,6 +556,7 @@ log "Nerd Font symbols installed."
 # deliberately NOT aliased over cat: only interactive zsh would see such an
 # alias, so a script piping cat and a prompt running it would behave
 # differently, and that is a poor trade for six saved keystrokes.
+step "Install the fd and bat shims"
 mkdir -p "$HOME/.local/bin"
 for shim_entry in fd:fdfind bat:batcat; do
     shim_name="${shim_entry%%:*}"
@@ -571,6 +582,7 @@ export PATH="$HOME/.local/bin:$PATH"
 # -----------------------------------------------------------------------------
 # Install Tmux Plugin Manager
 # -----------------------------------------------------------------------------
+step "Install Tmux Plugin Manager"
 if [ ! -d "$HOME/.tmux/plugins/tpm" ]; then
     log "Installing Tmux Plugin Manager..."
     git clone https://github.com/tmux-plugins/tpm "$HOME/.tmux/plugins/tpm"
@@ -585,6 +597,7 @@ fi
 # tools only do anything under VMware, and ubuntu-drivers (an Ubuntu-only tool)
 # only makes sense on bare metal. systemd-detect-virt exits non-zero on bare
 # metal, hence the || true.
+step "Install the hardware-specific packages"
 VIRT="$(systemd-detect-virt || true)"
 case "$VIRT" in
     vmware)
@@ -611,6 +624,7 @@ esac
 # setup-01-devtools.sh, so the snap is redundant - but removing it deletes the
 # profile, so it only happens when explicitly requested:
 #   REMOVE_FIREFOX_SNAP=1 ./setup-00-packages.sh
+step "Remove the Firefox snap (opt-in only)"
 if [ "${REMOVE_FIREFOX_SNAP:-0}" = "1" ] && snap list firefox > /dev/null 2>&1; then
     log "Removing the Firefox snap..."
     sudo snap remove --purge firefox
@@ -626,6 +640,7 @@ setup_end
 # Not a question: the changes above only take effect at the next login, and
 # the next script depends on them. Enter reboots; Ctrl-C is the way out for
 # whoever wants to reboot later - the completion marker is written already.
+step "Reboot after installation"
 log "The machine has to reboot for the changes to take effect."
 read -r -p "Press Enter to reboot..."
 echo "Rebooting..."

@@ -78,6 +78,7 @@ setup_begin "$@"
 # -----------------------------------------------------------------------------
 # Check the prerequisites
 # -----------------------------------------------------------------------------
+step "Check the prerequisites"
 if ! command -v docker > /dev/null 2>&1; then
     echo "Docker is not installed. Run setup-01-devtools.sh first." >&2
     exit 1
@@ -104,6 +105,7 @@ fi
 # further down and must never be hoisted onto the host. Keeping the ~1.5 GB
 # toolchain and the -dev packages off the host is the whole point of building
 # in a container; adding them to setup-00-packages.sh would defeat it.
+step "Verify the runtime dependencies"
 ALACRITTY_RUNTIME_LIBS=(
     libfontconfig1
     libfreetype6
@@ -151,6 +153,7 @@ fi
 #
 # Note that the checkout is forced, so any local edits in $ALACRITTY_SRC are
 # discarded. This is a build tree, not a place to work in.
+step "Check out the requested revision"
 ALACRITTY_REPO="https://github.com/alacritty/alacritty.git"
 
 if [ ! -d "$ALACRITTY_SRC/.git" ]; then
@@ -213,6 +216,7 @@ fi
 # -----------------------------------------------------------------------------
 # Below the version check above, which exits 0 when the wanted version is
 # already installed - that path changes nothing and must lose nothing.
+step "Build inside an ubuntu:26.04 container"
 setup_invalidate
 
 log "Building Alacritty $ALACRITTY_VERSION in a $BUILD_IMAGE container..."
@@ -282,18 +286,21 @@ log "Build completed successfully!"
 # -----------------------------------------------------------------------------
 # Install the binary
 # -----------------------------------------------------------------------------
+step "Install the binary"
 log "Installing Alacritty into /usr/local..."
 sudo install -m 755 "$ALACRITTY_SRC/target/release/alacritty" /usr/local/bin/alacritty
 
 # -----------------------------------------------------------------------------
 # Install the terminfo
 # -----------------------------------------------------------------------------
+step "Install the terminfo"
 log "Installing the terminfo..."
 sudo tic -xe alacritty,alacritty-direct "$ALACRITTY_SRC/extra/alacritty.info"
 
 # -----------------------------------------------------------------------------
 # Install the desktop entry and icon
 # -----------------------------------------------------------------------------
+step "Install the desktop entry and icon"
 log "Installing the desktop entry and icon..."
 # /usr/share/pixmaps is the path the shipped .desktop file expects; the entry
 # itself goes to /usr/local/share/applications, where locally built software
@@ -305,6 +312,7 @@ sudo update-desktop-database /usr/local/share/applications
 # -----------------------------------------------------------------------------
 # Install the man pages
 # -----------------------------------------------------------------------------
+step "Install the man pages"
 log "Installing the man pages..."
 sudo install -D -m 644 "$ALACRITTY_SRC/target/man/alacritty.1.gz" /usr/local/share/man/man1/alacritty.1.gz
 sudo install -D -m 644 "$ALACRITTY_SRC/target/man/alacritty-msg.1.gz" /usr/local/share/man/man1/alacritty-msg.1.gz
@@ -319,6 +327,7 @@ sudo install -D -m 644 "$ALACRITTY_SRC/target/man/alacritty-escapes.7.gz" /usr/l
 # is installed here. It goes into Oh My Zsh's custom/completions directory,
 # which is on fpath before compinit runs (see the herdr completion in
 # setup-01-devtools.sh for why that matters).
+step "Install the Zsh completion"
 log "Installing the Zsh completion..."
 ZSH_COMPLETIONS="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/completions"
 mkdir -p "$ZSH_COMPLETIONS"
@@ -327,6 +336,7 @@ install -m 644 "$ALACRITTY_SRC/extra/completions/_alacritty" "$ZSH_COMPLETIONS/_
 # -----------------------------------------------------------------------------
 # Verify the installation
 # -----------------------------------------------------------------------------
+step "Verify the installation"
 log "Alacritty installation completed successfully!"
 /usr/local/bin/alacritty --version
 log "Terminals that are already open keep the old binary until restarted."
