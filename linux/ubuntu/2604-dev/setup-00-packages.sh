@@ -28,6 +28,10 @@ FORMATS_LOCALE="de_DE.UTF-8"
 source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 setup_begin "$@"
 
+# Nothing between here and the end leaves the machine untouched - it installs packages
+# straight away - so the completion marker goes now.
+setup_invalidate
+
 # -----------------------------------------------------------------------------
 # Enable the universe component
 # -----------------------------------------------------------------------------

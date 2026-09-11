@@ -141,6 +141,10 @@ log "Detected GNOME Shell $SHELL_VERSION (extensions for shell $SHELL_MAJOR)."
 # release built for it, and that entry's "pk" is the version_tag the download
 # URL needs. The top-level download_url is not used: for an unsupported shell
 # version it falls back to some other build instead of failing.
+# Below every prerequisite and shell-version check. The loop can install
+# one extension and then fail on the next, so the marker goes before it.
+setup_invalidate
+
 DOWNLOAD_DIR="$(mktemp -d)"
 trap 'rm -rf "$DOWNLOAD_DIR"' EXIT
 

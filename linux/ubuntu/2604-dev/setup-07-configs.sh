@@ -63,6 +63,10 @@ install_config() {
     log "  Installed $target"
 }
 
+# Nothing above changes the machine - only the helper definitions - and the
+# first install_config call is just below.
+setup_invalidate
+
 # -----------------------------------------------------------------------------
 # Install the file picker
 # -----------------------------------------------------------------------------

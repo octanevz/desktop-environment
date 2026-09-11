@@ -211,6 +211,10 @@ fi
 # -----------------------------------------------------------------------------
 # Build inside an ubuntu:26.04 container
 # -----------------------------------------------------------------------------
+# Below the version check above, which exits 0 when the wanted version is
+# already installed - that path changes nothing and must lose nothing.
+setup_invalidate
+
 log "Building Alacritty $ALACRITTY_VERSION in a $BUILD_IMAGE container..."
 
 docker volume create "$CACHE_VOLUME" > /dev/null

@@ -65,6 +65,23 @@ setup_begin() {
     fi
 }
 
+# Call at the point a script is about to change the system, after its
+# prerequisite checks and after every early exit that leaves the machine as it
+# found it. It drops the completion marker, so that from here until setup_end
+# writes it again nothing claims this script has completed.
+#
+# Without it, --force walks past an existing marker without clearing it: a
+# forced re-run that then dies halfway - a failed download, a Ctrl-C, a power
+# cut - leaves the marker of the earlier, successful run in place, and the
+# next plain run exits at once believing the work was done.
+#
+# Placement is the whole point. Too early and abandoning the script at a
+# prompt, or a prerequisite check that stops before touching anything,
+# destroys a marker that was still true.
+setup_invalidate() {
+    rm -f "$STATE_DIR/$SETUP_NAME.done"
+}
+
 # Call once the script has done everything it is for - before a reboot
 # prompt, since that never returns.
 setup_end() {

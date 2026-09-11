@@ -25,6 +25,10 @@ set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 setup_begin "$@"
 
+# Nothing between here and the end leaves the machine untouched - it writes an apt source
+# straight away - so the completion marker goes now.
+setup_invalidate
+
 # Downloads an apt signing key into /etc/apt/keyrings. apt accepts armored
 # (.asc) and binary (.gpg) keys alike in Signed-By, so nothing is dearmored.
 # The download is staged in a temp file and only installed once it succeeded,

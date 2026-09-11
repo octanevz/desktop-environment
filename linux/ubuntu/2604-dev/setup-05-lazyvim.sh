@@ -138,6 +138,10 @@ if [ -e "$NVIM_CONFIG" ] && [ "$FORCE" != "1" ]; then
     exit 0
 fi
 
+# Below the exit 0 for an existing configuration; the backup move just
+# below is the first thing that touches the machine.
+setup_invalidate
+
 if [ "$FORCE" = "1" ]; then
     BACKUP_SUFFIX="bak-$(date +%Y%m%d%H%M%S)"
     log "Backing up the existing Neovim directories (.$BACKUP_SUFFIX)..."
