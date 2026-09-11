@@ -1,0 +1,37 @@
+root = true
+
+# Properties every file here already satisfies. Indentation is deliberately
+# not set globally: the shell scripts are the only files whose style is
+# settled, and claiming a width for the HTML and TOML would reformat them on
+# the next save.
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# The shell scripts. shfmt reads these itself, so a bare "shfmt -w"
+# formats them the way they were written and the flags stop being something to
+# remember:
+#
+#   indent_size 4         -i 4   four spaces, not shfmt's default tabs
+#   switch_case_indent    -ci    case branches indented inside the case
+#   space_redirects       -sr    "> /dev/null", not ">/dev/null"
+#
+# binary_next_line is deliberately absent: || and && stay at the end of the
+# line they continue from, which is how these scripts are written.
+#
+# One style for every script here, Ubuntu and Debian alike, so "shfmt -l ."
+# staying silent is what says the tree is formatted.
+[*.sh]
+indent_style = space
+indent_size = 4
+switch_case_indent = true
+space_redirects = true
+
+# The one shell script with no .sh extension; same style as the rest.
+[**/bin/file-picker]
+indent_style = space
+indent_size = 4
+switch_case_indent = true
+space_redirects = true
