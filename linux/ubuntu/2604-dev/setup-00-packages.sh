@@ -10,6 +10,8 @@ set -euo pipefail
 # - Aliases l, lf and ld to eza
 # - Sets up atuin as the Ctrl-R shell history
 # - Sets up zoxide as the z directory jumper
+# - Binds the fzf key bindings and points them at fd and bat
+# - Hooks direnv into the shell
 # - Installs the LazyVim prerequisites (ripgrep, fd, fzf, tree-sitter, a Nerd
 #   Font and friends)
 # - Shims fdfind as fd and batcat as bat in ~/.local/bin
@@ -80,6 +82,7 @@ sudo apt install -y \
     curl \
     dconf-cli \
     desktop-file-utils \
+    direnv \
     eza \
     fastfetch \
     fd-find \
@@ -88,6 +91,7 @@ sudo apt install -y \
     fzf \
     gimp \
     git \
+    git-absorb \
     git-delta \
     git-lfs \
     gnome-keyring \
@@ -115,10 +119,12 @@ sudo apt install -y \
     mesa-utils \
     nano \
     pkg-config \
+    postgresql-client \
     python3 \
     python3-pip \
     python3-venv \
     ripgrep \
+    rsync \
     shellcheck \
     shfmt \
     tmux \
@@ -326,6 +332,49 @@ for entry in "${EZA_ALIASES[@]}"; do
 done
 
 # -----------------------------------------------------------------------------
+# Configure the fzf key bindings
+# -----------------------------------------------------------------------------
+# fzf is installed above but binds nothing on its own - the package ships the
+# integration and leaves enabling it to the user, so without this Ctrl-T (put a
+# file path on the command line) and Alt-C (cd into a subdirectory) do nothing.
+#
+# This block is deliberately written to .zshrc BEFORE the atuin one below.
+# "fzf --zsh" also binds Ctrl-R to fzf's own history search, and the later of
+# the two bindings wins - so with the order reversed, fzf would quietly take
+# Ctrl-R back off atuin. Keep these two sections in this order.
+#
+# The commands are pointed at fd rather than fzf's default find walk, which
+# means .gitignore is respected and .git is skipped, and the previews use bat
+# and eza. All three are installed above; fd and bat are reached through the
+# shims further down, which is why nothing here calls fdfind or batcat.
+log "Configuring the fzf key bindings..."
+
+# "fzf --zsh" prints the integration; it exists from fzf 0.48 on. Checked
+# rather than assumed, because a .zshrc line calling a flag the local fzf does
+# not know would print an error on every single shell start.
+if ! fzf --zsh > /dev/null 2>&1; then
+    log "  This fzf does not support 'fzf --zsh' - skipping the key bindings."
+elif grep -qxF 'source <(fzf --zsh)' ~/.zshrc; then
+    log "  The fzf key bindings are already in .zshrc."
+else
+    # A quoted heredoc, not the line-by-line loop used elsewhere in this
+    # script: these lines nest single inside double quotes, which survives
+    # verbatim here and would need escaping anywhere else.
+    cat >> ~/.zshrc << 'EOF'
+
+# fzf: Ctrl-T inserts a file path, Alt-C changes directory. Ctrl-R belongs to
+# atuin, bound below this line.
+export FZF_DEFAULT_COMMAND='fd --type f --hidden --exclude .git'
+export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+export FZF_CTRL_T_OPTS="--preview 'bat -n --color=always {}'"
+export FZF_ALT_C_COMMAND='fd --type d --hidden --exclude .git'
+export FZF_ALT_C_OPTS="--preview 'eza --icons=always -la --color=always {}'"
+source <(fzf --zsh)
+EOF
+    log "  Added the fzf key bindings to .zshrc."
+fi
+
+# -----------------------------------------------------------------------------
 # Configure atuin as the Ctrl-R shell history
 # -----------------------------------------------------------------------------
 # atuin (installed above) replaces the Ctrl-R history search with a search over
@@ -424,6 +473,36 @@ else
 fi
 
 zoxide --version
+
+# -----------------------------------------------------------------------------
+# Hook direnv into the shell
+# -----------------------------------------------------------------------------
+# direnv (installed above) loads and unloads environment variables per
+# directory from an .envrc file, which is what keeps per-project settings out
+# of .zshrc now that nvm, uv and ~/.dotnet all live on this machine. An .envrc
+# does nothing until it is allowed once with "direnv allow", so a repository
+# cloned from anywhere cannot change the environment behind one's back.
+#
+# The hook goes last of the four appended to .zshrc. Its own position among
+# them does not actually matter - it registers a precmd and a chpwd hook, and
+# zsh runs every function registered on those, so it composes with the zoxide
+# hook above rather than replacing it. Verified: after "z somewhere", direnv
+# loads that directory's .envrc.
+#
+# direnv announces every load and unload on stderr, which gets noisy when z is
+# how one moves around. Add DIRENV_LOG_FORMAT="" to .zshrc to silence it.
+log "Hooking direnv into the shell..."
+
+# shellcheck disable=SC2016 # written to .zshrc verbatim, expands there
+DIRENV_HOOK='eval "$(direnv hook zsh)"'
+if ! grep -qxF "$DIRENV_HOOK" ~/.zshrc; then
+    echo "$DIRENV_HOOK" >> ~/.zshrc
+    log "  Added the direnv hook to .zshrc."
+else
+    log "  The direnv hook is already in .zshrc."
+fi
+
+direnv --version
 
 # -----------------------------------------------------------------------------
 # Install Nerd Fonts
