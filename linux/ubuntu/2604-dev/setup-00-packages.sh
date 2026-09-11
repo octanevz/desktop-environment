@@ -18,7 +18,7 @@ set -euo pipefail
 # - Installs Tmux Plugin Manager
 # - Installs the VMware guest tools in a VMware VM, proprietary drivers on
 #   bare metal
-# - Optionally reboots the system after installation
+# - Reboots the system after installation
 # =============================================================================
 
 # -----------------------------------------------------------------------------
@@ -623,8 +623,10 @@ setup_end
 # -----------------------------------------------------------------------------
 # Reboot after installation
 # -----------------------------------------------------------------------------
-read -r -p "Reboot? (j/N): " reply
-if [[ "$reply" =~ ^[JjYy]$ ]]; then
-    echo "Rebooting..."
-    exec sudo /sbin/reboot now
-fi
+# Not a question: the changes above only take effect at the next login, and
+# the next script depends on them. Enter reboots; Ctrl-C is the way out for
+# whoever wants to reboot later - the completion marker is written already.
+log "The machine has to reboot for the changes to take effect."
+read -r -p "Press Enter to reboot..."
+echo "Rebooting..."
+exec sudo /sbin/reboot now
