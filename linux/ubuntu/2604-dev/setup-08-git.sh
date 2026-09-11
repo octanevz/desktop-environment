@@ -402,8 +402,15 @@ else
     # Treated as a prerequisite, not as a choice: while gh is installed and
     # unauthenticated this script reports itself incomplete on EVERY run.
     # Authenticate, or remove gh if this machine is deliberately not using it.
+    #
+    # The suggested command names every choice the login wizard would
+    # otherwise ask about. --git-protocol ssh, because the remotes here are
+    # SSH and the keys are already in ~/.ssh; --skip-ssh-key, because with
+    # SSH chosen the wizard next offers to generate a key and upload it to
+    # GitHub - the key is there already, and a second one would only clutter
+    # the account.
     log "The GitHub CLI is not logged in - skipping the credential helper."
-    INCOMPLETE+=("the GitHub CLI credential helper - run 'gh auth login --hostname github.com'")
+    INCOMPLETE+=("the GitHub CLI credential helper - run 'gh auth login --hostname github.com --git-protocol ssh --skip-ssh-key --web'")
 fi
 
 # -----------------------------------------------------------------------------
