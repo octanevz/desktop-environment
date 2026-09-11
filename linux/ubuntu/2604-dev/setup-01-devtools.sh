@@ -10,6 +10,7 @@ set -euo pipefail
 # - Installs Google Chrome
 # - Installs Visual Studio Code
 # - Installs Orca ADE
+# - Installs JetBrains Toolbox
 # - Installs GitHub CLI
 # - Installs Node.js 24 using nvm
 # - Installs npm packages (Codex CLI, OpenCode, markdown-tree-parser,
@@ -110,7 +111,7 @@ export PATH="$PATH:$NVIM_PREFIX/bin"
 # script, cron - searches a PATH that has never seen /opt, and "nvim" is then
 # simply not found. So it is linked into ~/.local/bin as well, the same way
 # orca-ide, claude and herdr are, which setup-00-packages.sh put on PATH.
-# This is what lets setup-08-git.sh set core.editor to a bare "nvim".
+# This is what lets setup-07-git.sh set core.editor to a bare "nvim".
 mkdir -p "$HOME/.local/bin"
 ln -sfn "$NVIM_PREFIX/bin/nvim" "$HOME/.local/bin/nvim"
 log "Linked nvim into ~/.local/bin."
@@ -325,6 +326,25 @@ ln -sfn /opt/Orca/resources/bin/orca-ide "$HOME/.local/bin/orca-ide"
 log "Linked orca-ide into ~/.local/bin."
 
 dpkg-query -W -f='Orca ADE ${Version} installed successfully!\n' orca-ide
+
+# -----------------------------------------------------------------------------
+# Install JetBrains Toolbox
+# -----------------------------------------------------------------------------
+# Through the community installer, pinned to a commit. CI=1 stops it from
+# launching Toolbox itself: it does so with a bare "&", leaving the app
+# attached to the terminal, so its output lands on the prompt and, worse,
+# whatever captures this script's output (a pipe, tee, a log) waits until
+# Toolbox exits. The launch happens below instead, detached.
+step "Install JetBrains Toolbox"
+curl -fsSL https://raw.githubusercontent.com/nagygergo/jetbrains-toolbox-install/4184247d1d12888024181f27dea7b7868d8f9e81/jetbrains-toolbox.sh | CI=1 bash
+
+# The first launch is what writes the .desktop file (setup-06-configs.sh pins
+# it to the dock) and the autostart entry, so it has to happen. setsid puts
+# Toolbox in its own session, -f forks so this script does not wait, and the
+# redirections cut it off the terminal - nothing is left to press Enter for.
+log "Launching JetBrains Toolbox for its first-time setup..."
+setsid -f "$HOME/.local/share/JetBrains/Toolbox/bin/jetbrains-toolbox" \
+    < /dev/null > /dev/null 2>&1
 
 # -----------------------------------------------------------------------------
 # Install GitHub CLI

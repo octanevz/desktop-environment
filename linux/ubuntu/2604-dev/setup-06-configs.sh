@@ -277,10 +277,10 @@ fi
 step "Pin the applications to the dock"
 DOCK_FAVORITES=(
     org.gnome.Nautilus.desktop # Files
-    Alacritty.desktop          # setup-04-alacritty.sh
+    Alacritty.desktop          # setup-03-alacritty.sh
     code.desktop               # Visual Studio Code
     orca-ide.desktop           # Orca ADE
-    jetbrains-toolbox.desktop  # setup-02-jetbrains-toolbox.sh, after first launch
+    jetbrains-toolbox.desktop  # setup-01-devtools.sh, after first launch
     google-chrome.desktop
     gimp.desktop
     org.gnome.Settings.desktop

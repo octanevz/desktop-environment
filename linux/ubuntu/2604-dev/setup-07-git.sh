@@ -21,7 +21,7 @@ set -euo pipefail
 #
 # Run this AFTER setup-00-packages.sh (git, git-delta, git-lfs),
 # setup-01-devtools.sh (Neovim as the editor, the GitHub CLI) and
-# setup-07-configs.sh.
+# setup-06-configs.sh.
 #
 # Unlike the other scripts here, this one ASKS rather than assuming: the
 # identity is personal, and hardcoding one would put the author's address into
@@ -29,7 +29,7 @@ set -euo pipefail
 # re-running is a matter of pressing Enter. Set GIT_USER_NAME and
 # GIT_USER_EMAIL in the environment to skip the questions entirely:
 #
-#   GIT_USER_NAME="Ada Lovelace" GIT_USER_EMAIL=ada@example.com ./setup-08-git.sh
+#   GIT_USER_NAME="Ada Lovelace" GIT_USER_EMAIL=ada@example.com ./setup-07-git.sh
 #
 # With no terminal attached, the script uses those variables and whatever is
 # already configured, and stops if that leaves the identity unset.

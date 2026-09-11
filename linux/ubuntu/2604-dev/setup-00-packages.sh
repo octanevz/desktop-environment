@@ -57,11 +57,11 @@ sudo add-apt-repository -y -n universe
 # libfuse2 / liblttng-ust1 / libssl3 names. libicu-dev pulls in the matching
 # libicuXX runtime, so no version-pinned libicu package is listed here.
 #
-# desktop-file-utils is here because setup-04-alacritty.sh needs
+# desktop-file-utils is here because setup-03-alacritty.sh needs
 # desktop-file-install to install what it builds, and that script performs no
 # apt installs of its own. dconf-cli is here for the same reason:
-# setup-06-gnome-extensions.sh loads the extension settings with it, and
-# git-delta for setup-08-git.sh, which points the Git pager at it. The
+# setup-05-gnome-extensions.sh loads the extension settings with it, and
+# git-delta for setup-07-git.sh, which points the Git pager at it. The
 # libfontconfig1, libfreetype6, libwayland-client0, libxcb-xfixes0 and
 # libxkbcommon* entries are the Alacritty runtime libraries setup-04 verifies -
 # see that script for why the split exists.

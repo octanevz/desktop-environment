@@ -57,7 +57,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 # Parse the arguments
 # -----------------------------------------------------------------------------
 # Rebuild and reinstall even when the installed version already matches, via
-# either FORCE=1 ./setup-04-alacritty.sh or ./setup-04-alacritty.sh --force
+# either FORCE=1 ./setup-03-alacritty.sh or ./setup-03-alacritty.sh --force
 FORCE="${FORCE:-0}"
 
 for arg in "$@"; do

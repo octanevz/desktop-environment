@@ -73,7 +73,7 @@ setup_begin "$@"
 # -----------------------------------------------------------------------------
 # All of these come from setup-00-packages.sh except nvim, lazygit and node,
 # which setup-01-devtools.sh installs (node is needed by the Copilot language
-# server). As in setup-04-alacritty.sh, the script reports what is missing
+# server). As in setup-03-alacritty.sh, the script reports what is missing
 # and stops.
 step "Verify the prerequisites"
 REQUIRED_COMMANDS=(

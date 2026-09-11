@@ -8,7 +8,7 @@ set -euo pipefail
 # different image. Note that the -trixie suffix is the image's own base
 # distribution, not the host's.
 #
-# ubuntu:26.04 is the image setup-04-alacritty.sh compiles in. That script would
+# ubuntu:26.04 is the image setup-03-alacritty.sh compiles in. That script would
 # pull it on its own the first time it runs, so having it here only moves the
 # download to a predictable moment - and re-running this script refreshes it,
 # which "docker run" never does once the tag is present locally.
