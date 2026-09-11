@@ -99,6 +99,16 @@ else
 fi
 export PATH="$PATH:$NVIM_PREFIX/bin"
 
+# The .zshrc entry above only reaches an interactive zsh. Anything else that
+# wants an editor - Git called from VS Code, JetBrains or a hook, a shell
+# script, cron - searches a PATH that has never seen /opt, and "nvim" is then
+# simply not found. So it is linked into ~/.local/bin as well, the same way
+# orca-ide, claude and herdr are, which setup-00-packages.sh put on PATH.
+# This is what lets setup-08-git.sh set core.editor to a bare "nvim".
+mkdir -p "$HOME/.local/bin"
+ln -sfn "$NVIM_PREFIX/bin/nvim" "$HOME/.local/bin/nvim"
+log "Linked nvim into ~/.local/bin."
+
 nvim --version | head -1
 
 # -----------------------------------------------------------------------------
