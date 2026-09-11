@@ -12,7 +12,7 @@ set -euo pipefail
 # - Updates the agent skills
 # - Updates herdr
 # - Updates the Oh My Zsh custom plugins
-# - Updates lazygit and lazydocker
+# - Updates lazygit, lazydocker and dive
 #
 # Registered as the update-all alias by setup-01-devtools.sh.
 # =============================================================================
@@ -194,6 +194,26 @@ else
     sudo install -m 0755 /tmp/lazydocker /usr/local/bin/lazydocker
     rm -f /tmp/lazydocker.tar.gz /tmp/lazydocker
     lazydocker --version | head -1
+fi
+
+# -----------------------------------------------------------------------------
+# Update dive
+# -----------------------------------------------------------------------------
+# Installed by setup-01-devtools.sh from its GitHub releases, and updated the
+# same way as the two above. "dive --version" prints "dive 0.13.1".
+DIVE_LATEST="$(curl -fsSL https://api.github.com/repos/wagoodman/dive/releases/latest |
+    grep -Po '"tag_name": *"v\K[^"]*')"
+DIVE_INSTALLED="$(dive --version | grep -Po '^dive \K.*')"
+
+if [ "$DIVE_INSTALLED" = "$DIVE_LATEST" ]; then
+    log "dive $DIVE_INSTALLED is up to date."
+else
+    log "Updating dive $DIVE_INSTALLED -> $DIVE_LATEST..."
+    curl -fsSL -o /tmp/dive.tar.gz "https://github.com/wagoodman/dive/releases/download/v${DIVE_LATEST}/dive_${DIVE_LATEST}_linux_amd64.tar.gz"
+    tar -C /tmp -xzf /tmp/dive.tar.gz dive
+    sudo install -m 0755 /tmp/dive /usr/local/bin/dive
+    rm -f /tmp/dive.tar.gz /tmp/dive
+    dive --version
 fi
 
 log "Everything is up to date."

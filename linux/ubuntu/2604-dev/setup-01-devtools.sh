@@ -5,7 +5,7 @@ set -euo pipefail
 # This script performs the following tasks:
 # - Installs Docker Engine and Containerd
 # - Installs Neovim
-# - Installs lazygit and lazydocker
+# - Installs lazygit, lazydocker and dive
 # - Installs Google Chrome
 # - Installs Visual Studio Code
 # - Installs Orca ADE
@@ -143,6 +143,27 @@ sudo install -m 0755 /tmp/lazydocker /usr/local/bin/lazydocker
 rm -f /tmp/lazydocker.tar.gz /tmp/lazydocker
 
 lazydocker --version | head -1
+
+# -----------------------------------------------------------------------------
+# Install dive
+# -----------------------------------------------------------------------------
+# dive explores a Docker image one layer at a time, showing what each layer
+# added and which files a later layer made redundant - the one thing lazydocker
+# above does not do. Installed from its GitHub releases like lazygit and
+# lazydocker, since Ubuntu does not package it; update-all.sh refreshes it.
+#
+# The release carries a .deb as well, but the tarball is used for the same
+# reason it is for the other two: nothing else here needs dpkg to know about
+# the binary, and /usr/local/bin keeps all three together.
+log "Installing dive..."
+
+DIVE_VERSION="$(curl -fsSL https://api.github.com/repos/wagoodman/dive/releases/latest | grep -Po '"tag_name": *"v\K[^"]*')"
+curl -fsSL -o /tmp/dive.tar.gz "https://github.com/wagoodman/dive/releases/download/v${DIVE_VERSION}/dive_${DIVE_VERSION}_linux_amd64.tar.gz"
+tar -C /tmp -xzf /tmp/dive.tar.gz dive
+sudo install -m 0755 /tmp/dive /usr/local/bin/dive
+rm -f /tmp/dive.tar.gz /tmp/dive
+
+dive --version
 
 # -----------------------------------------------------------------------------
 # Install Google Chrome

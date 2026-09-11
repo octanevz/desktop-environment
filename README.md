@@ -34,23 +34,32 @@ Two maintenance scripts are also included and registered as shell aliases during
 Assuming the repo has been cloned to `~/github/octanevz/desktop-environment`:
 
 1. Navigate to the setup directory and make the scripts executable:
+
    ```bash
    cd ~/github/octanevz/desktop-environment/linux/debian/13-trixie-dev
    chmod +x *.sh
    ```
+
 2. Install packages and set up the shell:
+
    ```bash
    ./setup_0_packages.sh # reboot when prompted
    ```
+
 3. After reboot, open your terminal and navigate back to the setup directory:
+
    ```bash
    cd ~/github/octanevz/desktop-environment/linux/debian/13-trixie-dev
    ```
+
 4. Install applications and dev tools:
+
    ```bash
    ./setup_1_devtools.sh # reboot when prompted
    ```
+
 5. After reboot, open your terminal and navigate back to the setup directory. Then run any of the optional scripts as needed:
+
    ```bash
    cd ~/github/octanevz/desktop-environment/linux/debian/13-trixie-dev
    ./setup_2_claude_code_plugins.sh # optional
@@ -66,8 +75,8 @@ A set of scripts intended to be run sequentially on a fresh Ubuntu 26.04 LTS ins
 
 | Script | What it does |
 |--------|-------------|
-| `setup-00-packages.sh` | Enables `universe`, updates the OS, installs essential packages (curl, git, git-lfs, git-absorb, gpg, jq, rsync, postgresql-client, mesa-utils, tmux, GIMP, Extension Manager, etc.) and the runtime libraries Alacritty links against, sets an English interface with German formats (installing the matching language packs), installs Oh My Zsh with autosuggestions and syntax highlighting, sets Zsh as the default shell, aliases `l`, `lf` (files only) and `ld` (directories only) to `eza`, sets up `atuin` as the Ctrl-R shell history (importing the existing one), sets up `zoxide` as the `z` directory jumper, binds the `fzf` keys (Ctrl-T, Alt-C) with `fd`/`bat`/`eza` previews, hooks in `direnv`, shims `fdfind`/`batcat` as `fd`/`bat`, installs the LazyVim prerequisites (ripgrep, fd-find, fzf, build-essential, tree-sitter-cli, xclip/wl-clipboard, JetBrains Mono + Nerd Font symbols, python3/venv/pip), installs Tmux Plugin Manager, installs the VMware guest tools in a VMware VM or proprietary drivers on bare metal, and optionally removes the Firefox snap (`REMOVE_FIREFOX_SNAP=1`) |
-| `setup-01-devtools.sh` | Installs Docker Engine, Neovim (upstream stable), lazygit, lazydocker, Google Chrome, Visual Studio Code, Orca ADE, GitHub CLI, Node.js 24 (via nvm), npm packages (Codex CLI, OpenCode, markdown-tree-parser, Prettier, markdownlint-cli2, Pyright and the TypeScript language server), .NET 10 LTS via Microsoft's `dotnet-install.sh` (so the newest SDK is available the day it is published) plus csharp-ls, uv (with `uvx` and Zsh completions) and Ruff as a uv tool, Claude Code, herdr (with its Zsh completion), and registers `update-sys`/`update-all` shell aliases |
+| `setup-00-packages.sh` | Enables `universe`, updates the OS, installs essential packages (curl, git, git-lfs, git-absorb, gpg, jq, rsync, postgresql-client, mesa-utils, tmux, GIMP, Extension Manager, etc.) and the runtime libraries Alacritty links against, sets an English interface with German formats (installing the matching language packs), installs Oh My Zsh with autosuggestions and syntax highlighting, sets Zsh as the default shell, aliases `l`, `lf` (files only) and `ld` (directories only) to `eza`, sets up `atuin` as the Ctrl-R shell history (importing the existing one), sets up `zoxide` as the `z` directory jumper, binds the `fzf` keys (Ctrl-T, Alt-C) with `fd`/`bat`/`eza` previews, hooks in `direnv`, installs the terminal tools (`tealdeer`, `duf`, `ncdu`, `entr`, `glow`, `just`, `hyperfine`, `imagemagick`, `ffmpeg`, `pre-commit`, `gitleaks`, and `nvtop` on bare metal), shims `fdfind`/`batcat` as `fd`/`bat`, installs the LazyVim prerequisites (ripgrep, fd-find, fzf, build-essential, tree-sitter-cli, xclip/wl-clipboard, JetBrains Mono + Nerd Font symbols, python3/venv/pip), installs Tmux Plugin Manager, installs the VMware guest tools in a VMware VM or proprietary drivers on bare metal, and optionally removes the Firefox snap (`REMOVE_FIREFOX_SNAP=1`) |
+| `setup-01-devtools.sh` | Installs Docker Engine, Neovim (upstream stable), lazygit, lazydocker, dive, Google Chrome, Visual Studio Code, Orca ADE, GitHub CLI, Node.js 24 (via nvm), npm packages (Codex CLI, OpenCode, markdown-tree-parser, Prettier, markdownlint-cli2, Pyright and the TypeScript language server), .NET 10 LTS via Microsoft's `dotnet-install.sh` (so the newest SDK is available the day it is published) plus csharp-ls, uv (with `uvx` and Zsh completions) and Ruff as a uv tool, Claude Code, herdr (with its Zsh completion), and registers `update-sys`/`update-all` shell aliases |
 | `setup-02-jetbrains-toolbox.sh` | Installs JetBrains Toolbox |
 | `setup-03-docker-images.sh` | Pulls Docker images: PostgreSQL 18, Jupyter SciPy Notebook, Jupyter PyTorch Notebook, and the `ubuntu:26.04` image `setup-04` builds in, removing the previous version of each |
 | `setup-04-alacritty.sh` | Builds Alacritty from source in an `ubuntu:26.04` Docker container and installs the binary, terminfo, desktop entry, icon, man pages and Zsh completion on the host. Needs `setup-00` (runtime libraries) and `setup-01` (Docker) |
@@ -82,30 +91,39 @@ Two maintenance scripts are also included and registered as shell aliases during
 | Script | Alias | What it does |
 |--------|-------|-------------|
 | `update-sys.sh` | `update-sys` | Updates and cleans up Ubuntu packages and snaps |
-| `update-all.sh` | `update-all` | Runs `update-sys.sh`, then updates the .NET SDK (pruning older SDKs and runtimes), global npm packages, csharp-ls, uv and its tools (Ruff), Claude Code, the agent skills, herdr, the Oh My Zsh plugins, lazygit, and lazydocker |
+| `update-all.sh` | `update-all` | Runs `update-sys.sh`, then updates the .NET SDK (pruning older SDKs and runtimes), global npm packages, csharp-ls, uv and its tools (Ruff), Claude Code, the agent skills, herdr, the Oh My Zsh plugins, lazygit, lazydocker, and dive |
 
 ### Running the scripts
 
 Assuming the repo has been cloned to `~/github/octanevz/desktop-environment`:
 
 1. Navigate to the setup directory and make the scripts executable:
+
    ```bash
    cd ~/github/octanevz/desktop-environment/linux/ubuntu/2604-dev
    chmod +x *.sh
    ```
+
 2. Install packages and set up the shell:
+
    ```bash
    ./setup-00-packages.sh # reboot when prompted
    ```
+
 3. After reboot, open your terminal and navigate back to the setup directory:
+
    ```bash
    cd ~/github/octanevz/desktop-environment/linux/ubuntu/2604-dev
    ```
+
 4. Install applications and dev tools:
+
    ```bash
    ./setup-01-devtools.sh # reboot when prompted
    ```
+
 5. After reboot, open your terminal and navigate back to the setup directory. Then run the remaining scripts in order:
+
    ```bash
    cd ~/github/octanevz/desktop-environment/linux/ubuntu/2604-dev
    ./setup-02-jetbrains-toolbox.sh
@@ -120,7 +138,11 @@ Assuming the repo has been cloned to `~/github/octanevz/desktop-environment`:
 
 ## Repository Structure
 
-```
+```text
+.editorconfig            # Shell formatting style, read by shfmt
+.markdownlint-cli2.yaml  # Markdown rules this README turns off
+.pre-commit-config.yaml  # Commit hooks: shfmt, shellcheck, markdownlint,
+                         #   prettier, ruff, gitleaks
 cheatsheet.html # Shell/Docker/Git/Tmux/Neovim/GNOME cheatsheet
 linux/
   debian/
@@ -156,6 +178,20 @@ linux/
       update-all.sh
       update-sys.sh
 ```
+
+## Development
+
+The hooks in `.pre-commit-config.yaml` run the formatters and linters this
+setup already installs - shfmt, shellcheck, markdownlint-cli2, Prettier, Ruff
+and gitleaks. They are not active in a fresh clone until they are installed
+once:
+
+```bash
+pre-commit install
+```
+
+Formatting needs no flags: shfmt reads the style from `.editorconfig`, so
+`shfmt -w <file>` and the hook agree by construction.
 
 ## License
 

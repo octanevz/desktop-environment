@@ -83,9 +83,12 @@ sudo apt install -y \
     dconf-cli \
     desktop-file-utils \
     direnv \
+    duf \
+    entr \
     eza \
     fastfetch \
     fd-find \
+    ffmpeg \
     fontconfig \
     fonts-jetbrains-mono \
     fzf \
@@ -94,12 +97,17 @@ sudo apt install -y \
     git-absorb \
     git-delta \
     git-lfs \
+    gitleaks \
+    glow \
     gnome-keyring \
     gnome-shell-extension-manager \
     gnome-shell-extensions \
     gnome-tweaks \
     gnupg \
+    hyperfine \
+    imagemagick \
     jq \
+    just \
     libfontconfig1 \
     libfreetype6 \
     libfuse2t64 \
@@ -118,8 +126,10 @@ sudo apt install -y \
     lsof \
     mesa-utils \
     nano \
+    ncdu \
     pkg-config \
     postgresql-client \
+    pre-commit \
     python3 \
     python3-pip \
     python3-venv \
@@ -127,6 +137,7 @@ sudo apt install -y \
     rsync \
     shellcheck \
     shfmt \
+    tealdeer \
     tmux \
     tree \
     tree-sitter-cli \
@@ -582,6 +593,10 @@ case "$VIRT" in
     none)
         log "Bare metal detected - installing recommended proprietary drivers..."
         sudo ubuntu-drivers install || log "No additional drivers were installed."
+        # btop for the graphics card - per-process GPU and VRAM use. Here
+        # rather than in the package list above because it needs a real GPU to
+        # report on: in a VM it opens on an empty screen.
+        sudo apt install -y nvtop
         ;;
     *)
         log "Virtual machine detected ($VIRT). Nothing hardware-specific to install."

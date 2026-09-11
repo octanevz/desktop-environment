@@ -1,0 +1,18 @@
+# markdownlint-cli2 is installed by setup-01-devtools.sh and run over this
+# repository by the pre-commit hook. Only the rules that do not fit this
+# document are turned off; everything else is left at its default.
+config:
+  # The tables here carry a full sentence per script in the last column, and
+  # wrapping those at 80 columns would make the source unreadable without
+  # changing a thing about how it renders.
+  MD013: false
+
+  # Table pipe padding. The tables are written without the extra space this
+  # rule wants, consistently, and reflowing every one of them buys nothing.
+  MD060: false
+
+  # "Running the scripts" appears once under Debian and once under Ubuntu.
+  # Both are h3 under the same h2, so they are siblings and siblings_only
+  # does not exempt them - the alternative would be demoting them to h4,
+  # which changes the document outline for a linter's sake.
+  MD024: false
