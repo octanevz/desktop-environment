@@ -12,7 +12,7 @@ set -euo pipefail
 # - Updates the agent skills
 # - Updates herdr
 # - Updates the Oh My Zsh custom plugins
-# - Updates lazygit, lazydocker and dive
+# - Updates lazygit, lazydocker, dive and yq
 #
 # Registered as the update-all alias by setup-01-devtools.sh.
 # =============================================================================
@@ -214,6 +214,26 @@ else
     sudo install -m 0755 /tmp/dive /usr/local/bin/dive
     rm -f /tmp/dive.tar.gz /tmp/dive
     dive --version
+fi
+
+# -----------------------------------------------------------------------------
+# Update yq
+# -----------------------------------------------------------------------------
+# Installed by setup-01-devtools.sh from its GitHub releases, and updated the
+# same way as the three above. "yq --version" prints the project URL before
+# the version, hence the anchored match rather than a bare field.
+YQ_LATEST="$(curl -fsSL https://api.github.com/repos/mikefarah/yq/releases/latest |
+    grep -Po '"tag_name": *"v\K[^"]*')"
+YQ_INSTALLED="$(yq --version | grep -Po 'version v\K.*')"
+
+if [ "$YQ_INSTALLED" = "$YQ_LATEST" ]; then
+    log "yq $YQ_INSTALLED is up to date."
+else
+    log "Updating yq $YQ_INSTALLED -> $YQ_LATEST..."
+    curl -fsSL -o /tmp/yq "https://github.com/mikefarah/yq/releases/download/v${YQ_LATEST}/yq_linux_amd64"
+    sudo install -m 0755 /tmp/yq /usr/local/bin/yq
+    rm -f /tmp/yq
+    yq --version
 fi
 
 log "Everything is up to date."

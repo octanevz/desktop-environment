@@ -137,6 +137,7 @@ sudo apt install -y \
     rsync \
     shellcheck \
     shfmt \
+    sqlite3 \
     tealdeer \
     tmux \
     tree \
