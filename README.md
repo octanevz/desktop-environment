@@ -82,7 +82,7 @@ A set of scripts intended to be run sequentially on a fresh Ubuntu 26.04 LTS ins
 | `setup-04-alacritty.sh` | Builds Alacritty from source in an `ubuntu:26.04` Docker container and installs the binary, terminfo, desktop entry, icon, man pages and Zsh completion on the host. Needs `setup-00` (runtime libraries) and `setup-01` (Docker) |
 | `setup-05-lazyvim.sh` | Installs the LazyVim starter into `~/.config/nvim`, enables the `lang.json` and `lang.markdown` extras plus the recommended ones (`ai.copilot`, `coding.yanky`, `editor.dial`, `editor.inc-rename`, `editor.snacks_explorer`, `editor.snacks_picker`, `test.core`, `util.dot`, `util.mini-hipatterns`), sets `spelllang` to `en_us`, and installs the plugins headlessly. Needs `setup-00` (prerequisites) and `setup-01` (Neovim, lazygit, Node.js). Run `:Copilot auth` once inside Neovim to sign in to Copilot |
 | `setup-06-gnome-extensions.sh` | Installs the Caffeine and Tiling Shell GNOME Shell extensions from extensions.gnome.org, matched to the running GNOME Shell version, enables them, and loads their settings from `config/dconf/` with `dconf load`. Needs `setup-00` (prerequisites) |
-| `setup-07-configs.sh` | Installs the configuration files from `config/`: `.tmux.conf` (plus the TPM plugins), the Alacritty config and the theme repository it imports, the herdr config, and the shared `file-picker` helper, and pins the installed applications to the GNOME dock. Backs up anything it replaces |
+| `setup-07-configs.sh` | Installs the configuration files from `config/`: `.tmux.conf` (plus the TPM plugins), the Alacritty config and the theme repository it imports, the herdr config, and the shared `file-picker` helper; applies the GNOME desktop settings from `config/dconf/gnome-settings.ini` (theme, wallpaper, keyboard layout, dock, power, Text Editor and Ptyxis preferences) key by key, and pins the installed applications to the GNOME dock. Backs up anything it replaces, the previous value of every changed dconf key included |
 | `setup-08-git.sh` | Configures Git. **Stops before writing anything when `~/.ssh` holds no private key** (pass `ALLOW_NO_SSH_KEYS=1` for a machine that only uses HTTPS remotes). Otherwise: **asks for** the name and email (offering whatever is already configured, or set `GIT_USER_NAME`/`GIT_USER_EMAIL` to skip the questions), sets the behaviour this setup assumes (rebase on pull, prune on fetch, an upstream on the first push, `rerere`, the `histogram` diff and the `zdiff3` conflict style), points the pager at delta, registers the Git LFS filters, registers the GitHub CLI as the credential helper for HTTPS remotes, and lists the SSH keys in `~/.ssh` to offer `ssh-add` for each. It does **not** configure commit signing, and installs no global gitignore. Every key is written with `git config --global`, so settings other tools wrote into `~/.gitconfig` survive. It records itself as complete only when nothing was left undone, so a step blocked by something fixable (an unauthenticated `gh`) is picked up by a plain re-run without `--force`. Needs `setup-00` (git, git-delta, git-lfs) and `setup-01` (Neovim, the GitHub CLI) |
 | `setup-agents.sh` | Installs Claude Code plugins from the official marketplace (context7, feature-dev, frontend-design, hookify, and others), plus `codex-debate` from the `octanevz` marketplace. The three `*-lsp` plugins use the language servers `setup-01` installs. Also installs the Orca ADE skills (computer-use, orca-cli, orchestration) and find-skills for Claude Code, Codex and OpenCode at once via `npx skills`. Not part of the numbered sequence; checks that Claude Code and the Codex CLI are logged in first |
 
@@ -159,9 +159,10 @@ linux/
       config/
         alacritty/alacritty.toml # deployed by setup-07
         bin/file-picker # deployed by setup-07
-        dconf/ # loaded by setup-06
-          caffeine.ini
-          tiling-shell.ini
+        dconf/
+          caffeine.ini # loaded by setup-06
+          gnome-settings.ini # loaded by setup-07
+          tiling-shell.ini # loaded by setup-06
         herdr/config.toml # deployed by setup-07
         tmux.conf # deployed by setup-07
       common.sh # sourced by the numbered scripts

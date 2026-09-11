@@ -7,6 +7,7 @@ set -euo pipefail
 # - Installs the Alacritty configuration and the theme it imports
 # - Installs the herdr configuration
 # - Installs the file-picker helper both multiplexers bind
+# - Applies the GNOME desktop settings from config/dconf/gnome-settings.ini
 # - Pins the installed applications to the GNOME dock
 #
 # Run this AFTER setup-00-packages.sh (tmux, Tmux Plugin Manager, fzf, fd, git,
@@ -16,7 +17,18 @@ set -euo pipefail
 #
 # Nothing is ever overwritten in place: every file that already exists is
 # copied to <name>.bak-<timestamp> before the new one is written, and the
-# script reports exactly what it backed up.
+# script reports exactly what it backed up. The same goes for the desktop
+# settings: the previous value of every key that changes is saved to a file
+# "dconf load /" can put back.
+#
+# To capture your own desktop settings, change them in Settings or Tweaks
+# and dump them on the machine:
+#
+#   dconf dump / > gnome-settings-dump.ini
+#
+# then paste the sections you mean to keep into config/dconf/gnome-settings.ini
+# - the dump also holds window sizes, timestamps and other state the desktop
+# rewrites on its own, which does not belong in the repo.
 # =============================================================================
 
 # -----------------------------------------------------------------------------
@@ -155,6 +167,100 @@ if command -v herdr > /dev/null 2>&1; then
 fi
 
 # -----------------------------------------------------------------------------
+# Apply the GNOME settings
+# -----------------------------------------------------------------------------
+# gnome-settings.ini is in "dconf dump" format: a [section] per dconf path and
+# a key=value line per key. It is applied key by key rather than with one
+# "dconf load /", so that the script can tell which keys actually change,
+# back up exactly those, and leave an up-to-date desktop alone. "dconf read"
+# prints a value in the same GVariant notation the dump uses, so a plain
+# string comparison decides.
+#
+# Comments in the file are the script's own convention; dconf would not
+# accept them in a load, which is another reason the keys are written one at
+# a time. The backup is written without them, in load format, so it can be
+# put back with "dconf load / < <backup>".
+#
+# dconf read works from the database file alone, but writing needs the dconf
+# service on the session bus, which is not there over SSH. The first failed
+# write ends the loop with the command to run inside the desktop instead.
+GNOME_SETTINGS="$CONFIG_DIR/dconf/gnome-settings.ini"
+GNOME_SETTINGS_BACKUP="$HOME/.local/state/gnome-settings/gnome-settings.ini.bak-$TIMESTAMP"
+
+if [ ! -f "$GNOME_SETTINGS" ]; then
+    echo "Missing $GNOME_SETTINGS - is the repo complete?" >&2
+    exit 1
+fi
+
+if ! command -v dconf > /dev/null 2>&1; then
+    echo "dconf was not found. setup-00-packages.sh installs dconf-cli - run" >&2
+    echo "that first, then re-run this script." >&2
+    exit 1
+fi
+
+log "Applying the GNOME settings..."
+DCONF_PATH=""
+BACKUP_SECTION=""
+CHANGED=0
+UNREACHABLE=0
+while IFS= read -r line || [ -n "$line" ]; do
+    case "$line" in
+        "" | "#"*)
+            continue
+            ;;
+        "["*"]")
+            DCONF_PATH="${line#[}"
+            DCONF_PATH="/${DCONF_PATH%]}/"
+            BACKUP_SECTION="$line"
+            continue
+            ;;
+    esac
+
+    key="${line%%=*}"
+    wanted="${line#*=}"
+    current="$(dconf read "$DCONF_PATH$key")"
+
+    if [ "$current" = "$wanted" ]; then
+        continue
+    fi
+
+    if [ "$UNREACHABLE" = "1" ]; then
+        continue
+    fi
+
+    if ! dconf write "$DCONF_PATH$key" "$wanted" 2> /dev/null; then
+        UNREACHABLE=1
+        continue
+    fi
+
+    # A key that was never set has nothing to put back, and is not backed
+    # up; "dconf reset" is how to unset it again.
+    if [ -n "$current" ]; then
+        mkdir -p "$(dirname "$GNOME_SETTINGS_BACKUP")"
+        if [ -n "$BACKUP_SECTION" ]; then
+            printf '%s\n' "$BACKUP_SECTION" >> "$GNOME_SETTINGS_BACKUP"
+            BACKUP_SECTION=""
+        fi
+        printf '%s=%s\n' "$key" "$current" >> "$GNOME_SETTINGS_BACKUP"
+    fi
+
+    log "  $DCONF_PATH$key: ${current:-<unset>} -> $wanted"
+    CHANGED=$((CHANGED + 1))
+done < "$GNOME_SETTINGS"
+
+if [ "$UNREACHABLE" = "1" ]; then
+    log "  Could not reach dconf. Inside a desktop session, run:"
+    log "    grep -v '^#' $GNOME_SETTINGS | dconf load /"
+elif [ "$CHANGED" = "0" ]; then
+    log "  GNOME settings are already up to date."
+else
+    if [ -f "$GNOME_SETTINGS_BACKUP" ]; then
+        log "  Backed up the previous values -> $GNOME_SETTINGS_BACKUP"
+    fi
+    log "  Changed $CHANGED GNOME settings."
+fi
+
+# -----------------------------------------------------------------------------
 # Pin the applications to the dock
 # -----------------------------------------------------------------------------
 # The dock shows org.gnome.shell favorite-apps, in list order. The list below
@@ -237,5 +343,6 @@ fi
 log "Configuration files installed successfully!"
 log "Reload tmux with: tmux source-file ~/.tmux.conf"
 log "Alacritty and herdr pick their configuration up on the next start."
+log "The GNOME settings are applied at once; the running desktop picks them up."
 
 setup_end
