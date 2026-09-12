@@ -148,7 +148,8 @@ install_config "$CONFIG_DIR/alacritty/alacritty.toml" \
 # The configuration imports a theme from this repository, so Alacritty fails to
 # start without it. Cloned rather than vendored so themes can be switched by
 # editing the import path alone, and left tracking master rather than pinned to
-# a commit, so a --force re-run picks up themes added upstream.
+# a commit, so a --force re-run - and update-all.sh, which pulls it too -
+# picks up themes added upstream.
 if [ -d "$ALACRITTY_THEME_DIR/.git" ]; then
     THEME_BEFORE="$(git -C "$ALACRITTY_THEME_DIR" rev-parse --short HEAD)"
     git -C "$ALACRITTY_THEME_DIR" pull --ff-only --quiet
@@ -318,9 +319,12 @@ while IFS= read -r line || [ -n "$line" ]; do
 done < "$GNOME_SETTINGS"
 
 if [ "$UNREACHABLE" = "1" ]; then
+    # The path is shell-quoted for the printed command, as the alias in
+    # setup-01-devtools.sh is: a checkout under a directory with a space
+    # would otherwise split when the line is pasted.
     log "  Could not reach dconf. Inside a desktop session, run:"
-    log "    grep -v '^#' $GNOME_SETTINGS | dconf load /"
-    INCOMPLETE+=("the GNOME settings - inside a desktop session, run: grep -v '^#' $GNOME_SETTINGS | dconf load /")
+    log "    grep -v '^#' $(printf '%q' "$GNOME_SETTINGS") | dconf load /"
+    INCOMPLETE+=("the GNOME settings - inside a desktop session, run: grep -v '^#' $(printf '%q' "$GNOME_SETTINGS") | dconf load /")
 elif [ "$CHANGED" = "0" ]; then
     log "  GNOME settings are already up to date."
 else

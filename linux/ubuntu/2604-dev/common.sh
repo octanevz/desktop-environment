@@ -23,8 +23,9 @@
 # exits at once; pass --force (or FORCE=1) to run it again, or delete the
 # file. A numbered script also requires the file of every lower-numbered
 # script, so the sequence is run in order and no step is skipped. The
-# backups the scripts take before changing something live under STATE_DIR
-# too, each kind in its own subdirectory.
+# backups of desktop settings - the dconf keys and the dock - live under
+# STATE_DIR too, each kind in its own subdirectory; a file or directory
+# that is replaced is backed up next to itself as <name>.bak-<timestamp>.
 #
 # The scripts that are meant to run repeatedly - setup-agents.sh,
 # update-sys.sh and update-all.sh - source this file for log, step,

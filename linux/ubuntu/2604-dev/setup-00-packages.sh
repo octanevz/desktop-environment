@@ -633,7 +633,8 @@ done
 # Matched as the exact line: the Oh My Zsh template already mentions
 # $HOME/.local/bin in a commented-out example, which a looser grep would take
 # for the real thing. setup-01-devtools.sh relies on this entry for everything
-# it puts in ~/.local/bin (orca-ide, claude, herdr).
+# it puts in ~/.local/bin (nvim, orca-ide, uv, ruff, claude, herdr), and
+# setup-06-configs.sh for the file-picker.
 # shellcheck disable=SC2016 # written to .zshrc verbatim, expands there
 if ! grep -qxF 'export PATH="$HOME/.local/bin:$PATH"' ~/.zshrc; then
     echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc

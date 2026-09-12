@@ -36,10 +36,18 @@ cwd_abs='' root='' selection='' abs=''
 # Determine the search root
 # -----------------------------------------------------------------------------
 # The whole git project if the popup's working directory is inside one, the
-# working directory itself otherwise.
+# working directory itself otherwise. git prints the path with one newline
+# after it and has no -z for this; head -c -1 drops that byte alone, so a
+# newline inside the name survives, and the NUL is added by hand. Outside a
+# repository git fails and prints nothing - the || true keeps the failed
+# pipeline from ending the substitution before the NUL is written - and the
+# empty result falls back to the working directory.
 read_nul cwd_abs < <(realpath -z -- "$PWD")
-read_nul root < <(git rev-parse --show-toplevel 2> /dev/null | tr '\n' '\0') ||
-    root=$cwd_abs
+read_nul root < <(
+    git rev-parse --show-toplevel 2> /dev/null | head -c -1 || true
+    printf '\0'
+)
+[ -n "$root" ] || root=$cwd_abs
 
 # -----------------------------------------------------------------------------
 # Find fd

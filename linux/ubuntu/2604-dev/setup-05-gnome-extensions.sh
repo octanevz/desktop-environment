@@ -48,7 +48,10 @@ EXTENSION_UUIDS=(
     tilingshell@ferrarodomenico.com
 )
 
-EXTENSIONS_DIR="$HOME/.local/share/gnome-shell/extensions"
+# Where "gnome-extensions install" puts them: the XDG user data directory,
+# resolved with its default the way setup-06-configs.sh resolves the
+# application directories.
+EXTENSIONS_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/gnome-shell/extensions"
 
 # Each entry pairs the dconf path an extension keeps its settings under with
 # the dump loaded into it. The paths are the extensions' own and are not
@@ -297,9 +300,12 @@ for entry in "${DCONF_SETTINGS[@]}"; do
     if dconf load "$DCONF_PATH" < "$DUMP_FILE" 2> /dev/null; then
         log "Loaded $DUMP_NAME into $DCONF_PATH."
     else
+        # The path is shell-quoted for the printed command, as the alias in
+        # setup-01-devtools.sh is: a checkout under a directory with a space
+        # would otherwise split when the line is pasted.
         log "Could not write $DCONF_PATH. Load it by hand with:"
-        log "  dconf load $DCONF_PATH < $DUMP_FILE"
-        INCOMPLETE+=("the settings in $DUMP_NAME - inside a desktop session, run: dconf load $DCONF_PATH < $DUMP_FILE")
+        log "  dconf load $DCONF_PATH < $(printf '%q' "$DUMP_FILE")"
+        INCOMPLETE+=("the settings in $DUMP_NAME - inside a desktop session, run: dconf load $DCONF_PATH < $(printf '%q' "$DUMP_FILE")")
     fi
 done
 

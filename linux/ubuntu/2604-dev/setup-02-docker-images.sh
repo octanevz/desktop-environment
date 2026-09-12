@@ -34,6 +34,27 @@ DOCKER_IMAGES=(
 source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 setup_begin "$@"
 
+# -----------------------------------------------------------------------------
+# Check the prerequisites
+# -----------------------------------------------------------------------------
+# The same check setup-03-alacritty.sh makes, and for the same reason: a
+# daemon that cannot be reached - the docker group not in effect yet, most
+# likely - is reported with the fix, rather than as the raw error of the
+# first pull. Above setup_invalidate, since it leaves the machine untouched.
+step "Install the required Docker images"
+log "Checking the prerequisites..."
+if ! command -v docker > /dev/null 2>&1; then
+    echo "Docker is not installed. Run setup-01-devtools.sh first." >&2
+    exit 1
+fi
+
+if ! docker info > /dev/null 2>&1; then
+    echo "Cannot talk to the Docker daemon. Make sure it is running and that" >&2
+    echo "you have logged out and back in since setup-01-devtools.sh added you" >&2
+    echo "to the docker group." >&2
+    exit 1
+fi
+
 # Nothing between here and the end leaves the machine untouched - it pulls
 # images straight away - so the completion marker goes now.
 setup_invalidate
@@ -47,7 +68,7 @@ setup_invalidate
 # pulled here is removed, by remembering its ID across the pull - a blanket
 # "docker image prune" would also delete unrelated untagged images that have
 # nothing to do with this script.
-step "Install the required Docker images"
+log "Pulling the images..."
 for image in "${DOCKER_IMAGES[@]}"; do
     OLD_ID="$(docker image inspect --format '{{.Id}}' "$image" 2> /dev/null || true)"
 

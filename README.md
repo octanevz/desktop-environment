@@ -90,7 +90,7 @@ Two maintenance scripts are also included and registered as shell aliases during
 | Script | Alias | What it does |
 |--------|-------|-------------|
 | `update-sys.sh` | `update-sys` | Updates and cleans up Ubuntu packages and snaps |
-| `update-all.sh` | `update-all` | Runs `update-sys.sh`, then updates the .NET SDK (pruning older SDKs and runtimes), global npm packages, csharp-ls, uv and its tools (Ruff), Claude Code, the agent skills, herdr, the Oh My Zsh plugins, lazygit, lazydocker, dive, and yq, regenerating the Zsh completions of the tools it moved |
+| `update-all.sh` | `update-all` | Runs `update-sys.sh`, then updates the .NET SDK (pruning older SDKs and runtimes), Node.js 24 (carrying the global packages over), global npm packages, csharp-ls, uv and its tools (Ruff), Claude Code, the agent skills, herdr, the Oh My Zsh plugins, Tmux Plugin Manager and the tmux plugins, the Alacritty themes, lazygit, lazydocker, dive, and yq, regenerating the Zsh completions of the tools it moved |
 
 ### Running the scripts
 
@@ -165,7 +165,7 @@ linux/
         herdr/config.toml # deployed by setup-06-configs.sh
         tmux.conf # deployed by setup-06-configs.sh
         xdg-terminals.list # deployed by setup-06-configs.sh
-      common.sh # sourced by the numbered scripts
+      common.sh # sourced by every script here
       setup-00-packages.sh
       setup-01-devtools.sh
       setup-02-docker-images.sh

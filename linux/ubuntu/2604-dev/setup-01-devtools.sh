@@ -117,12 +117,15 @@ else
 fi
 export PATH="$PATH:$NVIM_PREFIX/bin"
 
-# The .zshrc entry above only reaches an interactive zsh. Anything else that
-# wants an editor - Git called from VS Code, JetBrains or a hook, a shell
-# script, cron - searches a PATH that has never seen /opt, and "nvim" is then
-# simply not found. So it is linked into ~/.local/bin as well, the same way
-# orca-ide, claude and herdr are, which setup-00-packages.sh put on PATH.
-# This is what lets setup-07-git.sh set core.editor to a bare "nvim".
+# The .zshrc entry above only reaches an interactive zsh. So nvim is linked
+# into ~/.local/bin as well, next to orca-ide, uv, ruff, claude, herdr and
+# the file-picker of setup-06-configs.sh: one directory to put on PATH for
+# whatever else wants these - a hook, a script, cron, an editor's settings -
+# rather than /opt and each installer's own place. Note that the .zshrc
+# entries alone do not reach a process the desktop launches - the entry
+# setup-00-packages.sh writes for this directory is read by an interactive
+# zsh, and update-all.sh exports it for its own run. This is what lets
+# setup-07-git.sh set core.editor to a bare "nvim" for Git run from a shell.
 mkdir -p "$HOME/.local/bin"
 ln -sfn "$NVIM_PREFIX/bin/nvim" "$HOME/.local/bin/nvim"
 log "Linked nvim into ~/.local/bin."
@@ -270,7 +273,7 @@ Types: deb
 URIs: https://packages.microsoft.com/repos/code
 Suites: stable
 Components: main
-Architectures: amd64,arm64,armhf
+Architectures: amd64 arm64 armhf
 Signed-By: /etc/apt/keyrings/microsoft.asc
 EOF
 
@@ -388,20 +391,30 @@ gh --version
 step "Install Node.js 24 using nvm"
 log "Installing Node.js..."
 
+# The installer defaults to $XDG_CONFIG_HOME/nvm when that variable is set
+# and to ~/.nvm otherwise. NVM_DIR pins it to ~/.nvm either way, so that this
+# script and update-all.sh, which names the same directory, cannot disagree
+# with the installer. The installer refuses an NVM_DIR that does not exist
+# yet unless it is its own default, hence the mkdir.
+export NVM_DIR="$HOME/.nvm"
+mkdir -p "$NVM_DIR"
+
 # Download and install nvm
 curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.4/install.sh | bash
 
 # in lieu of restarting the shell
 # shellcheck disable=SC1091 # created by the nvm installer just above
-\. "$HOME/.nvm/nvm.sh"
+\. "$NVM_DIR/nvm.sh"
 
 # Download and install Node.js. The first install on a machine becomes nvm's
 # default on its own; a re-run over an nvm that already has an older default
 # does not move it, and the next shell would then start on the old version
 # and miss the packages installed under 24 below - so the default is set
-# explicitly either way.
+# explicitly either way. To the exact version rather than a floating "24":
+# update-all.sh moves it when it installs a newer 24.x, and only once the
+# global packages have been carried over - see there.
 nvm install 24
-nvm alias default 24
+nvm alias default "$(nvm version 24)"
 
 # Verify the Node.js version
 node -v

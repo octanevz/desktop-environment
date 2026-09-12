@@ -227,7 +227,7 @@ elif [ "${#MISSING_FILES[@]}" -gt 0 ]; then
     log "(missing: ${MISSING_FILES[*]}) - rebuilding."
 else
     log "Alacritty $WANTED_VERSION is already installed. Nothing to do."
-    log "Rebuild and reinstall it anyway with: FORCE=1 $0"
+    log "Rebuild and reinstall it anyway with: $0 --force"
     setup_end
     exit 0
 fi

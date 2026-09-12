@@ -5,13 +5,15 @@ set -euo pipefail
 # This script performs the following tasks:
 # - Runs update-sys.sh (apt packages and snaps)
 # - Updates the .NET SDK and prunes the older SDKs and runtimes
+# - Updates Node.js 24, carrying the global packages over to the new version
 # - Updates the global npm packages
 # - Updates uv and the uv tools (Ruff)
 # - Updates csharp-ls
 # - Updates Claude Code
 # - Updates the agent skills
 # - Updates herdr
-# - Updates the Oh My Zsh custom plugins
+# - Updates the Oh My Zsh custom plugins, Tmux Plugin Manager and the tmux
+#   plugins, and the Alacritty themes - the git clones the setup scripts make
 # - Updates lazygit, lazydocker, dive and yq
 # - Regenerates the Zsh completions of yq, uv, uvx, Ruff and herdr, so they
 #   never lag the version just installed
@@ -37,13 +39,25 @@ sudo_keepalive
 # the environment: the install below always lands in ~/.dotnet, and the
 # pruning after it must work on that same tree - an inherited DOTNET_ROOT
 # pointing elsewhere would have it prune one tree and install into another.
+# NVM_DIR is pinned the same way, to the directory setup-01-devtools.sh
+# told the installer to use. Sourcing nvm.sh keeps whatever Node.js version
+# is already active in the calling shell - an "nvm use 22" for some project,
+# say - so the default is selected outright: it is the default's global
+# packages that setup-01-devtools.sh installed and this script updates. No
+# default means that script has not run, which is said rather than left to
+# the npm step to trip over.
 export PATH="$HOME/.local/bin:$PATH"
 export DOTNET_ROOT="$HOME/.dotnet"
 export PATH="$PATH:$DOTNET_ROOT:$DOTNET_ROOT/tools"
 export DOTNET_CLI_TELEMETRY_OPTOUT=1
+export NVM_DIR="$HOME/.nvm"
 # shellcheck disable=SC1091 # created by the nvm installer in setup-01
-if [ -s "$HOME/.nvm/nvm.sh" ]; then
-    \. "$HOME/.nvm/nvm.sh"
+if [ -s "$NVM_DIR/nvm.sh" ]; then
+    \. "$NVM_DIR/nvm.sh"
+    if ! nvm use default > /dev/null 2>&1; then
+        echo "nvm has no default Node.js version - run setup-01-devtools.sh first." >&2
+        exit 1
+    fi
 fi
 
 # -----------------------------------------------------------------------------
@@ -63,6 +77,34 @@ write_completion() {
     "$@" > "$ZSH_COMPLETIONS/_$name"
     chmod 644 "$ZSH_COMPLETIONS/_$name"
     log "  Regenerated the $name Zsh completion."
+}
+
+# -----------------------------------------------------------------------------
+# Pull one git clone
+# -----------------------------------------------------------------------------
+# The setup scripts clone a few things straight from GitHub - the Oh My Zsh
+# custom plugins, Tmux Plugin Manager, the Alacritty themes - which nothing
+# else updates. Each is fast-forwarded here and reported as unchanged or as
+# the commit range it moved by. Called with a name for the log and the clone's
+# directory; a directory that is not a clone is reported, not an error, since
+# it means the setup script that makes it has not run. Always called as a
+# plain statement, never under if or ||: that would switch set -e off inside
+# the function, and a failed pull would then read as "up to date". A failed
+# pull stops the script, as the git commands elsewhere here do.
+pull_clone() {
+    local name=$1 dir=$2 before after
+    if [ ! -d "$dir/.git" ]; then
+        log "$name is not installed - run the setup script that clones it."
+        return
+    fi
+    before="$(git -C "$dir" rev-parse --short HEAD)"
+    git -C "$dir" pull --ff-only --quiet
+    after="$(git -C "$dir" rev-parse --short HEAD)"
+    if [ "$before" = "$after" ]; then
+        log "$name is up to date ($after)."
+    else
+        log "Updated $name ($before -> $after)."
+    fi
 }
 
 # -----------------------------------------------------------------------------
@@ -117,6 +159,47 @@ prune_versions "$DOTNET_ROOT/templates"
 for dir in "$DOTNET_ROOT"/shared/*/ "$DOTNET_ROOT"/packs/*/; do
     [ -d "$dir" ] && prune_versions "${dir%/}"
 done
+
+# -----------------------------------------------------------------------------
+# Update Node.js
+# -----------------------------------------------------------------------------
+# setup-01-devtools.sh installs Node.js 24 with nvm, which apt knows nothing
+# about, so the same install is repeated here: "nvm install 24" resolves the
+# newest 24.x and is a no-op when that is already there. A new version starts
+# with an empty global package tree, so when one arrives the packages are
+# carried over from the version that was the default and the default is
+# moved. All of it before the npm step below, which then updates the packages
+# under the new version.
+#
+# The default alias is set to the exact version, as setup-01-devtools.sh sets
+# it, never to a floating "24": that would resolve to the newest installed
+# 24.x the moment the install lands, so a carry-over that failed halfway
+# would find "before" and "after" equal on the next run and never be
+# retried. With the exact version, the alias moves only once the packages
+# have moved. A machine set up by an earlier version of setup-01-devtools.sh
+# still carries the floating alias, and its completion marker keeps that
+# script from setting it again, so the alias is pinned to what it resolves
+# to right here, before the install - a no-op where it is exact already.
+#
+# The superseded version is NOT removed. Every open terminal has its bin
+# directory on PATH - nvm puts the exact version there - and deleting it
+# would leave node, npm and the global tools failing in all of them until
+# they are restarted. The command to remove it is printed instead.
+step "Update Node.js"
+log "Updating Node.js..."
+NODE_BEFORE="$(nvm version default)"
+nvm alias default "$NODE_BEFORE" > /dev/null
+nvm install 24
+NODE_AFTER="$(nvm version 24)"
+if [ "$NODE_BEFORE" != "$NODE_AFTER" ]; then
+    nvm reinstall-packages "$NODE_BEFORE"
+    nvm alias default "$NODE_AFTER"
+    nvm use default > /dev/null
+    log "Node.js $NODE_BEFORE -> $NODE_AFTER; the global packages were carried over."
+    log "Once the terminals that were open are restarted, remove the old version with:"
+    log "  nvm uninstall $NODE_BEFORE"
+fi
+node -v
 
 # -----------------------------------------------------------------------------
 # Update the global npm packages
@@ -190,20 +273,33 @@ write_completion herdr herdr completion zsh
 # the framework only and leaves custom/plugins alone, so they are pulled here.
 step "Update the Oh My Zsh custom plugins"
 for plugin in zsh-autosuggestions zsh-syntax-highlighting; do
-    PLUGIN_DIR="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/plugins/$plugin"
-    if [ -d "$PLUGIN_DIR/.git" ]; then
-        PLUGIN_BEFORE="$(git -C "$PLUGIN_DIR" rev-parse --short HEAD)"
-        git -C "$PLUGIN_DIR" pull --ff-only --quiet
-        PLUGIN_AFTER="$(git -C "$PLUGIN_DIR" rev-parse --short HEAD)"
-        if [ "$PLUGIN_BEFORE" = "$PLUGIN_AFTER" ]; then
-            log "$plugin is up to date ($PLUGIN_AFTER)."
-        else
-            log "Updated $plugin ($PLUGIN_BEFORE -> $PLUGIN_AFTER)."
-        fi
-    else
-        log "$plugin is not installed - run setup-00-packages.sh."
-    fi
+    pull_clone "$plugin" "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/plugins/$plugin"
 done
+
+# -----------------------------------------------------------------------------
+# Update Tmux Plugin Manager and the tmux plugins
+# -----------------------------------------------------------------------------
+# setup-00-packages.sh clones TPM and setup-06-configs.sh has it fetch the
+# plugins tmux.conf declares; apt knows neither. TPM itself is a plain clone
+# and is pulled like the Zsh plugins above; update_plugins is TPM's own
+# non-interactive updater for the plugins - what prefix + U does inside tmux
+# - and the counterpart of the install_plugins setup-06-configs.sh runs.
+step "Update Tmux Plugin Manager and the tmux plugins"
+TPM_DIR="$HOME/.tmux/plugins/tpm"
+pull_clone "Tmux Plugin Manager" "$TPM_DIR"
+if [ -x "$TPM_DIR/bin/update_plugins" ]; then
+    log "Updating the tmux plugins..."
+    "$TPM_DIR/bin/update_plugins" all
+fi
+
+# -----------------------------------------------------------------------------
+# Update the Alacritty themes
+# -----------------------------------------------------------------------------
+# setup-06-configs.sh clones the theme repository alacritty.toml imports from
+# and leaves it tracking master; the path is the literal one that script
+# uses, since the import in alacritty.toml names it that way.
+step "Update the Alacritty themes"
+pull_clone "The Alacritty themes" "$HOME/.config/alacritty/themes/alacritty-theme"
 
 # -----------------------------------------------------------------------------
 # Update lazygit
