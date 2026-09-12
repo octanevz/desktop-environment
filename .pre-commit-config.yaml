@@ -1,0 +1,84 @@
+# Hooks for this repository. Install them once per clone with:
+#
+#   pre-commit install
+#
+# and run them over everything with "pre-commit run --all-files".
+#
+# Every hook is a local one, using "language: system" - that is, it calls the
+# binary already on PATH rather than letting pre-commit fetch and build its
+# own copy. setup-00-packages.sh and setup-01-devtools.sh install all of them,
+# so there is nothing to pin, nothing to keep in step with a "rev:" here, and
+# no network access needed to run a commit. The price is that the hooks only
+# work on a machine these scripts have set up, which is the only machine this
+# repository is for.
+#
+# Note that "pre-commit run --all-files" currently fails, and correctly so:
+# linux/debian is not formatted to .editorconfig yet and carries eleven
+# shellcheck findings of its own. Both are the backport's work. A normal
+# commit only ever sees the files it stages, so this does not get in the way
+# until a Debian script is actually edited - at which point the hooks clean it
+# up, which is the point.
+repos:
+  - repo: local
+    hooks:
+      # shfmt takes its formatting from .editorconfig, so no flags here.
+      # -w rewrites the file; pre-commit then fails the commit because the
+      # file changed. The rewrite lands in the working tree, unstaged, so it
+      # is reviewed with "git diff" and staged again before the next attempt.
+      - id: shfmt
+        name: shfmt
+        entry: shfmt -w
+        language: system
+        types: [shell]
+
+      # -x follows "source"d files, which is what lets it see common.sh.
+      - id: shellcheck
+        name: shellcheck
+        entry: shellcheck -x --source-path=SCRIPTDIR
+        language: system
+        types: [shell]
+
+      # Reads .markdownlint-cli2.yaml for the rules this document turns off.
+      - id: markdownlint-cli2
+        name: markdownlint-cli2
+        entry: markdownlint-cli2
+        language: system
+        types: [markdown]
+
+      # Deliberately not Markdown or HTML: the README is markdownlint's, and
+      # letting Prettier at cheatsheet.html would reformat 90 KB of it in one
+      # commit for no reason.
+      - id: prettier
+        name: prettier
+        entry: prettier --write
+        language: system
+        types_or: [yaml, json]
+
+      # Nothing here is Python yet, so these two do nothing until something
+      # is. They are the same Ruff setup-01-devtools.sh installs as a uv tool.
+      - id: ruff-check
+        name: ruff check
+        entry: ruff check --force-exclude --fix
+        language: system
+        types: [python]
+
+      - id: ruff-format
+        name: ruff format
+        entry: ruff format --force-exclude
+        language: system
+        types: [python]
+
+      # Scans what is staged for keys, tokens and credentials, and fails the
+      # commit before they can reach a remote. --redact keeps the secret
+      # itself out of the output, which would otherwise be the one place it
+      # ends up in plain text.
+      #
+      # NOTE the subcommand: Ubuntu 26.04 ships gitleaks 8.16, where this is
+      # "gitleaks protect". Upstream renamed it to "gitleaks git --staged" in
+      # 8.19, so when Ubuntu moves past that this line needs the new spelling.
+      # It fails loudly with "unknown command" rather than quietly passing.
+      - id: gitleaks
+        name: gitleaks
+        entry: gitleaks protect --staged --redact --verbose
+        language: system
+        pass_filenames: false

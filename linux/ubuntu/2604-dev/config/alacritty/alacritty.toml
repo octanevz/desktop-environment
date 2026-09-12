@@ -1,0 +1,67 @@
+# Window appearance
+[window]
+# opacity = 0.80
+# opacity = 0.90
+# opacity = 0.93
+# opacity = 0.97
+opacity = 1.00
+blur = true               # Wayland/macOS only; ignored on X11
+padding = { x = 12, y = 12 }
+dynamic_padding = true
+decorations = "none"      # "full" | "none" | "transparent" | "buttonless"
+startup_mode = "Windowed" # "Windowed" | "Maximized" | "Fullscreen"
+dynamic_title = true
+
+# Optional: set initial size in columns/lines
+dimensions = { columns = 120, lines = 32 }
+
+# Font: MesloLGM Nerd Font Mono, installed by setup-00-packages.sh, with the
+# Nerd Font icons patched in. When the family is missing, fontconfig
+# substitutes the system monospace font and Alacritty still starts.
+[font]
+size = 12.0
+builtin_box_drawing = true
+
+[font.normal]
+family = "MesloLGM Nerd Font Mono"
+style = "Regular"
+
+[font.bold]
+family = "MesloLGM Nerd Font Mono"
+style = "Bold"
+
+[font.italic]
+family = "MesloLGM Nerd Font Mono"
+style = "Italic"
+
+# Cursor
+[cursor]
+style = { shape = "Beam", blinking = "On" }
+blink_interval = 500
+unfocused_hollow = true
+
+# Scrolling
+[scrolling]
+history = 10000
+multiplier = 3
+
+# Bell (visual instead of audible)
+[bell]
+animation = "EaseOutExpo"
+duration = 100
+color = "#ffffff"
+
+# Selection
+[selection]
+save_to_clipboard = true       # auto-copy on select
+
+# Mouse
+[mouse]
+hide_when_typing = true
+
+# Live config reload (on by default in newer versions)
+[general]
+live_config_reload = true
+import = [
+    "~/.config/alacritty/themes/alacritty-theme/themes/horizon_dark.toml",
+]
