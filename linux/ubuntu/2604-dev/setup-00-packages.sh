@@ -32,6 +32,7 @@ FORMATS_LOCALE="de_DE.UTF-8"
 # shellcheck source=common.sh
 source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 setup_begin "$@"
+sudo_keepalive
 
 # Nothing between here and the end leaves the machine untouched - it installs packages
 # straight away - so the completion marker goes now.
@@ -279,10 +280,12 @@ else
     sh -c "$OMZ_INSTALLER" "" --unattended
 fi
 
-# Set Zsh as the default shell (chsh asks for a password, so only when needed)
+# Set Zsh as the default shell. Through sudo rather than plain chsh: chsh
+# authenticates on its own and would ask for the password a second time,
+# where sudo is covered by the timestamp sudo_keepalive primed at the start.
 if [ "$(getent passwd "$USER" | cut -d: -f7)" != "$(which zsh)" ]; then
     log "Setting Zsh as the default shell..."
-    chsh -s "$(which zsh)"
+    sudo chsh -s "$(which zsh)" "$USER"
 else
     log "Zsh is already the default shell."
 fi

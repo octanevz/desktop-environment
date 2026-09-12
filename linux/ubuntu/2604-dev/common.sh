@@ -4,6 +4,8 @@
 # Sourced by the numbered setup scripts - not run on its own. It provides:
 # - log: prints a green status line, indented under the step header
 # - step: prints a colour-ruled header that opens a step of the script
+# - sudo_keepalive: asks for the sudo password once, up front, and keeps the
+#   sudo timestamp fresh until the script exits
 # - setup_begin: stops the script when a lower-numbered script has not
 #   completed yet, or when the script itself has already completed
 # - setup_end: records the script's completion
@@ -33,8 +35,8 @@ log() {
 
 # A header for each step of a script: a blank line, a rule of "/" in gradient
 # colours, the title in bold white let into a second such rule, the rule
-# again, a blank line. The rule is 79 characters, the width the comment rules in the
-# scripts have.
+# again, a blank line. The rule is 79 characters, the width the comment rules
+# in the scripts have.
 step() {
     # A 256-colour gradient from orange through yellow and green to cyan,
     # stretched once over the width of the rule.
@@ -54,6 +56,33 @@ step() {
     printf '\033[38;5;%sm// \033[1;37m%s\033[0m %s\033[0m\n' \
         "${colors[0]}" "$1" "$tail"
     printf '%s\033[0m\n\n' "$rule"
+}
+
+# Call at the top of a script that uses sudo, after setup_begin, so that the
+# password is asked once, at the start, rather than at the first sudo call -
+# which may come minutes into a long download or build, with nobody watching
+# the terminal. A background loop refreshes the sudo timestamp every minute
+# for as long as the script runs, so it cannot expire (15 minutes by default)
+# partway through and ask again. The loop is killed when the script exits and
+# also watches the script's PID, in case the trap never runs (a script that
+# ends in exec, or is killed); -n makes sure it never prompts on its own.
+# None of the scripts that use sudo set an EXIT trap of their own.
+#
+# When the timestamp is already valid - update-all.sh calls update-sys.sh,
+# and both call this - sudo -v does not prompt, so the message is skipped.
+sudo_keepalive() {
+    if ! sudo -n true 2> /dev/null; then
+        log "Some steps need root - enter your password once for sudo."
+        sudo -v
+    fi
+    (
+        while kill -0 "$$" 2> /dev/null; do
+            sudo -n -v 2> /dev/null || exit
+            sleep 60
+        done
+    ) &
+    SUDO_KEEPALIVE_PID=$!
+    trap 'kill "$SUDO_KEEPALIVE_PID" 2> /dev/null' EXIT
 }
 
 # Call at the top of a numbered script, after its own argument parsing, with

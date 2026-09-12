@@ -29,6 +29,7 @@ set -euo pipefail
 # shellcheck source=common.sh
 source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 setup_begin "$@"
+sudo_keepalive
 
 # Nothing between here and the end leaves the machine untouched - it writes an apt source
 # straight away - so the completion marker goes now.

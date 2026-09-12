@@ -74,6 +74,7 @@ for arg in "$@"; do
 done
 
 setup_begin "$@"
+sudo_keepalive
 
 # -----------------------------------------------------------------------------
 # Check the prerequisites
