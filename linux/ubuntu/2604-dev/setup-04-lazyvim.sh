@@ -11,7 +11,8 @@ set -euo pipefail
 #   editor.snacks_explorer, editor.snacks_picker, test.core, util.dot and
 #   util.mini-hipatterns extras
 # - Sets spelllang to en_us
-# - Installs the plugins headlessly so the first real start is ready to go
+# - Installs the plugins, treesitter parsers, Mason tools and language
+#   servers headlessly, so the first real start has nothing left to fetch
 #
 # Run this AFTER setup-00-packages.sh, which installs the LazyVim
 # prerequisites (git, curl, unzip, ripgrep, fd, fzf, a C compiler, python3,
@@ -28,8 +29,9 @@ set -euo pipefail
 # Copilot still has to be signed in once by hand: start nvim and run
 # :Copilot auth, which shows a device code to enter on GitHub.
 #
-# The plugins are installed at the end by running Neovim headlessly, so the
-# first interactive start does not drop you into a cloning progress screen.
+# The plugins, parsers, tools and servers are installed at the end by running
+# Neovim headlessly, so the first interactive start does not drop you into a
+# cloning progress screen followed by a flurry of install notifications.
 # =============================================================================
 
 # -----------------------------------------------------------------------------
@@ -233,12 +235,12 @@ EOF
 # updates and cleans every plugin in the spec without opening a UI. Without it
 # the first interactive start spends its first minute cloning ~37 plugins.
 #
-# The treesitter parsers and the Mason tools are downloaded on the first
-# interactive start instead: nvim-treesitter and mason.nvim fetch them once
-# they load, and in a headless sync they never load. mason logging that it
-# aborted an installation during this sync is expected and leaves nothing
-# behind. The same goes for copilot.lua's build step (:Copilot auth): it
-# cannot complete without you, so it is repeated by hand on the first start.
+# The treesitter parsers, the Mason tools and the language servers are not
+# part of that: nvim-treesitter and mason.nvim fetch them once they load, and
+# in a headless sync they never load. The next section takes care of them.
+# mason logging that it aborted an installation during this sync is expected
+# and leaves nothing behind. copilot.lua's build step (:Copilot auth) cannot
+# complete without you, so it is repeated by hand on the first start.
 #
 # The output is verbose and mixes in those abort notices, so it goes to a log
 # and is only shown if the sync actually fails. A failure is not fatal: the
@@ -254,6 +256,33 @@ else
     log "Output follows:"
     cat "$SYNC_LOG"
     rm -f "$SYNC_LOG"
+fi
+
+# -----------------------------------------------------------------------------
+# Install the treesitter parsers, the Mason tools and the language servers
+# -----------------------------------------------------------------------------
+# What the first interactive start would otherwise download, with a flurry of
+# notifications: config/nvim/install-tools.lua loads nvim-treesitter,
+# mason.nvim and nvim-lspconfig headlessly, which starts the same installs,
+# adds the language servers (which mason-lspconfig skips when headless) and
+# waits for all of them. The lists come from the LazyVim configuration, so
+# adding an extra or a server needs no change here. The parsers are compiled
+# with the tree-sitter CLI and gcc from setup-00-packages.sh.
+#
+# As above, the output goes to a log that is only shown on failure, and a
+# failure is not fatal: ":Mason" and ":TSUpdate" inside Neovim finish the job.
+step "Install the treesitter parsers, the Mason tools and the language servers"
+log "Installing the parsers, tools and servers (this takes a few minutes)..."
+TOOLS_LOG="$(mktemp)"
+if nvim --headless -c "luafile $SETUP_DIR/config/nvim/install-tools.lua" \
+    > "$TOOLS_LOG" 2>&1; then
+    log "$(tail -n 1 "$TOOLS_LOG")"
+    rm -f "$TOOLS_LOG"
+else
+    log "Some installs failed - start nvim and check :Mason and :TSUpdate."
+    log "Output follows:"
+    cat "$TOOLS_LOG"
+    rm -f "$TOOLS_LOG"
 fi
 
 # -----------------------------------------------------------------------------

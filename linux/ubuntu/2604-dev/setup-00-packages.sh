@@ -8,6 +8,7 @@ set -euo pipefail
 # - Installs Oh My Zsh with autosuggestions and syntax highlighting plugins
 # - Sets Zsh as the default shell
 # - Aliases l, lf and ld to eza
+# - Aliases cls to clear
 # - Sets up atuin as the Ctrl-R shell history
 # - Sets up zoxide as the z directory jumper
 # - Binds the fzf key bindings and points them at fd and bat
@@ -350,6 +351,18 @@ for entry in "${EZA_ALIASES[@]}"; do
         log "$name alias already exists in .zshrc."
     fi
 done
+
+# -----------------------------------------------------------------------------
+# Alias cls to clear
+# -----------------------------------------------------------------------------
+# Muscle memory from the Windows command line.
+step "Alias cls to clear"
+if ! grep -q "^alias cls=" ~/.zshrc; then
+    echo "alias cls='clear'" >> ~/.zshrc
+    log "Added cls alias to .zshrc."
+else
+    log "cls alias already exists in .zshrc."
+fi
 
 # -----------------------------------------------------------------------------
 # Configure the fzf key bindings
