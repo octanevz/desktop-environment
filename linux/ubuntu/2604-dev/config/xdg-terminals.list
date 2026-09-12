@@ -1,0 +1,13 @@
+# Deployed to ~/.config/xdg-terminals.list by setup-06-configs.sh.
+#
+# The default terminal, in the format of the XDG terminal spec: desktop entry
+# IDs, one per line, highest priority first. Ubuntu 26.04 routes Ctrl+Alt+T
+# through xdg-terminal-exec (the "exec" of the deprecated
+# org.gnome.desktop.default-applications.terminal key), and this is where
+# xdg-terminal-exec looks first - the user file wins over Ubuntu's own list in
+# /usr/share/xdg-terminal-exec/, which puts Ptyxis first. "Open in Terminal"
+# and every other launch through xdg-terminal-exec follow it too.
+#
+# The entry comes from setup-03-alacritty.sh; until that has run, the line
+# matches nothing and xdg-terminal-exec falls through to Ubuntu's list.
+Alacritty.desktop

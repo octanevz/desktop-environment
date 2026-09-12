@@ -7,6 +7,7 @@ set -euo pipefail
 # - Installs the Alacritty configuration and the theme it imports
 # - Installs the herdr configuration
 # - Installs the file-picker helper both multiplexers bind
+# - Makes Alacritty the default terminal (Ctrl+Alt+T, "Open in Terminal")
 # - Applies the GNOME desktop settings from config/dconf/gnome-settings.ini
 # - Pins the installed applications to the GNOME dock
 # - Logs out, on Enter, so the shell loads the extensions of setup-05
@@ -147,6 +148,35 @@ if [ ! -f "$ALACRITTY_THEME_DIR/themes/horizon_dark.toml" ]; then
     echo "The horizon_dark theme is missing from $ALACRITTY_THEME_DIR." >&2
     echo "alacritty.toml imports it and Alacritty will not start without it." >&2
     exit 1
+fi
+
+# -----------------------------------------------------------------------------
+# Make Alacritty the default terminal
+# -----------------------------------------------------------------------------
+# Ubuntu 26.04 no longer names the terminal in a gsettings key: Ctrl+Alt+T
+# (Ubuntu's gnome-settings-daemon patch), "Open in Terminal" and Terminal=true
+# desktop entries all go through xdg-terminal-exec, which picks the first
+# installed entry in the xdg-terminals.list files - ~/.config first, then
+# Ubuntu's own list in /usr/share/xdg-terminal-exec/, where Ptyxis comes first.
+# Writing the user file is the whole change; nothing is written to dconf.
+#
+# Alacritty's desktop entry has the TerminalEmulator category the spec asks
+# for and no X-TerminalArgExec, for which xdg-terminal-exec assumes "-e" -
+# which is what Alacritty takes.
+step "Make Alacritty the default terminal"
+log "Installing the xdg-terminal-exec terminal list..."
+install_config "$CONFIG_DIR/xdg-terminals.list" "$HOME/.config/xdg-terminals.list"
+
+if command -v xdg-terminal-exec > /dev/null 2>&1; then
+    if [ -f /usr/local/share/applications/Alacritty.desktop ]; then
+        log "  Ctrl+Alt+T and \"Open in Terminal\" now open Alacritty."
+    else
+        log "  Alacritty is not installed yet - run setup-03-alacritty.sh; the"
+        log "  list takes effect as soon as its desktop entry exists."
+    fi
+else
+    log "  xdg-terminal-exec is not installed - the list is in place for when"
+    log "  it is."
 fi
 
 # -----------------------------------------------------------------------------
