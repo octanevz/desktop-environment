@@ -521,8 +521,15 @@ if ! grep -qxF 'export DOTNET_ROOT="$HOME/.dotnet"' ~/.zshrc; then
     echo 'export DOTNET_ROOT="$HOME/.dotnet"' >> ~/.zshrc
     echo 'export PATH="$PATH:$DOTNET_ROOT"' >> ~/.zshrc
 fi
+# The .NET CLI reports usage to Microsoft unless told not to. Exported here
+# as well, so that the dotnet calls below - the first ones ever made - send
+# nothing either.
+if ! grep -qxF 'export DOTNET_CLI_TELEMETRY_OPTOUT=1' ~/.zshrc; then
+    echo 'export DOTNET_CLI_TELEMETRY_OPTOUT=1' >> ~/.zshrc
+fi
 export DOTNET_ROOT="$HOME/.dotnet"
 export PATH="$PATH:$DOTNET_ROOT"
+export DOTNET_CLI_TELEMETRY_OPTOUT=1
 dotnet --version
 
 # csharp-ls is the server the csharp-lsp Claude Code plugin expects. Global

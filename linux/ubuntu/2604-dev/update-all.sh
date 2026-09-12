@@ -41,6 +41,9 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 step "Update the .NET SDK"
 DOTNET_CHANNEL="10.0"
 DOTNET_ROOT="${DOTNET_ROOT:-$HOME/.dotnet}"
+# Set in .zshrc by setup-01-devtools.sh; repeated here for a run from
+# elsewhere.
+export DOTNET_CLI_TELEMETRY_OPTOUT=1
 
 log "Updating the .NET SDK..."
 curl -fsSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin --channel "$DOTNET_CHANNEL"
