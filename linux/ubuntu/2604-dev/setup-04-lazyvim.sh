@@ -11,6 +11,8 @@ set -euo pipefail
 #   editor.snacks_explorer, editor.snacks_picker, test.core, util.dot and
 #   util.mini-hipatterns extras
 # - Sets spelllang to en_us
+# - Sets a longer git timeout and a lower headless concurrency in lazy.nvim,
+#   so the sync completes on a slow link instead of failing plugin by plugin
 # - Installs the plugins headlessly so the first real start is ready to go
 #
 # Run this AFTER setup-00-packages.sh, which installs the LazyVim
@@ -227,11 +229,48 @@ vim.opt.spelllang = { "en_us" }
 EOF
 
 # -----------------------------------------------------------------------------
+# Make lazy.nvim tolerate a slow link
+# -----------------------------------------------------------------------------
+# The plugin sync below is ~40 git clones from GitHub. lazy.nvim runs them all
+# at once and kills any git process after two minutes, which on a slow link
+# (a few KiB/s per clone was seen in a VM) means the larger plugins never
+# finish and the sync reports them as failed. Two settings are added to the
+# starter's lazy.nvim options: git.timeout goes up to fifteen minutes, and
+# when Neovim is headless - this script's sync - at most four clones run at
+# once, so each gets enough of the link to finish. Interactive use keeps
+# lazy.nvim's default concurrency; the longer timeout only ever matters when
+# something is slow.
+#
+# The lines go in after the "install = { colorscheme ..." option, which is
+# checked for first so a changed starter fails loudly rather than silently
+# skipping this.
+step "Make lazy.nvim tolerate a slow link"
+LAZY_LUA="$NVIM_CONFIG/lua/config/lazy.lua"
+if ! grep -q '^  install = { colorscheme = ' "$LAZY_LUA"; then
+    echo "The starter's $LAZY_LUA has changed shape - the install = { colorscheme" >&2
+    echo "line is missing, so the slow-link settings cannot be inserted." >&2
+    exit 1
+fi
+log "Setting the git timeout and the headless concurrency in lazy.lua..."
+sed -i '/^  install = { colorscheme = /a\
+  -- A slow link: give each git process fifteen minutes rather than the\
+  -- default two, and when headless (the sync in setup-04-lazyvim.sh) run at\
+  -- most four clones at once, so each gets enough of the link to finish.\
+  git = { timeout = 900 },\
+  concurrency = #vim.api.nvim_list_uis() == 0 and 4 or nil,' "$LAZY_LUA"
+log "  Done."
+
+# -----------------------------------------------------------------------------
 # Install the plugins
 # -----------------------------------------------------------------------------
 # "Lazy! sync" is lazy.nvim's documented headless entry point: it clones,
 # updates and cleans every plugin in the spec without opening a UI. Without it
 # the first interactive start spends its first minute cloning ~37 plugins.
+#
+# A clone that still hits the timeout above is retried once with
+# "Lazy! install", which only touches plugins that are not installed - on a
+# good link that pass returns at once. What is still missing after that is
+# listed by name, from lazy.nvim's own plugin state.
 #
 # The treesitter parsers and the Mason tools are downloaded on the first
 # interactive start instead: nvim-treesitter and mason.nvim fetch them once
@@ -244,16 +283,32 @@ EOF
 # and is only shown if the sync actually fails. A failure is not fatal: the
 # configuration is in place and ":Lazy sync" inside Neovim does the same job.
 step "Install the plugins"
-log "Installing the plugins (this takes a minute)..."
+log "Installing the plugins (this takes a minute on a good link)..."
 SYNC_LOG="$(mktemp)"
 if nvim --headless "+Lazy! sync" +qa > "$SYNC_LOG" 2>&1; then
-    log "Plugins installed."
+    log "Plugin sync finished."
     rm -f "$SYNC_LOG"
 else
     log "The plugin sync failed - start nvim and run :Lazy sync by hand."
     log "Output follows:"
     cat "$SYNC_LOG"
     rm -f "$SYNC_LOG"
+fi
+
+log "Retrying any plugin the sync left uninstalled..."
+nvim --headless "+Lazy! install" +qa > /dev/null 2>&1 || true
+
+# lazy.nvim's own view of each plugin: _.installed is what :Lazy shows as
+# installed. Printed to stderr so that Neovim's own messages, which go to
+# stdout when headless, stay out of the list.
+MISSING_PLUGINS="$(nvim --headless -c 'lua for _, p in pairs(require("lazy.core.config").plugins) do if not p._.installed then io.stderr:write(p.name .. "\n") end end' +qa 2>&1 > /dev/null || true)"
+if [ -z "$MISSING_PLUGINS" ]; then
+    log "Plugins installed."
+else
+    log "Still not installed - start nvim and run :Lazy sync to finish:"
+    while IFS= read -r name; do
+        log "  $name"
+    done <<< "$MISSING_PLUGINS"
 fi
 
 # -----------------------------------------------------------------------------
