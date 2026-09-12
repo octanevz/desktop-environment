@@ -137,18 +137,36 @@ fi
 # always fetched and checked out, which is what makes bumping the variable and
 # re-running work.
 #
-# Note that the checkout is forced, so any local edits in $ALACRITTY_SRC are
-# discarded. This is a build tree, not a place to work in.
+# An existing clone is only reused when it is clean, and the checkout is
+# NOT forced: a forced checkout discards every change to a tracked file and
+# overwrites any untracked or ignored file that stands where a file of the
+# target revision goes, so the tree is checked for edits to tracked files
+# first, and git is left to refuse the checkout when an untracked file is in
+# the way (--no-overwrite-ignore extends that refusal to ignored files).
+# This script never leaves the tree dirty (target/ is ignored, and the build
+# runs cargo with --locked so it cannot rewrite Cargo.lock), so a dirty tree
+# is somebody's edits: a home directory restored with an Alacritty checkout
+# of its own at the default path, most likely. Those are refused rather than
+# thrown away, with --force as much as without it - --force means rebuild,
+# not discard. This is a build tree, not a place to work in; work in another
+# checkout, or point ALACRITTY_SRC elsewhere.
 log "Checking out the requested revision..."
 ALACRITTY_REPO="https://github.com/alacritty/alacritty.git"
 
 if [ ! -d "$ALACRITTY_SRC/.git" ]; then
     log "Cloning Alacritty $ALACRITTY_VERSION into $ALACRITTY_SRC..."
     git clone --depth 1 --branch "$ALACRITTY_VERSION" "$ALACRITTY_REPO" "$ALACRITTY_SRC"
+elif [ -n "$(git -C "$ALACRITTY_SRC" status --porcelain --untracked-files=no)" ]; then
+    # Above setup_invalidate: nothing has been touched, so the marker of an
+    # earlier run stays true. Untracked files are not counted here: the
+    # checkout below is not forced, so git itself refuses to overwrite one.
+    echo "$ALACRITTY_SRC has uncommitted changes, which the checkout would discard." >&2
+    echo "Commit or stash them, or set ALACRITTY_SRC to another directory." >&2
+    exit 1
 elif [ "$ALACRITTY_VERSION" = "master" ]; then
     log "Fetching master into the existing checkout at $ALACRITTY_SRC..."
     git -C "$ALACRITTY_SRC" fetch --depth 1 origin master
-    git -C "$ALACRITTY_SRC" checkout --force FETCH_HEAD
+    git -C "$ALACRITTY_SRC" checkout --no-overwrite-ignore FETCH_HEAD
 else
     # git fetch exits non-zero when the tag does not exist upstream, and
     # set -e turns that into a loud failure rather than a stale rebuild.
@@ -158,7 +176,7 @@ else
         echo "Check ALACRITTY_VERSION against the upstream releases." >&2
         exit 1
     fi
-    git -C "$ALACRITTY_SRC" checkout --force "refs/tags/$ALACRITTY_VERSION"
+    git -C "$ALACRITTY_SRC" checkout --no-overwrite-ignore "refs/tags/$ALACRITTY_VERSION"
 fi
 
 # Reported as the requested revision plus the commit, because the repo also
@@ -287,7 +305,9 @@ else
 fi
 export PATH="/opt/rust/cargo/bin:$PATH"
 
-cargo build --release
+# --locked: build exactly the tag's Cargo.lock and fail rather than rewrite
+# it, which is what lets the host side treat a dirty tree as somebody's edits.
+cargo build --release --locked
 
 # Generate the man pages next to the binary so the host side can install them.
 mkdir -p target/man

@@ -130,22 +130,28 @@ curl -fsSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin --channel "$DO
 dotnet --version
 
 # The installer adds the new version next to the old ones and never removes
-# anything, so every versioned directory under ~/.dotnet is pruned to its
-# newest entry: the SDKs, the shared runtimes (Microsoft.NETCore.App and
-# Microsoft.AspNetCore.App), the host resolver, the targeting packs and the
-# templates. Only ~/.dotnet is touched - an SDK from apt lives elsewhere.
-# Note that a project whose global.json pins an older SDK would stop
-# building after this; none here do.
+# anything, so every versioned directory under ~/.dotnet is pruned: the SDKs,
+# the shared runtimes (Microsoft.NETCore.App and Microsoft.AspNetCore.App),
+# the host resolver, the targeting packs and the templates. Pruned to the
+# newest entry OF EACH MAJOR VERSION, not to the newest entry outright: a
+# runtime of another major put under ~/.dotnet by hand - an 8.0 for a tool
+# that targets net8.0, say - is not something this script installed, and a
+# framework-dependent program never rolls forward across a major, so
+# removing it would stop that program from starting. Only the superseded
+# patches of each major go. Only ~/.dotnet is touched - an SDK from apt
+# lives elsewhere. Note that a project whose global.json pins an older SDK
+# patch would stop building after this; none here do.
 prune_versions() {
     local dir="$1"
     [ -d "$dir" ] || return 0
     local versions
     versions="$(find "$dir" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | sort -V)"
     [ -n "$versions" ] || return 0
-    local newest
-    newest="$(printf '%s\n' "$versions" | tail -n 1)"
-    local version
+    local version major newest
     while IFS= read -r version; do
+        # The newest of this version's major: the last sorted entry under it.
+        major="${version%%.*}"
+        newest="$(printf '%s\n' "$versions" | grep "^$major\." | tail -n 1)"
         [ "$version" = "$newest" ] && continue
         rm -rf "${dir:?}/$version"
         log "  Removed ${dir#"$DOTNET_ROOT/"}/$version (kept $newest)."
@@ -186,6 +192,21 @@ done
 # would leave node, npm and the global tools failing in all of them until
 # they are restarted. The command to remove it is printed instead.
 step "Update Node.js"
+
+# The names of the global packages of one Node.js version, sorted, one per
+# line - npm's own list, which is what nvm reinstall-packages copies. --json
+# rather than --parseable, whose paths would need the scope put back on;
+# jq comes from setup-00-packages.sh, and rejects anything that is not JSON.
+# LC_ALL=C so that comm below, which compares under the locale, sees the
+# order it expects. Always called in a plain assignment, never inside a
+# process substitution: a failure there - npm broken under one version - is
+# invisible to set -e, and an empty list would then read as "nothing to
+# carry over".
+global_packages() {
+    nvm exec --silent "$1" npm ls -g --depth=0 --json |
+        jq -r '.dependencies // {} | keys[]' | LC_ALL=C sort
+}
+
 log "Updating Node.js..."
 NODE_BEFORE="$(nvm version default)"
 nvm alias default "$NODE_BEFORE" > /dev/null
@@ -193,6 +214,35 @@ nvm install 24
 NODE_AFTER="$(nvm version 24)"
 if [ "$NODE_BEFORE" != "$NODE_AFTER" ]; then
     nvm reinstall-packages "$NODE_BEFORE"
+    # nvm reports the carry-over as done whatever npm said: its exit status
+    # is that of the message it prints last, not of the npm install behind
+    # it, so a package that failed to install would go unnoticed and the
+    # default would move without it. So the result is checked here instead:
+    # every global package of the old version has to be in the new one
+    # before the default moves. When one is missing the default stays where
+    # it is, and the next run - before and after then still differ - carries
+    # the packages over again.
+    # Each list in its own assignment, so that set -e stops the script when
+    # npm cannot produce one. The old version's list can never be empty - npm
+    # itself is a global package - so an empty one is a failure too.
+    PACKAGES_BEFORE="$(global_packages "$NODE_BEFORE")"
+    PACKAGES_AFTER="$(global_packages "$NODE_AFTER")"
+    if [ -z "$PACKAGES_BEFORE" ]; then
+        echo "npm under Node.js $NODE_BEFORE lists no global packages, not even npm" >&2
+        echo "itself - its output above is not to be trusted. The default stays on" >&2
+        echo "$NODE_BEFORE." >&2
+        exit 1
+    fi
+    MISSING_PACKAGES="$(LC_ALL=C comm -23 <(printf '%s\n' "$PACKAGES_BEFORE") <(printf '%s\n' "$PACKAGES_AFTER"))"
+    if [ -n "$MISSING_PACKAGES" ]; then
+        echo "Not every global package made it to Node.js $NODE_AFTER:" >&2
+        while IFS= read -r name; do
+            echo "  $name" >&2
+        done <<< "$MISSING_PACKAGES"
+        echo "The default stays on $NODE_BEFORE. Fix the npm error above, then run" >&2
+        echo "update-all again - it carries the packages over once more." >&2
+        exit 1
+    fi
     nvm alias default "$NODE_AFTER"
     nvm use default > /dev/null
     log "Node.js $NODE_BEFORE -> $NODE_AFTER; the global packages were carried over."
