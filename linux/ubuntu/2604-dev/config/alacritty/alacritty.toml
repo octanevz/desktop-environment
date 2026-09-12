@@ -15,21 +15,23 @@ dynamic_title = true
 # Optional: set initial size in columns/lines
 dimensions = { columns = 120, lines = 32 }
 
-# Font
+# Font: MesloLGM Nerd Font Mono, installed by setup-00-packages.sh, with the
+# Nerd Font icons patched in. When the family is missing, fontconfig
+# substitutes the system monospace font and Alacritty still starts.
 [font]
 size = 13.0
 builtin_box_drawing = true
 
 [font.normal]
-family = "JetBrains Mono"
+family = "MesloLGM Nerd Font Mono"
 style = "Regular"
 
 [font.bold]
-family = "JetBrains Mono"
+family = "MesloLGM Nerd Font Mono"
 style = "Bold"
 
 [font.italic]
-family = "JetBrains Mono"
+family = "MesloLGM Nerd Font Mono"
 style = "Italic"
 
 # Cursor

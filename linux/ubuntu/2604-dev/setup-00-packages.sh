@@ -13,8 +13,9 @@ set -euo pipefail
 # - Sets up zoxide as the z directory jumper
 # - Binds the fzf key bindings and points them at fd and bat
 # - Hooks direnv into the shell
-# - Installs the LazyVim prerequisites (ripgrep, fd, fzf, tree-sitter, a Nerd
-#   Font and friends)
+# - Installs the LazyVim prerequisites (ripgrep, fd, fzf, tree-sitter, the
+#   Nerd Font symbols and friends)
+# - Installs MesloLGM Nerd Font Mono, the terminal font
 # - Shims fdfind as fd and batcat as bat in ~/.local/bin
 # - Installs Tmux Plugin Manager
 # - Installs the VMware guest tools in a VMware VM, proprietary drivers on
@@ -544,19 +545,36 @@ direnv --version
 # -----------------------------------------------------------------------------
 # Install Nerd Fonts
 # -----------------------------------------------------------------------------
-# fonts-jetbrains-mono (installed above) provides the text face; the Nerd Font
-# symbol-only patch supplies the icons LazyVim and the Tmux theme render.
+# Two fonts from the Nerd Fonts release:
+#
+# - MesloLGM Nerd Font Mono, the terminal face alacritty.toml uses. The Nerd
+#   Font glyphs are patched into the font itself, so the terminal needs no
+#   fallback for them. Only the four LGM Mono faces are taken out of the
+#   Meslo.zip: the whole archive is 72 faces (LGS/LGM/LGL line heights, in the
+#   Mono, proportional-icon and Propo variants) and over 100 MB.
+# - The symbol-only patch, which supplies the same icons as a fallback for
+#   everything that renders text in some other font - fonts-jetbrains-mono
+#   (installed above) in the editors, for one.
 step "Install Nerd Fonts"
-log "Installing Nerd Font symbols..."
+NERD_FONTS_RELEASE="https://github.com/ryanoasis/nerd-fonts/releases/latest/download"
 
+log "Installing MesloLGM Nerd Font Mono..."
+FONT_DIR="$HOME/.local/share/fonts/MesloLGMNerdFontMono"
+mkdir -p "$FONT_DIR"
+curl -fsSL -o /tmp/Meslo.zip "$NERD_FONTS_RELEASE/Meslo.zip"
+unzip -oq /tmp/Meslo.zip 'MesloLGMNerdFontMono-*.ttf' -d "$FONT_DIR"
+rm -f /tmp/Meslo.zip
+
+log "Installing Nerd Font symbols..."
 FONT_DIR="$HOME/.local/share/fonts/SymbolsNerdFont"
 mkdir -p "$FONT_DIR"
-curl -fsSL -o /tmp/NerdFontsSymbolsOnly.zip https://github.com/ryanoasis/nerd-fonts/releases/latest/download/NerdFontsSymbolsOnly.zip
+curl -fsSL -o /tmp/NerdFontsSymbolsOnly.zip "$NERD_FONTS_RELEASE/NerdFontsSymbolsOnly.zip"
 unzip -oq /tmp/NerdFontsSymbolsOnly.zip -d "$FONT_DIR"
 rm -f /tmp/NerdFontsSymbolsOnly.zip
+
 fc-cache -f "$HOME/.local/share/fonts" > /dev/null
 
-log "Nerd Font symbols installed."
+log "Nerd Fonts installed."
 
 # -----------------------------------------------------------------------------
 # Install the fd and bat shims
