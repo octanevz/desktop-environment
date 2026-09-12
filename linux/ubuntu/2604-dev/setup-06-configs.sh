@@ -9,6 +9,7 @@ set -euo pipefail
 # - Installs the file-picker helper both multiplexers bind
 # - Applies the GNOME desktop settings from config/dconf/gnome-settings.ini
 # - Pins the installed applications to the GNOME dock
+# - Logs out, on Enter, so the shell loads the extensions of setup-05
 #
 # Run this AFTER setup-00-packages.sh (tmux, Tmux Plugin Manager, fzf, fd, git,
 # the JetBrains Mono font) and setup-01-devtools.sh (herdr).
@@ -354,3 +355,30 @@ log "Alacritty and herdr pick their configuration up on the next start."
 log "The GNOME settings are applied at once; the running desktop picks them up."
 
 setup_end
+
+# -----------------------------------------------------------------------------
+# Log out to load the extensions
+# -----------------------------------------------------------------------------
+# Not for this script's own changes - those are live already - but for the
+# extensions setup-05-gnome-extensions.sh installed: the shell only loads a
+# new extension at login, and on Wayland (the Ubuntu 26.04 default) there is
+# no shell restart, so the session has to end. Doing it here rather than
+# there lets both scripts run in one go.
+#
+# Not a question, as with the reboots in setup-00 and setup-01: Enter logs
+# out; Ctrl-C is the way out for whoever wants to log out later - the
+# completion marker is written already. Without a session bus, as over SSH,
+# gnome-session-quit cannot reach the session, so only the note is printed.
+step "Log out to load the extensions"
+log "The session has to end for the GNOME extensions from the previous script"
+log "to load - on Wayland a full log out; restarting the shell is not enough."
+log "Continue with setup-07-git.sh from a new terminal after logging back in."
+log ""
+if [ -n "${DBUS_SESSION_BUS_ADDRESS:-}" ] &&
+    command -v gnome-session-quit > /dev/null 2>&1; then
+    read -r -p "Press Enter to log out..."
+    echo "Logging out..."
+    exec gnome-session-quit --logout --no-prompt
+else
+    log "Log out and log back in."
+fi

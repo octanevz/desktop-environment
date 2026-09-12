@@ -8,7 +8,6 @@ set -euo pipefail
 #   that shell version
 # - Installs them per-user and enables them
 # - Loads their settings from config/dconf with dconf load
-# - Logs out, on Enter, so the shell loads them at the next login
 #
 # Run this AFTER setup-00-packages.sh, which installs curl, python3, dconf-cli
 # and gnome-shell-extension-manager (for managing and configuring the
@@ -314,32 +313,19 @@ done
 
 log "GNOME extensions installation completed successfully!"
 
-setup_end
-
 # -----------------------------------------------------------------------------
 # Log out to load the extensions
 # -----------------------------------------------------------------------------
 # Enabling an extension does not load it into the running shell. On X11 the
 # shell can be restarted with Alt+F2 r, but Ubuntu 26.04 defaults to Wayland,
 # where that does not exist - the session has to be ended and started again.
-# Not a question, as with the reboots in setup-00 and setup-01: Enter logs
-# out; Ctrl-C is the way out for whoever wants to log out later - the
-# completion marker is written already. Without a session bus, as over SSH,
-# gnome-session-quit cannot reach the session, so only the note is printed.
+# That is left to setup-06-configs.sh, the next script, which ends by logging
+# out - so the extensions and the desktop settings arrive in one new session.
 step "Log out to load the extensions"
-log "The session has to end for the extensions to load - on Wayland a full"
-log "log out; restarting the shell is not enough. The settings loaded above"
-log "are picked up at the same time. Continue with setup-06-configs.sh from"
-log "a new terminal after logging back in."
+log "The extensions load at the next login. setup-06-configs.sh, the next"
+log "script, logs out when it is done - run it now and log back in after it."
 log ""
 log "After changing anything in Extension Manager, re-dump it into the repo"
 log "so the next machine gets it - see the comment at the top of this script."
-log ""
-if [ -n "${DBUS_SESSION_BUS_ADDRESS:-}" ] &&
-    command -v gnome-session-quit > /dev/null 2>&1; then
-    read -r -p "Press Enter to log out..."
-    echo "Logging out..."
-    exec gnome-session-quit --logout --no-prompt
-else
-    log "Log out and log back in."
-fi
+
+setup_end
