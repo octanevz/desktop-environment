@@ -1,6 +1,16 @@
 #!/bin/bash
 set -euo pipefail
 
+# =============================================================================
+# This script performs the following tasks:
+# - Pulls the Docker images listed below, so that the first "docker run" of
+#   each does not start with a download
+# - Removes the previous version of each image the pull replaced
+#
+# Run this AFTER setup-01-devtools.sh, which installs Docker and adds you to
+# the docker group - the group only takes effect at the login after it.
+# =============================================================================
+
 # -----------------------------------------------------------------------------
 # Configuration
 # -----------------------------------------------------------------------------
@@ -10,8 +20,8 @@ set -euo pipefail
 #
 # ubuntu:26.04 is the image setup-03-alacritty.sh compiles in. That script would
 # pull it on its own the first time it runs, so having it here only moves the
-# download to a predictable moment - and re-running this script refreshes it,
-# which "docker run" never does once the tag is present locally.
+# download to a predictable moment - and re-running this script with --force
+# refreshes it, which "docker run" never does once the tag is present locally.
 DOCKER_IMAGES=(
     postgres:18-trixie
     quay.io/jupyter/scipy-notebook:latest

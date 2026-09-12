@@ -39,35 +39,22 @@ set -euo pipefail
 # -----------------------------------------------------------------------------
 LAZYVIM_STARTER="https://github.com/LazyVim/starter"
 
-NVIM_CONFIG="$HOME/.config/nvim"
-NVIM_DATA="$HOME/.local/share/nvim"
-NVIM_STATE="$HOME/.local/state/nvim"
-NVIM_CACHE="$HOME/.cache/nvim"
+# The four directories Neovim uses, resolved the way Neovim itself resolves
+# them - from the XDG variables, with their defaults - so that the headless
+# runs below, which inherit the same environment, install into the directory
+# this script wrote and the --force backups move the directories Neovim
+# actually uses.
+NVIM_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/nvim"
+NVIM_DATA="${XDG_DATA_HOME:-$HOME/.local/share}/nvim"
+NVIM_STATE="${XDG_STATE_HOME:-$HOME/.local/state}/nvim"
+NVIM_CACHE="${XDG_CACHE_HOME:-$HOME/.cache}/nvim"
 
 # shellcheck source=common.sh
 source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 
-# -----------------------------------------------------------------------------
-# Parse the arguments
-# -----------------------------------------------------------------------------
 # By default an existing Neovim configuration is left completely alone. With
-# --force (or FORCE=1) the four Neovim directories are moved aside to
-# timestamped backups and LazyVim is installed fresh.
-FORCE="${FORCE:-0}"
-
-for arg in "$@"; do
-    case "$arg" in
-        -f | --force)
-            FORCE=1
-            ;;
-        *)
-            echo "Unknown argument: $arg" >&2
-            echo "Usage: $0 [--force]" >&2
-            exit 1
-            ;;
-    esac
-done
-
+# --force (or FORCE=1), parsed by setup_begin, the four Neovim directories
+# are moved aside to timestamped backups and LazyVim is installed fresh.
 setup_begin "$@"
 
 # -----------------------------------------------------------------------------
@@ -135,9 +122,15 @@ nvim --version | head -1
 # directories are moved aside whether or not the configuration exists: LazyVim
 # owns them all, and a leftover data or state directory would mix an old
 # plugin state into the new configuration.
+#
+# Keeping the configuration is what this script is meant to do on a machine
+# that has one, so that outcome is recorded as complete. Without the marker
+# setup-05-gnome-extensions.sh would refuse to run, and the only way on would
+# be --force - which replaces the very configuration this branch preserves.
 if [ -e "$NVIM_CONFIG" ] && [ "$FORCE" != "1" ]; then
     log "$NVIM_CONFIG already exists - leaving it untouched."
     log "Re-run with --force to back it up and install LazyVim fresh."
+    setup_end
     exit 0
 fi
 

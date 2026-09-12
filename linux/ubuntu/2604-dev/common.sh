@@ -6,24 +6,61 @@
 # - step: prints a colour-ruled header that opens a step of the script
 # - sudo_keepalive: asks for the sudo password once, up front, and keeps the
 #   sudo timestamp fresh until the script exits
-# - setup_begin: stops the script when a lower-numbered script has not
-#   completed yet, or when the script itself has already completed
+# - tmp_dir: creates the script's scratch directory for downloads, TMP_DIR,
+#   which is removed when the script exits
+# - SETUP_DIR, the directory the scripts live in, and ZSH_COMPLETIONS, the
+#   directory the generated Zsh completions go to
+# - setup_begin: parses the arguments, then stops the script when a
+#   lower-numbered script has not completed yet, or when the script itself
+#   has already completed
 # - setup_end: records the script's completion
 #
 # Completion is recorded as one file per script under STATE_DIR, named after
 # the script and holding the completion time. A script whose file exists
 # exits at once; pass --force (or FORCE=1) to run it again, or delete the
 # file. A numbered script also requires the file of every lower-numbered
-# script, so the sequence is run in order and no step is skipped.
+# script, so the sequence is run in order and no step is skipped. The
+# backups the scripts take before changing something live under STATE_DIR
+# too, each kind in its own subdirectory.
 #
 # The scripts that are meant to run repeatedly - setup-agents.sh, update-sys.sh
 # and update-all.sh - source this file for log and step only and never call
 # setup_begin or setup_end, so they carry no marker and run every time.
+#
+# Sourcing this file sets the EXIT trap that ends the sudo loop and removes
+# TMP_DIR; no script sets an EXIT trap of its own, which would replace it.
 # =============================================================================
 
 STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/desktop-environment"
 SETUP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SETUP_NAME="$(basename "$0" .sh)"
+
+# Where the generated Zsh completions go (setup-01-devtools.sh, setup-03-
+# alacritty.sh and update-all.sh write them): Oh My Zsh's custom/completions
+# directory, which oh-my-zsh.sh puts on fpath BEFORE it runs compinit - a
+# directory appended to fpath from the end of .zshrc would be too late, since
+# compinit only registers what is on fpath when it runs.
+# shellcheck disable=SC2034 # used by the scripts that source this file
+ZSH_COMPLETIONS="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/completions"
+
+# Set by sudo_keepalive and tmp_dir; the trap below reads them.
+SUDO_KEEPALIVE_PID=""
+TMP_DIR=""
+
+# The trap's kill fails when the loop has already ended, and under set -e a
+# failing command in an EXIT trap would replace the script's exit status
+# with 1 - hence the || true. A script that ends in exec (the reboots, the
+# log-out) never runs the trap: the loop then ends on its own, and TMP_DIR
+# is left to /tmp, which Ubuntu clears at boot.
+common_cleanup() {
+    if [ -n "$SUDO_KEEPALIVE_PID" ]; then
+        kill "$SUDO_KEEPALIVE_PID" 2> /dev/null || true
+    fi
+    if [ -n "$TMP_DIR" ]; then
+        rm -rf "$TMP_DIR"
+    fi
+}
+trap common_cleanup EXIT
 
 # printf, not echo -e: echo -e interprets backslashes in what it is given, so
 # a path containing one - or the output of printf '%q' - would be printed
@@ -63,10 +100,10 @@ step() {
 # which may come minutes into a long download or build, with nobody watching
 # the terminal. A background loop refreshes the sudo timestamp every minute
 # for as long as the script runs, so it cannot expire (15 minutes by default)
-# partway through and ask again. The loop is killed when the script exits and
-# also watches the script's PID, in case the trap never runs (a script that
-# ends in exec, or is killed); -n makes sure it never prompts on its own.
-# None of the scripts that use sudo set an EXIT trap of their own.
+# partway through and ask again. The loop is killed by the EXIT trap above
+# and also watches the script's PID, in case the trap never runs (a script
+# that ends in exec, or is killed); -n makes sure it never prompts on its
+# own.
 #
 # When the timestamp is already valid - update-all.sh calls update-sys.sh,
 # and both call this - "sudo -n -v" succeeds and the message is skipped. It
@@ -75,9 +112,6 @@ step() {
 #
 # The loop's output goes to /dev/null so that the sleep it may leave behind
 # for up to a minute holds no pipe open when the script's output is piped.
-# The trap's kill fails when the loop has already ended, and under set -e a
-# failing command in an EXIT trap would replace the script's exit status
-# with 1 - hence the || true.
 sudo_keepalive() {
     if ! sudo -n -v 2> /dev/null; then
         log "Some steps need root - enter your password once for sudo."
@@ -90,18 +124,33 @@ sudo_keepalive() {
         done
     ) > /dev/null 2>&1 &
     SUDO_KEEPALIVE_PID=$!
-    trap 'kill "$SUDO_KEEPALIVE_PID" 2> /dev/null || true' EXIT
 }
 
-# Call at the top of a numbered script, after its own argument parsing, with
-# the script's arguments. Recognises --force itself so that the scripts
-# without an argument parser get it too; a script's own FORCE=1 counts.
+# Call before the first download. Creates TMP_DIR, a private directory under
+# mktemp's rules, so that downloads never land on fixed names in /tmp that
+# another user or an earlier run could have left there; the EXIT trap above
+# removes it. Calling it again is harmless.
+tmp_dir() {
+    if [ -z "$TMP_DIR" ]; then
+        TMP_DIR="$(mktemp -d)"
+    fi
+}
+
+# Call at the top of a numbered script with the script's arguments. The only
+# argument is -f/--force; anything else stops the script with a usage line,
+# so a typo cannot be taken for a plain run. A script's own FORCE=1 counts
+# the same as the flag.
 setup_begin() {
     local arg script name number marker
     for arg in "$@"; do
         case "$arg" in
             -f | --force)
                 FORCE=1
+                ;;
+            *)
+                echo "Unknown argument: $arg" >&2
+                echo "Usage: $0 [--force]" >&2
+                exit 1
                 ;;
         esac
     done

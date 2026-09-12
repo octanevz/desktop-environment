@@ -30,6 +30,12 @@ set -euo pipefail
 #
 # Whatever is currently in dconf is dumped to a backup before anything is
 # written, so a load never loses settings that were never dumped.
+#
+# The script records itself as complete only when nothing was left undone:
+# a step that could not reach dconf - over SSH, say - prints the command to
+# run inside the desktop and leaves the marker unwritten, so the next plain
+# run retries it without --force. This is the same rule setup-07-git.sh
+# applies to an unauthenticated gh.
 # =============================================================================
 
 # -----------------------------------------------------------------------------
@@ -44,9 +50,6 @@ EXTENSION_UUIDS=(
 
 EXTENSIONS_DIR="$HOME/.local/share/gnome-shell/extensions"
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-DCONF_DIR="$SCRIPT_DIR/config/dconf"
-
 # Each entry pairs the dconf path an extension keeps its settings under with
 # the dump loaded into it. The paths are the extensions' own and are not
 # derived from the UUIDs - tilingshell@ferrarodomenico.com stores its settings
@@ -56,32 +59,25 @@ DCONF_SETTINGS=(
     "/org/gnome/shell/extensions/tilingshell/|tiling-shell.ini"
 )
 
-DCONF_BACKUP_DIR="$HOME/.local/state/gnome-extension-settings"
 TIMESTAMP="$(date +%Y%m%d%H%M%S)"
+
+# The steps that could not be carried out, each with the command that does
+# it by hand. The script records itself as complete only when this is empty
+# - see the header.
+INCOMPLETE=()
 
 # shellcheck source=common.sh
 source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 
-# -----------------------------------------------------------------------------
-# Parse the arguments
-# -----------------------------------------------------------------------------
-# Already-installed extensions are skipped. --force (or FORCE=1) re-downloads
-# and reinstalls them, which also picks up a newer release.
-FORCE="${FORCE:-0}"
+# The dumps to load, next to this script; the backups go under the state
+# directory common.sh keeps the completion markers in, like the ones
+# setup-06-configs.sh takes.
+DCONF_DIR="$SETUP_DIR/config/dconf"
+DCONF_BACKUP_DIR="$STATE_DIR/gnome-extension-settings"
 
-for arg in "$@"; do
-    case "$arg" in
-        -f | --force)
-            FORCE=1
-            ;;
-        *)
-            echo "Unknown argument: $arg" >&2
-            echo "Usage: $0 [--force]" >&2
-            exit 1
-            ;;
-    esac
-done
-
+# Already-installed extensions are skipped. --force (or FORCE=1), parsed by
+# setup_begin, re-downloads and reinstalls them, which also picks up a newer
+# release.
 setup_begin "$@"
 
 # -----------------------------------------------------------------------------
@@ -148,8 +144,7 @@ log "Detected GNOME Shell $SHELL_VERSION (extensions for shell $SHELL_MAJOR)."
 log "Installing the extensions..."
 setup_invalidate
 
-DOWNLOAD_DIR="$(mktemp -d)"
-trap 'rm -rf "$DOWNLOAD_DIR"' EXIT
+tmp_dir
 
 for uuid in "${EXTENSION_UUIDS[@]}"; do
     if [ -d "$EXTENSIONS_DIR/$uuid" ] && [ "$FORCE" != "1" ]; then
@@ -180,7 +175,7 @@ if release:
     EXTENSION_VERSION="${RELEASE#* }"
 
     log "Downloading $uuid version $EXTENSION_VERSION..."
-    ZIP="$DOWNLOAD_DIR/$uuid.shell-extension.zip"
+    ZIP="$TMP_DIR/$uuid.shell-extension.zip"
     curl -fsSL -o "$ZIP" \
         "$EGO_URL/download-extension/$uuid.shell-extension.zip?version_tag=$VERSION_TAG"
 
@@ -234,6 +229,7 @@ if new != items:
         else
             log "Could not reach dconf. Inside a desktop session, run:"
             log "  gsettings set org.gnome.shell $key \"${WANTED#@as }\""
+            INCOMPLETE+=("$key - inside a desktop session, run: gsettings set org.gnome.shell $key \"${WANTED#@as }\"")
         fi
     done
 else
@@ -241,6 +237,7 @@ else
     log "enabled. After logging in, run:"
     for uuid in "${EXTENSION_UUIDS[@]}"; do
         log "  gnome-extensions enable $uuid"
+        INCOMPLETE+=("enabling $uuid - after logging in, run: gnome-extensions enable $uuid")
     done
 fi
 
@@ -286,11 +283,12 @@ for entry in "${DCONF_SETTINGS[@]}"; do
         log "Backed up $DCONF_PATH -> $BACKUP"
     fi
 
-    if dconf load "$DCONF_PATH" < "$DUMP_FILE"; then
+    if dconf load "$DCONF_PATH" < "$DUMP_FILE" 2> /dev/null; then
         log "Loaded $DUMP_NAME into $DCONF_PATH."
     else
         log "Could not write $DCONF_PATH. Load it by hand with:"
         log "  dconf load $DCONF_PATH < $DUMP_FILE"
+        INCOMPLETE+=("the settings in $DUMP_NAME - inside a desktop session, run: dconf load $DCONF_PATH < $DUMP_FILE")
     fi
 done
 
@@ -327,5 +325,21 @@ log "script, logs out when it is done - run it now and log back in after it."
 log ""
 log "After changing anything in Extension Manager, re-dump it into the repo"
 log "so the next machine gets it - see the comment at the top of this script."
+
+# Everything above has already been done either way - this only decides
+# whether the script counts as done. Left unrecorded, it runs again on the
+# next plain invocation and retries what was blocked; every step it performs
+# is idempotent, so the repeat costs nothing.
+if [ ${#INCOMPLETE[@]} -gt 0 ]; then
+    echo >&2
+    echo "Not everything could be set up:" >&2
+    for item in "${INCOMPLETE[@]}"; do
+        echo "  - $item" >&2
+    done
+    echo >&2
+    echo "Fix the above, then run $0 again - it is NOT recorded as complete," >&2
+    echo "so no --force is needed." >&2
+    exit 0
+fi
 
 setup_end

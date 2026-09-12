@@ -20,6 +20,7 @@ set -euo pipefail
 # - Installs Tmux Plugin Manager
 # - Installs the VMware guest tools in a VMware VM, proprietary drivers on
 #   bare metal
+# - Removes the Firefox snap, only when asked to with REMOVE_FIREFOX_SNAP=1
 # - Reboots the system after installation
 # =============================================================================
 
@@ -286,25 +287,32 @@ fi
 # Set Zsh as the default shell. Through sudo rather than plain chsh: chsh
 # authenticates on its own and would ask for the password a second time,
 # where sudo is covered by the timestamp sudo_keepalive primed at the start.
-if [ "$(getent passwd "$USER" | cut -d: -f7)" != "$(which zsh)" ]; then
+if [ "$(getent passwd "$USER" | cut -d: -f7)" != "$(command -v zsh)" ]; then
     log "Setting Zsh as the default shell..."
-    sudo chsh -s "$(which zsh)" "$USER"
+    sudo chsh -s "$(command -v zsh)" "$USER"
 else
     log "Zsh is already the default shell."
 fi
 
+# The plugins go under Oh My Zsh's custom directory, resolved through
+# ZSH_CUSTOM the way setup-01-devtools.sh places the completions and
+# update-all.sh looks the plugins up again - the three have to agree, or a
+# machine with ZSH_CUSTOM set would have update-all.sh never find what was
+# cloned here.
+ZSH_CUSTOM_PLUGINS="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/plugins"
+
 # Install Zsh autosuggestions
-if [ ! -d "$HOME/.oh-my-zsh/custom/plugins/zsh-autosuggestions" ]; then
+if [ ! -d "$ZSH_CUSTOM_PLUGINS/zsh-autosuggestions" ]; then
     log "Installing Zsh autosuggestions..."
-    git clone https://github.com/zsh-users/zsh-autosuggestions "$HOME/.oh-my-zsh/custom/plugins/zsh-autosuggestions"
+    git clone https://github.com/zsh-users/zsh-autosuggestions "$ZSH_CUSTOM_PLUGINS/zsh-autosuggestions"
 else
     log "Zsh autosuggestions already installed. Skipping."
 fi
 
 # Install Zsh syntax highlighting
-if [ ! -d "$HOME/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting" ]; then
+if [ ! -d "$ZSH_CUSTOM_PLUGINS/zsh-syntax-highlighting" ]; then
     log "Installing Zsh syntax highlighting..."
-    git clone https://github.com/zsh-users/zsh-syntax-highlighting.git "$HOME/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting"
+    git clone https://github.com/zsh-users/zsh-syntax-highlighting.git "$ZSH_CUSTOM_PLUGINS/zsh-syntax-highlighting"
 else
     log "Zsh syntax highlighting already installed. Skipping."
 fi
@@ -558,20 +566,24 @@ direnv --version
 #   (installed above) in the editors, for one.
 step "Install Nerd Fonts"
 NERD_FONTS_RELEASE="https://github.com/ryanoasis/nerd-fonts/releases/latest/download"
+tmp_dir
 
+# Each archive is removed as soon as it is unpacked rather than left to the
+# exit cleanup: this script ends in a reboot, which never runs that, and the
+# Meslo one alone is over 100 MB.
 log "Installing MesloLGM Nerd Font Mono..."
 FONT_DIR="$HOME/.local/share/fonts/MesloLGMNerdFontMono"
 mkdir -p "$FONT_DIR"
-curl -fsSL -o /tmp/Meslo.zip "$NERD_FONTS_RELEASE/Meslo.zip"
-unzip -oq /tmp/Meslo.zip 'MesloLGMNerdFontMono-*.ttf' -d "$FONT_DIR"
-rm -f /tmp/Meslo.zip
+curl -fsSL -o "$TMP_DIR/Meslo.zip" "$NERD_FONTS_RELEASE/Meslo.zip"
+unzip -oq "$TMP_DIR/Meslo.zip" 'MesloLGMNerdFontMono-*.ttf' -d "$FONT_DIR"
+rm -f "$TMP_DIR/Meslo.zip"
 
 log "Installing Nerd Font symbols..."
 FONT_DIR="$HOME/.local/share/fonts/SymbolsNerdFont"
 mkdir -p "$FONT_DIR"
-curl -fsSL -o /tmp/NerdFontsSymbolsOnly.zip "$NERD_FONTS_RELEASE/NerdFontsSymbolsOnly.zip"
-unzip -oq /tmp/NerdFontsSymbolsOnly.zip -d "$FONT_DIR"
-rm -f /tmp/NerdFontsSymbolsOnly.zip
+curl -fsSL -o "$TMP_DIR/NerdFontsSymbolsOnly.zip" "$NERD_FONTS_RELEASE/NerdFontsSymbolsOnly.zip"
+unzip -oq "$TMP_DIR/NerdFontsSymbolsOnly.zip" -d "$FONT_DIR"
+rm -f "$TMP_DIR/NerdFontsSymbolsOnly.zip"
 
 fc-cache -f "$HOME/.local/share/fonts" > /dev/null
 
@@ -601,7 +613,7 @@ for shim_entry in fd:fdfind bat:batcat; do
         continue
     fi
     log "Linking $shim_target as $shim_name in ~/.local/bin..."
-    ln -s "$(which "$shim_target")" "$HOME/.local/bin/$shim_name"
+    ln -s "$(command -v "$shim_target")" "$HOME/.local/bin/$shim_name"
 done
 
 # Matched as the exact line: the Oh My Zsh template already mentions

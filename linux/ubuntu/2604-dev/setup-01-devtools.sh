@@ -35,16 +35,20 @@ sudo_keepalive
 # straight away - so the completion marker goes now.
 setup_invalidate
 
+# Every download below lands in TMP_DIR. Each is removed as soon as it is
+# installed rather than left to the exit cleanup: this script ends in a
+# reboot, which never runs that, and the Orca .deb alone is ~164 MB.
+tmp_dir
+
 # Downloads an apt signing key into /etc/apt/keyrings. apt accepts armored
 # (.asc) and binary (.gpg) keys alike in Signed-By, so nothing is dearmored.
-# The download is staged in a temp file and only installed once it succeeded,
+# The download is staged in TMP_DIR and only installed once it succeeded,
 # so a failed download can never truncate a keyring that is already in use.
 install_keyring() {
-    local url=$1 name=$2 tmp
-    tmp="$(mktemp)"
-    curl -fsSL -o "$tmp" "$url"
-    sudo install -D -o root -g root -m 644 "$tmp" "/etc/apt/keyrings/$name"
-    rm -f "$tmp"
+    local url=$1 name=$2
+    curl -fsSL -o "$TMP_DIR/$name" "$url"
+    sudo install -D -o root -g root -m 644 "$TMP_DIR/$name" "/etc/apt/keyrings/$name"
+    rm -f "$TMP_DIR/$name"
 }
 
 # -----------------------------------------------------------------------------
@@ -86,21 +90,26 @@ sudo usermod -aG docker "$USER"
 # The Ubuntu archive freezes Neovim at the version available at release time,
 # which goes stale long before the next LTS, so the official upstream
 # "stable" tarball is installed to /opt instead of the apt package. Re-run
-# this script to move it to a newer stable; update-all.sh leaves it alone so
-# that a Neovim bump cannot break the LazyVim plugins unannounced.
+# this script with --force to move it to a newer stable - the completion
+# marker stops a plain re-run at once; update-all.sh leaves it alone so that
+# a Neovim bump cannot break the LazyVim plugins unannounced.
 step "Install Neovim"
 log "Installing Neovim (stable) from the official tarball..."
 
 NVIM_TARBALL="nvim-linux-x86_64.tar.gz"
 NVIM_PREFIX="/opt/nvim-linux-x86_64"
 
-curl -fsSL -o "/tmp/$NVIM_TARBALL" "https://github.com/neovim/neovim/releases/download/stable/$NVIM_TARBALL"
+curl -fsSL -o "$TMP_DIR/$NVIM_TARBALL" "https://github.com/neovim/neovim/releases/download/stable/$NVIM_TARBALL"
 sudo rm -rf "$NVIM_PREFIX"
-sudo tar -C /opt -xzf "/tmp/$NVIM_TARBALL"
-rm -f "/tmp/$NVIM_TARBALL"
+sudo tar -C /opt -xzf "$TMP_DIR/$NVIM_TARBALL"
+rm -f "$TMP_DIR/$NVIM_TARBALL"
 
-if ! grep -q "$NVIM_PREFIX/bin" ~/.zshrc; then
-    echo "export PATH=\"\$PATH:$NVIM_PREFIX/bin\"" >> ~/.zshrc
+# Matched as the exact line, the way setup-00-packages.sh matches its PATH
+# entry, so a commented-out or otherwise different mention of the directory
+# does not pass for the entry.
+NVIM_PATH_LINE="export PATH=\"\$PATH:$NVIM_PREFIX/bin\""
+if ! grep -qxF "$NVIM_PATH_LINE" ~/.zshrc; then
+    echo "$NVIM_PATH_LINE" >> ~/.zshrc
     log "Added Neovim to PATH in .zshrc."
 else
     log "Neovim already on PATH in .zshrc."
@@ -128,10 +137,10 @@ step "Install lazygit"
 log "Installing lazygit..."
 
 LAZYGIT_VERSION="$(curl -fsSL https://api.github.com/repos/jesseduffield/lazygit/releases/latest | grep -Po '"tag_name": *"v\K[^"]*')"
-curl -fsSL -o /tmp/lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/download/v${LAZYGIT_VERSION}/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz"
-tar -C /tmp -xzf /tmp/lazygit.tar.gz lazygit
-sudo install -m 0755 /tmp/lazygit /usr/local/bin/lazygit
-rm -f /tmp/lazygit.tar.gz /tmp/lazygit
+curl -fsSL -o "$TMP_DIR/lazygit.tar.gz" "https://github.com/jesseduffield/lazygit/releases/download/v${LAZYGIT_VERSION}/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz"
+tar -C "$TMP_DIR" -xzf "$TMP_DIR/lazygit.tar.gz" lazygit
+sudo install -m 0755 "$TMP_DIR/lazygit" /usr/local/bin/lazygit
+rm -f "$TMP_DIR/lazygit.tar.gz" "$TMP_DIR/lazygit"
 
 lazygit --version
 
@@ -145,10 +154,10 @@ step "Install lazydocker"
 log "Installing lazydocker..."
 
 LAZYDOCKER_VERSION="$(curl -fsSL https://api.github.com/repos/jesseduffield/lazydocker/releases/latest | grep -Po '"tag_name": *"v\K[^"]*')"
-curl -fsSL -o /tmp/lazydocker.tar.gz "https://github.com/jesseduffield/lazydocker/releases/download/v${LAZYDOCKER_VERSION}/lazydocker_${LAZYDOCKER_VERSION}_Linux_x86_64.tar.gz"
-tar -C /tmp -xzf /tmp/lazydocker.tar.gz lazydocker
-sudo install -m 0755 /tmp/lazydocker /usr/local/bin/lazydocker
-rm -f /tmp/lazydocker.tar.gz /tmp/lazydocker
+curl -fsSL -o "$TMP_DIR/lazydocker.tar.gz" "https://github.com/jesseduffield/lazydocker/releases/download/v${LAZYDOCKER_VERSION}/lazydocker_${LAZYDOCKER_VERSION}_Linux_x86_64.tar.gz"
+tar -C "$TMP_DIR" -xzf "$TMP_DIR/lazydocker.tar.gz" lazydocker
+sudo install -m 0755 "$TMP_DIR/lazydocker" /usr/local/bin/lazydocker
+rm -f "$TMP_DIR/lazydocker.tar.gz" "$TMP_DIR/lazydocker"
 
 lazydocker --version | head -1
 
@@ -167,10 +176,10 @@ step "Install dive"
 log "Installing dive..."
 
 DIVE_VERSION="$(curl -fsSL https://api.github.com/repos/wagoodman/dive/releases/latest | grep -Po '"tag_name": *"v\K[^"]*')"
-curl -fsSL -o /tmp/dive.tar.gz "https://github.com/wagoodman/dive/releases/download/v${DIVE_VERSION}/dive_${DIVE_VERSION}_linux_amd64.tar.gz"
-tar -C /tmp -xzf /tmp/dive.tar.gz dive
-sudo install -m 0755 /tmp/dive /usr/local/bin/dive
-rm -f /tmp/dive.tar.gz /tmp/dive
+curl -fsSL -o "$TMP_DIR/dive.tar.gz" "https://github.com/wagoodman/dive/releases/download/v${DIVE_VERSION}/dive_${DIVE_VERSION}_linux_amd64.tar.gz"
+tar -C "$TMP_DIR" -xzf "$TMP_DIR/dive.tar.gz" dive
+sudo install -m 0755 "$TMP_DIR/dive" /usr/local/bin/dive
+rm -f "$TMP_DIR/dive.tar.gz" "$TMP_DIR/dive"
 
 dive --version
 
@@ -200,16 +209,15 @@ if dpkg-query -W -f='${Status}' yq 2> /dev/null | grep -q '^install ok installed
 fi
 
 YQ_VERSION="$(curl -fsSL https://api.github.com/repos/mikefarah/yq/releases/latest | grep -Po '"tag_name": *"v\K[^"]*')"
-curl -fsSL -o /tmp/yq "https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_amd64"
-sudo install -m 0755 /tmp/yq /usr/local/bin/yq
-rm -f /tmp/yq
+curl -fsSL -o "$TMP_DIR/yq" "https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_amd64"
+sudo install -m 0755 "$TMP_DIR/yq" /usr/local/bin/yq
+rm -f "$TMP_DIR/yq"
 
-# Generated by yq itself, into the same Oh My Zsh completions directory the uv
-# and herdr ones use - see the herdr section for why it has to be there.
-YQ_ZSH_COMPLETIONS="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/completions"
-mkdir -p "$YQ_ZSH_COMPLETIONS"
-yq shell-completion zsh > "$YQ_ZSH_COMPLETIONS/_yq"
-chmod 644 "$YQ_ZSH_COMPLETIONS/_yq"
+# Generated by yq itself, into the Oh My Zsh completions directory common.sh's
+# ZSH_COMPLETIONS names - see there for why it has to be that one.
+mkdir -p "$ZSH_COMPLETIONS"
+yq shell-completion zsh > "$ZSH_COMPLETIONS/_yq"
+chmod 644 "$ZSH_COMPLETIONS/_yq"
 
 yq --version
 
@@ -236,8 +244,10 @@ sudo apt update -y
 log "Installing Google Chrome (stable)..."
 sudo apt install -y google-chrome-stable
 
-# Remove the .list file auto-created by Chrome's post-install script (duplicate of .sources)
-sudo rm -f /etc/apt/sources.list.d/google-chrome.list
+# The package maintains its own apt source from here on: its post-install
+# script and /etc/cron.daily/google-chrome write google-chrome.sources - the
+# same file name as above, so there is one entry, not two - and migrate any
+# legacy google-chrome.list they find. Nothing to clean up.
 
 # Verify installation
 log "Google Chrome installation completed successfully!"
@@ -309,10 +319,10 @@ if dpkg-query -W -f='${Version}' orca-ide 2> /dev/null | grep -qx "$ORCA_VERSION
     log "Orca ADE $ORCA_VERSION is already installed. Skipping."
 else
     log "Installing Orca ADE $ORCA_VERSION..."
-    curl -fsSL -o "/tmp/$ORCA_DEB" "$ORCA_ASSET_URL"
+    curl -fsSL -o "$TMP_DIR/$ORCA_DEB" "$ORCA_ASSET_URL"
     # Installed by path so apt pulls in the dependencies itself.
-    sudo apt install -y "/tmp/$ORCA_DEB"
-    rm -f "/tmp/$ORCA_DEB"
+    sudo apt install -y "$TMP_DIR/$ORCA_DEB"
+    rm -f "$TMP_DIR/$ORCA_DEB"
 fi
 
 # The package installs to /opt/Orca and puts its CLI at
@@ -449,15 +459,14 @@ fi
 # safe to run on its own.
 export PATH="$HOME/.local/bin:$PATH"
 
-# Generated by uv itself, into the same Oh My Zsh completions directory the
-# herdr completion below uses - see that section for why it has to be there
-# rather than appended to .zshrc. uv and uvx carry separate completions.
+# Generated by uv itself, into the Oh My Zsh completions directory common.sh's
+# ZSH_COMPLETIONS names, like the yq one above. uv and uvx carry separate
+# completions.
 log "Installing the uv Zsh completions..."
-UV_ZSH_COMPLETIONS="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/completions"
-mkdir -p "$UV_ZSH_COMPLETIONS"
-uv generate-shell-completion zsh > "$UV_ZSH_COMPLETIONS/_uv"
-uvx --generate-shell-completion zsh > "$UV_ZSH_COMPLETIONS/_uvx"
-chmod 644 "$UV_ZSH_COMPLETIONS/_uv" "$UV_ZSH_COMPLETIONS/_uvx"
+mkdir -p "$ZSH_COMPLETIONS"
+uv generate-shell-completion zsh > "$ZSH_COMPLETIONS/_uv"
+uvx --generate-shell-completion zsh > "$ZSH_COMPLETIONS/_uvx"
+chmod 644 "$ZSH_COMPLETIONS/_uv" "$ZSH_COMPLETIONS/_uvx"
 
 uv --version
 
@@ -485,8 +494,8 @@ else
 fi
 
 # Generated by Ruff itself, into the completions directory the uv ones went to.
-ruff generate-shell-completion zsh > "$UV_ZSH_COMPLETIONS/_ruff"
-chmod 644 "$UV_ZSH_COMPLETIONS/_ruff"
+ruff generate-shell-completion zsh > "$ZSH_COMPLETIONS/_ruff"
+chmod 644 "$ZSH_COMPLETIONS/_ruff"
 
 ruff --version
 
@@ -506,8 +515,10 @@ step "Install .NET 10 LTS and csharp-ls"
 DOTNET_CHANNEL="10.0"
 
 # An archive SDK from an earlier version of this script would shadow the
-# user-local one, since /usr/bin comes first on PATH.
-if dpkg-query -W dotnet-sdk-10.0 > /dev/null 2>&1; then
+# user-local one, since /usr/bin comes first on PATH. Tested on the install
+# status, as the yq check above is: a bare dpkg-query -W also answers for a
+# package that was removed but not purged.
+if dpkg-query -W -f='${Status}' dotnet-sdk-10.0 2> /dev/null | grep -q '^install ok installed'; then
     log "Removing the archive .NET SDK in favour of the dotnet-install.sh one..."
     sudo apt remove -y dotnet-sdk-10.0
     sudo apt autoremove -y
@@ -584,13 +595,10 @@ else
     curl -fsSL https://herdr.dev/install.sh | sh
 fi
 
-# The Zsh completion is generated by herdr itself. It goes into Oh My Zsh's
-# custom/completions directory, which oh-my-zsh.sh puts on fpath BEFORE it
-# runs compinit - a directory appended to fpath from the end of .zshrc would be
-# too late, compinit only registers what is on fpath when it runs. Regenerating
-# it on every run keeps it in step with whatever version is installed.
+# The Zsh completion is generated by herdr itself, into the Oh My Zsh
+# completions directory common.sh's ZSH_COMPLETIONS names. Regenerating it on
+# every run keeps it in step with whatever version is installed.
 log "Installing the herdr Zsh completion..."
-ZSH_COMPLETIONS="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/completions"
 mkdir -p "$ZSH_COMPLETIONS"
 herdr completion zsh > "$ZSH_COMPLETIONS/_herdr"
 chmod 644 "$ZSH_COMPLETIONS/_herdr"
@@ -604,24 +612,26 @@ log "herdr installation completed successfully!"
 step "Register update-sys and update-all aliases in .zshrc"
 log "Installing update-sys and update-all aliases in .zshrc..."
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+chmod +x "$SETUP_DIR/update-sys.sh"
+chmod +x "$SETUP_DIR/update-all.sh"
 
-chmod +x "$SCRIPT_DIR/update-sys.sh"
-chmod +x "$SCRIPT_DIR/update-all.sh"
-
-if ! grep -q "alias update-sys=" ~/.zshrc; then
-    echo "alias update-sys='$SCRIPT_DIR/update-sys.sh'" >> ~/.zshrc
-    log "Added update-sys alias to .zshrc."
-else
-    log "update-sys alias already exists in .zshrc."
-fi
-
-if ! grep -q "alias update-all=" ~/.zshrc; then
-    echo "alias update-all='$SCRIPT_DIR/update-all.sh'" >> ~/.zshrc
-    log "Added update-all alias to .zshrc."
-else
-    log "update-all alias already exists in .zshrc."
-fi
+# An alias is parsed twice: once when it is defined, which strips one level
+# of quoting, and again at every use, when its text is re-parsed as a command
+# line. A path wrapped in single quotes therefore comes out bare at use, and
+# a checkout under a directory with a space would be split into two words -
+# one with an apostrophe would not even define. So the path is shell-quoted
+# twice with printf %q, once per parse; a plain path is unchanged by both,
+# so the usual line reads as before. %q escapes with backslashes, which zsh
+# reads as bash does. Matched as the start of a line, like the aliases in
+# setup-00-packages.sh, so a commented-out copy does not count as installed.
+for alias_name in update-sys update-all; do
+    if ! grep -q "^alias $alias_name=" ~/.zshrc; then
+        printf 'alias %s=%q\n' "$alias_name" "$(printf '%q' "$SETUP_DIR/$alias_name.sh")" >> ~/.zshrc
+        log "Added $alias_name alias to .zshrc."
+    else
+        log "$alias_name alias already exists in .zshrc."
+    fi
+done
 
 log "Aliases registered successfully!"
 

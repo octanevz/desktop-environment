@@ -15,9 +15,9 @@ set -euo pipefail
 # - setup-01-devtools.sh installs Docker, which the build runs in
 #
 # Update workflow: bump ALACRITTY_VERSION below to the new tag and re-run this
-# script. It re-points the clone at that tag, rebuilds and reinstalls.
-# Terminals that are already open keep running the old binary until they are
-# restarted.
+# script with --force - the completion marker stops a plain re-run at once.
+# It re-points the clone at that tag, rebuilds and reinstalls. Terminals that
+# are already open keep running the old binary until they are restarted.
 #
 # Why build at all: the archive ships 0.16.1 and Alacritty publishes no Linux
 # binaries. Why a container: the ~1.5 GB Rust toolchain is only needed to
@@ -36,8 +36,8 @@ set -euo pipefail
 # release tag.
 # Set to "master" for the development branch - note that master is
 # unversioned (it reports 0.18.0-dev), is not a release, and can regress,
-# and that it is rebuilt on every run because there is no version to
-# compare against.
+# and that it is rebuilt on every --force run because there is no version
+# to compare against.
 ALACRITTY_VERSION="${ALACRITTY_VERSION:-v0.17.0}"
 
 # Where the source tree lives on the host (bind-mounted into the container).
@@ -53,26 +53,8 @@ CACHE_VOLUME="alacritty-rust-cache"
 # shellcheck source=common.sh
 source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 
-# -----------------------------------------------------------------------------
-# Parse the arguments
-# -----------------------------------------------------------------------------
-# Rebuild and reinstall even when the installed version already matches, via
-# either FORCE=1 ./setup-03-alacritty.sh or ./setup-03-alacritty.sh --force
-FORCE="${FORCE:-0}"
-
-for arg in "$@"; do
-    case "$arg" in
-        -f | --force)
-            FORCE=1
-            ;;
-        *)
-            echo "Unknown argument: $arg" >&2
-            echo "Usage: $0 [--force]" >&2
-            exit 1
-            ;;
-    esac
-done
-
+# --force (or FORCE=1), parsed by setup_begin, also means: rebuild and
+# reinstall even when the installed version already matches.
 setup_begin "$@"
 sudo_keepalive
 
@@ -186,8 +168,16 @@ log "Source tree is at $ALACRITTY_VERSION ($(git -C "$ALACRITTY_SRC" rev-parse -
 # -----------------------------------------------------------------------------
 # The build is gated on a version mismatch, not on alacritty merely being
 # installed - otherwise bumping ALACRITTY_VERSION would be a no-op. When the
-# versions match the script ends here: the install steps below read the build
-# output from $ALACRITTY_SRC/target, which a fresh clone does not have.
+# versions match and everything the install steps write is in place, the
+# script ends here: the install steps below read the build output from
+# $ALACRITTY_SRC/target, which a fresh clone does not have.
+#
+# That exit records completion. Without the marker a run that finds Alacritty
+# already at the wanted version - the state directory lost, or the binary put
+# there by hand - would leave setup-04-lazyvim.sh refusing to run. And it is
+# every installed file that is checked, not the binary alone: a run that died
+# between installing the binary and the rest would otherwise pass the version
+# check on the next run and be taken for complete.
 #
 # "alacritty --version" prints "alacritty 0.17.0", while ALACRITTY_VERSION is
 # a tag like "v0.17.0", so the leading "v" is stripped before comparing.
@@ -198,25 +188,53 @@ if [ -x /usr/local/bin/alacritty ]; then
     INSTALLED_VERSION="$(/usr/local/bin/alacritty --version | awk '{ print $2 }')"
 fi
 
+# Everything the install steps below write, in the order they write it. The
+# terminfo is checked through infocmp, which finds it wherever tic put it.
+INSTALLED_FILES=(
+    /usr/local/bin/alacritty
+    /usr/share/pixmaps/Alacritty.svg
+    /usr/local/share/applications/Alacritty.desktop
+    /usr/local/share/man/man1/alacritty.1.gz
+    /usr/local/share/man/man1/alacritty-msg.1.gz
+    /usr/local/share/man/man5/alacritty.5.gz
+    /usr/local/share/man/man5/alacritty-bindings.5.gz
+    /usr/local/share/man/man7/alacritty-escapes.7.gz
+    "$ZSH_COMPLETIONS/_alacritty"
+)
+MISSING_FILES=()
+for file in "${INSTALLED_FILES[@]}"; do
+    if [ ! -f "$file" ]; then
+        MISSING_FILES+=("$file")
+    fi
+done
+if ! infocmp alacritty > /dev/null 2>&1; then
+    MISSING_FILES+=("the alacritty terminfo")
+fi
+
 if [ "$FORCE" = "1" ]; then
     log "FORCE is set - rebuilding $ALACRITTY_VERSION."
 elif [ "$ALACRITTY_VERSION" = "master" ]; then
     log "Building master - it is unversioned, so it is always rebuilt."
 elif [ -z "$INSTALLED_VERSION" ]; then
     log "Alacritty is not installed in /usr/local/bin yet."
-elif [ "$INSTALLED_VERSION" = "$WANTED_VERSION" ]; then
+elif [ "$INSTALLED_VERSION" != "$WANTED_VERSION" ]; then
+    log "Installed Alacritty is $INSTALLED_VERSION, want $WANTED_VERSION - rebuilding."
+elif [ "${#MISSING_FILES[@]}" -gt 0 ]; then
+    log "Alacritty $WANTED_VERSION is installed, but an earlier run left it incomplete"
+    log "(missing: ${MISSING_FILES[*]}) - rebuilding."
+else
     log "Alacritty $WANTED_VERSION is already installed. Nothing to do."
     log "Rebuild and reinstall it anyway with: FORCE=1 $0"
+    setup_end
     exit 0
-else
-    log "Installed Alacritty is $INSTALLED_VERSION, want $WANTED_VERSION - rebuilding."
 fi
 
 # -----------------------------------------------------------------------------
 # Build inside an ubuntu:26.04 container
 # -----------------------------------------------------------------------------
 # Below the version check above, which exits 0 when the wanted version is
-# already installed - that path changes nothing and must lose nothing.
+# already installed - that path changes nothing and records its own
+# completion, so it must not lose the marker either.
 setup_invalidate
 
 log "Building Alacritty $ALACRITTY_VERSION in a $BUILD_IMAGE container..."
@@ -320,11 +338,8 @@ sudo install -D -m 644 "$ALACRITTY_SRC/target/man/alacritty-escapes.7.gz" /usr/l
 # Install the Zsh completion
 # -----------------------------------------------------------------------------
 # setup-00-packages.sh makes Zsh the default shell, so only the Zsh completion
-# is installed here. It goes into Oh My Zsh's custom/completions directory,
-# which is on fpath before compinit runs (see the herdr completion in
-# setup-01-devtools.sh for why that matters).
+# is installed, into the directory common.sh's ZSH_COMPLETIONS names.
 log "Installing the Zsh completion..."
-ZSH_COMPLETIONS="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/completions"
 mkdir -p "$ZSH_COMPLETIONS"
 install -m 644 "$ALACRITTY_SRC/extra/completions/_alacritty" "$ZSH_COMPLETIONS/_alacritty"
 

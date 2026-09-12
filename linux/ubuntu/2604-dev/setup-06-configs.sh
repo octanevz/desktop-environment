@@ -12,17 +12,23 @@ set -euo pipefail
 # - Pins the installed applications to the GNOME dock
 # - Logs out, on Enter, so the shell loads the extensions of setup-05
 #
-# Run this AFTER setup-00-packages.sh (tmux, Tmux Plugin Manager, fzf, fd, git,
-# the JetBrains Mono font) and setup-01-devtools.sh (herdr).
-# setup-03-alacritty.sh installs Alacritty itself, but the configuration is
-# deployed here whether or not you ran it - a config for a program that is not
-# installed is harmless.
+# Run this AFTER setup-00-packages.sh (tmux, Tmux Plugin Manager, fzf, fd,
+# git), setup-01-devtools.sh (herdr) and setup-03-alacritty.sh (Alacritty,
+# whose configuration and default-terminal entry are deployed here) - an
+# order the completion markers enforce anyway. The Alacritty checks below
+# are for a binary or desktop entry removed since, not for a script skipped.
 #
 # Nothing is ever overwritten in place: every file that already exists is
 # copied to <name>.bak-<timestamp> before the new one is written, and the
 # script reports exactly what it backed up. The same goes for the desktop
 # settings: the previous value of every key that changes is saved to a file
 # "dconf load /" can put back.
+#
+# The script records itself as complete only when nothing was left undone:
+# a step that could not reach dconf - over SSH, say - or a plugin fetch that
+# failed prints what to do by hand and leaves the marker unwritten, so the
+# next plain run retries it without --force. This is the same rule
+# setup-07-git.sh applies to an unauthenticated gh.
 #
 # To capture your own desktop settings, change them in Settings or Tweaks
 # and dump them on the machine:
@@ -37,17 +43,22 @@ set -euo pipefail
 # -----------------------------------------------------------------------------
 # Configuration
 # -----------------------------------------------------------------------------
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-CONFIG_DIR="$SCRIPT_DIR/config"
-
 ALACRITTY_THEME_REPO="https://github.com/alacritty/alacritty-theme.git"
 ALACRITTY_THEME_DIR="$HOME/.config/alacritty/themes/alacritty-theme"
 
 TIMESTAMP="$(date +%Y%m%d%H%M%S)"
 
+# The steps that could not be carried out, each with what does it by hand.
+# The script records itself as complete only when this is empty - see the
+# header.
+INCOMPLETE=()
+
 # shellcheck source=common.sh
 source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 setup_begin "$@"
+
+# The files to install, next to this script.
+CONFIG_DIR="$SETUP_DIR/config"
 
 # -----------------------------------------------------------------------------
 # Install one configuration file
@@ -109,10 +120,12 @@ if [ -x "$TPM_INSTALL" ]; then
         log "  tmux plugins installed."
     else
         log "  TPM reported a problem - press prefix + I inside tmux to retry."
+        INCOMPLETE+=("the tmux plugins - press prefix + I inside tmux, or re-run this script")
     fi
 else
     log "  Tmux Plugin Manager is not installed - run setup-00-packages.sh,"
     log "  then press prefix + I inside tmux."
+    INCOMPLETE+=("the tmux plugins - Tmux Plugin Manager is missing; re-run setup-00-packages.sh --force")
 fi
 
 # -----------------------------------------------------------------------------
@@ -126,7 +139,7 @@ install_config "$CONFIG_DIR/alacritty/alacritty.toml" \
 # The configuration imports a theme from this repository, so Alacritty fails to
 # start without it. Cloned rather than vendored so themes can be switched by
 # editing the import path alone, and left tracking master rather than pinned to
-# a commit, so re-running picks up themes added upstream.
+# a commit, so a --force re-run picks up themes added upstream.
 if [ -d "$ALACRITTY_THEME_DIR/.git" ]; then
     THEME_BEFORE="$(git -C "$ALACRITTY_THEME_DIR" rev-parse --short HEAD)"
     git -C "$ALACRITTY_THEME_DIR" pull --ff-only --quiet
@@ -170,8 +183,8 @@ if command -v xdg-terminal-exec > /dev/null 2>&1; then
     if [ -f /usr/local/share/applications/Alacritty.desktop ]; then
         log "  Ctrl+Alt+T and \"Open in Terminal\" now open Alacritty."
     else
-        log "  Alacritty is not installed yet - run setup-03-alacritty.sh; the"
-        log "  list takes effect as soon as its desktop entry exists."
+        log "  Alacritty's desktop entry is missing - re-run setup-03-alacritty.sh"
+        log "  with --force; the list takes effect as soon as the entry exists."
     fi
 else
     log "  xdg-terminal-exec is not installed - the list is in place for when"
@@ -221,7 +234,9 @@ fi
 # write ends the loop with the command to run inside the desktop instead.
 step "Configure GNOME"
 GNOME_SETTINGS="$CONFIG_DIR/dconf/gnome-settings.ini"
-GNOME_SETTINGS_BACKUP="$HOME/.local/state/gnome-settings/gnome-settings.ini.bak-$TIMESTAMP"
+# Under the state directory common.sh keeps the completion markers in, like
+# the dock backup below and the one setup-05-gnome-extensions.sh takes.
+GNOME_SETTINGS_BACKUP="$STATE_DIR/gnome-settings/gnome-settings.ini.bak-$TIMESTAMP"
 
 if [ ! -f "$GNOME_SETTINGS" ]; then
     echo "Missing $GNOME_SETTINGS - is the repo complete?" >&2
@@ -287,6 +302,7 @@ done < "$GNOME_SETTINGS"
 if [ "$UNREACHABLE" = "1" ]; then
     log "  Could not reach dconf. Inside a desktop session, run:"
     log "    grep -v '^#' $GNOME_SETTINGS | dconf load /"
+    INCOMPLETE+=("the GNOME settings - inside a desktop session, run: grep -v '^#' $GNOME_SETTINGS | dconf load /")
 elif [ "$CHANGED" = "0" ]; then
     log "  GNOME settings are already up to date."
 else
@@ -301,10 +317,11 @@ fi
 # -----------------------------------------------------------------------------
 # The dock shows org.gnome.shell favorite-apps, in list order. The list below
 # REPLACES the Ubuntu default set (Firefox, Thunderbird, App Center and so on);
-# edit it to taste. Only entries whose .desktop file exists are pinned, so an
-# optional script that was not run leaves no dead icon behind - re-run this
-# script after it to add the icon. JetBrains Toolbox writes its .desktop file
-# on its first launch, not at install, so it too appears after a re-run.
+# edit it to taste. Only entries whose .desktop file exists are pinned, so a
+# program that is missing leaves no dead icon behind. JetBrains Toolbox writes
+# its .desktop file on its first launch, not at install, so its icon appears
+# only after a re-run of this script with --force (the completion marker
+# stops a plain re-run).
 DOCK_FAVORITES=(
     org.gnome.Nautilus.desktop # Files
     Alacritty.desktop          # setup-03-alacritty.sh
@@ -358,7 +375,7 @@ if command -v gsettings > /dev/null 2>&1 &&
     if [ "${CURRENT_FAVORITES#@as }" = "[$FAVORITES]" ]; then
         log "  Dock is already up to date."
     else
-        DOCK_BACKUP="$HOME/.local/state/gnome-dock/favorite-apps.bak-$TIMESTAMP"
+        DOCK_BACKUP="$STATE_DIR/gnome-dock/favorite-apps.bak-$TIMESTAMP"
         mkdir -p "$(dirname "$DOCK_BACKUP")"
         printf '%s\n' "$CURRENT_FAVORITES" > "$DOCK_BACKUP"
         log "  Backed up the previous dock -> $DOCK_BACKUP"
@@ -367,6 +384,7 @@ if command -v gsettings > /dev/null 2>&1 &&
         else
             log "  Could not reach dconf. Inside a desktop session, run:"
             log "    gsettings set org.gnome.shell favorite-apps \"[$FAVORITES]\""
+            INCOMPLETE+=("the dock - inside a desktop session, run: gsettings set org.gnome.shell favorite-apps \"[$FAVORITES]\"")
         fi
     fi
 else
@@ -381,7 +399,23 @@ log "Reload tmux with: tmux source-file ~/.tmux.conf"
 log "Alacritty and herdr pick their configuration up on the next start."
 log "The GNOME settings are applied at once; the running desktop picks them up."
 
-setup_end
+# Everything above has already been done either way - this only decides
+# whether the script counts as done. Left unrecorded, it runs again on the
+# next plain invocation and retries what was blocked; every step it performs
+# is idempotent, so the repeat costs nothing. The log-out below still
+# follows, since the extensions from setup-05 need it either way.
+if [ ${#INCOMPLETE[@]} -gt 0 ]; then
+    echo >&2
+    echo "Not everything could be set up:" >&2
+    for item in "${INCOMPLETE[@]}"; do
+        echo "  - $item" >&2
+    done
+    echo >&2
+    echo "Fix the above, then run $0 again - it is NOT recorded as complete," >&2
+    echo "so no --force is needed." >&2
+else
+    setup_end
+fi
 
 # -----------------------------------------------------------------------------
 # Log out to load the extensions
@@ -394,8 +428,9 @@ setup_end
 #
 # Not a question, as with the reboots in setup-00 and setup-01: Enter logs
 # out; Ctrl-C is the way out for whoever wants to log out later - the
-# completion marker is written already. Without a session bus, as over SSH,
-# gnome-session-quit cannot reach the session, so only the note is printed.
+# completion marker, when earned, is written already. Without a session bus,
+# as over SSH, gnome-session-quit cannot reach the session, so only the note
+# is printed.
 step "Log out to load the extensions"
 log "The session has to end for the GNOME extensions from the previous script"
 log "to load - on Wayland a full log out; restarting the shell is not enough."

@@ -25,8 +25,8 @@ step "Verify the agents are installed and logged in"
 # -----------------------------------------------------------------------------
 # Plugin installs talk to the marketplaces as the logged-in account, and the
 # CLI would otherwise stop to ask for a login mid-run. "claude auth status"
-# prints JSON with a loggedIn field; it is grepped rather than parsed so this
-# script needs nothing beyond what setup-00-packages.sh installs.
+# prints JSON with a loggedIn field; one field is all that is needed, so it is
+# grepped rather than run through jq.
 log "Verifying Claude Code is installed and logged in..."
 if ! command -v claude > /dev/null 2>&1; then
     echo "Claude Code is not installed - run setup-01-devtools.sh first." >&2
