@@ -118,7 +118,7 @@ fi
 # -----------------------------------------------------------------------------
 # Install the Alacritty configuration
 # -----------------------------------------------------------------------------
-step "Install the Alacritty configuration"
+step "Configure Alacritty"
 log "Installing the Alacritty configuration..."
 install_config "$CONFIG_DIR/alacritty/alacritty.toml" \
     "$HOME/.config/alacritty/alacritty.toml"
@@ -163,7 +163,6 @@ fi
 # Alacritty's desktop entry has the TerminalEmulator category the spec asks
 # for and no X-TerminalArgExec, for which xdg-terminal-exec assumes "-e" -
 # which is what Alacritty takes.
-step "Make Alacritty the default terminal"
 log "Installing the xdg-terminal-exec terminal list..."
 install_config "$CONFIG_DIR/xdg-terminals.list" "$HOME/.config/xdg-terminals.list"
 
@@ -220,7 +219,7 @@ fi
 # dconf read works from the database file alone, but writing needs the dconf
 # service on the session bus, which is not there over SSH. The first failed
 # write ends the loop with the command to run inside the desktop instead.
-step "Apply the GNOME settings"
+step "Configure GNOME"
 GNOME_SETTINGS="$CONFIG_DIR/dconf/gnome-settings.ini"
 GNOME_SETTINGS_BACKUP="$HOME/.local/state/gnome-settings/gnome-settings.ini.bak-$TIMESTAMP"
 
@@ -306,7 +305,6 @@ fi
 # optional script that was not run leaves no dead icon behind - re-run this
 # script after it to add the icon. JetBrains Toolbox writes its .desktop file
 # on its first launch, not at install, so it too appears after a re-run.
-step "Pin the applications to the dock"
 DOCK_FAVORITES=(
     org.gnome.Nautilus.desktop # Files
     Alacritty.desktop          # setup-03-alacritty.sh
@@ -378,7 +376,6 @@ fi
 # -----------------------------------------------------------------------------
 # Verify the installation
 # -----------------------------------------------------------------------------
-step "Verify the installation"
 log "Configuration files installed successfully!"
 log "Reload tmux with: tmux source-file ~/.tmux.conf"
 log "Alacritty and herdr pick their configuration up on the next start."

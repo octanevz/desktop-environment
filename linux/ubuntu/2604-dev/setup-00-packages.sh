@@ -48,7 +48,8 @@ setup_invalidate
 # the box, so this is a no-op there; it matters on an install that was trimmed
 # to main. -n skips the apt update add-apt-repository would otherwise run -
 # the next section updates once for everything.
-step "Enable the universe component"
+step "Install the packages"
+log "Enabling the universe component..."
 sudo apt install -y software-properties-common
 sudo add-apt-repository -y -n universe
 
@@ -72,7 +73,7 @@ sudo add-apt-repository -y -n universe
 # Separate statements rather than one && chain: set -e ignores a failure
 # anywhere but the last link of a chain, so a failed upgrade would otherwise
 # go unnoticed.
-step "Update OS and install some required packages"
+log "Updating the OS and installing the required packages..."
 sudo apt update -y
 sudo apt upgrade -y
 sudo apt install -y \
@@ -335,7 +336,7 @@ done
 # hyperlinks, and ISO timestamps. lf lists only files and ld only
 # directories. Appended after the Oh My Zsh block, so l overrides the alias
 # Oh My Zsh defines.
-step "Alias l, lf and ld to eza"
+step "Configure the shell aliases"
 log "Aliasing l, lf and ld to eza in .zshrc..."
 EZA_OPTS="--icons=always -la --color=always --hyperlink --time-style long-iso"
 EZA_ALIASES=(
@@ -357,7 +358,7 @@ done
 # Alias cls to clear
 # -----------------------------------------------------------------------------
 # Muscle memory from the Windows command line.
-step "Alias cls to clear"
+log "Aliasing cls to clear in .zshrc..."
 if ! grep -q "^alias cls=" ~/.zshrc; then
     echo "alias cls='clear'" >> ~/.zshrc
     log "Added cls alias to .zshrc."

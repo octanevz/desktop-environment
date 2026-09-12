@@ -87,7 +87,8 @@ setup_begin "$@"
 # -----------------------------------------------------------------------------
 # Verify the prerequisites
 # -----------------------------------------------------------------------------
-step "Verify the prerequisites"
+step "Install the GNOME extensions"
+log "Verifying the prerequisites..."
 MISSING_COMMANDS=()
 for cmd in curl dconf python3; do
     if ! command -v "$cmd" > /dev/null 2>&1; then
@@ -129,7 +130,6 @@ fi
 # -----------------------------------------------------------------------------
 # "gnome-shell --version" prints e.g. "GNOME Shell 50.1"; extensions are
 # published against the major version ("50"), which is what the API expects.
-step "Detect the GNOME Shell version"
 SHELL_VERSION="$(gnome-shell --version | awk '{ print $3 }')"
 SHELL_MAJOR="${SHELL_VERSION%%.*}"
 
@@ -145,7 +145,7 @@ log "Detected GNOME Shell $SHELL_VERSION (extensions for shell $SHELL_MAJOR)."
 # version it falls back to some other build instead of failing.
 # Below every prerequisite and shell-version check. The loop can install
 # one extension and then fail on the next, so the marker goes before it.
-step "Install the extensions"
+log "Installing the extensions..."
 setup_invalidate
 
 DOWNLOAD_DIR="$(mktemp -d)"
@@ -204,7 +204,7 @@ done
 # exits 0 even when it could not reach dconf (see setup-00-packages.sh);
 # without the session bus, as over SSH, the commands to run inside the
 # desktop are printed instead.
-step "Enable the extensions"
+log "Enabling the extensions..."
 if command -v gsettings > /dev/null 2>&1 &&
     gsettings list-schemas 2> /dev/null | grep -x "org.gnome.shell" > /dev/null; then
     for key in enabled-extensions disabled-extensions; do
@@ -260,7 +260,7 @@ fi
 #
 # last-version-name-installed in tiling-shell.ini is written by the extension
 # and suppresses its "what's new" screen; it is carried over as dumped.
-step "Load the extension settings"
+log "Loading the extension settings..."
 for entry in "${DCONF_SETTINGS[@]}"; do
     DCONF_PATH="${entry%%|*}"
     DUMP_NAME="${entry##*|}"
@@ -297,7 +297,7 @@ done
 # -----------------------------------------------------------------------------
 # Verify the installation
 # -----------------------------------------------------------------------------
-step "Verify the installation"
+log "Verifying the installation..."
 for uuid in "${EXTENSION_UUIDS[@]}"; do
     METADATA="$EXTENSIONS_DIR/$uuid/metadata.json"
     if [ -f "$METADATA" ]; then

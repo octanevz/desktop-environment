@@ -154,7 +154,7 @@ ask() {
 # The order is: what the environment says, then what Git already has, then
 # what is typed in. So a machine that is already configured only needs Enter,
 # and a fresh one is asked once.
-step "Set the identity"
+step "Configure Git"
 log "Setting the Git identity..."
 
 CURRENT_NAME="$(git config --global --get user.name || true)"
@@ -207,7 +207,6 @@ log "  Commits are authored as $GIT_USER_NAME <$GIT_USER_EMAIL>."
 # -----------------------------------------------------------------------------
 # Only settings that change what a bare Git command does, each one because the
 # default is a worse fit for this setup - not a dump of every knob Git has.
-step "Set the behaviour"
 log "Setting the Git behaviour..."
 
 # Branch and remote handling
@@ -268,7 +267,6 @@ set_config help.autocorrect prompt
 # command, which is a bad trade for a cosmetic improvement. The lazygit that
 # setup-01-devtools.sh installs picks delta up through this same
 # configuration.
-step "Configure delta as the pager"
 if command -v delta > /dev/null 2>&1; then
     log "Configuring delta as the pager..."
     set_config core.pager delta
@@ -297,7 +295,6 @@ fi
 #
 # Checked rather than run blindly, so a re-run stays as quiet as set_config
 # does. filter.lfs.clean is the key "git lfs install" sets first.
-step "Register the Git LFS filters"
 if ! command -v git-lfs > /dev/null 2>&1; then
     log "git-lfs is not installed - skipping the LFS filters."
     log "  Install it with: sudo apt install -y git-lfs"
@@ -315,7 +312,6 @@ fi
 # personal access token in a file. It is skipped rather than attempted when gh
 # is not logged in, because "gh auth setup-git" writes a helper that then fails
 # on every push.
-step "Register the GitHub CLI as the credential helper"
 if ! command -v gh > /dev/null 2>&1; then
     log "The GitHub CLI is not installed - skipping the credential helper."
 elif gh auth status --hostname github.com > /dev/null 2>&1; then
@@ -343,7 +339,6 @@ fi
 # -----------------------------------------------------------------------------
 # Verify the installation
 # -----------------------------------------------------------------------------
-step "Verify the installation"
 log "Git configured successfully!"
 log "Review the result with: git config --global --list"
 
