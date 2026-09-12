@@ -2,7 +2,7 @@
 
 # =============================================================================
 # Sourced by the numbered setup scripts - not run on its own. It provides:
-# - log: prints a green status line, indented under the step header
+# - log: prints a green status line
 # - step: prints a colour-ruled header that opens a step of the script
 # - sudo_keepalive: asks for the sudo password once, up front, and keeps the
 #   sudo timestamp fresh until the script exits
@@ -30,7 +30,7 @@ SETUP_NAME="$(basename "$0" .sh)"
 # wrong, and a command line printed for the user to copy would be wrong with
 # it. No caller passes an escape sequence of its own.
 log() {
-    printf '  \033[32m%s\033[0m\n' "$1"
+    printf '\033[32m%s\033[0m\n' "$1"
 }
 
 # A header for each step of a script: a blank line, a rule of "/" in gradient
