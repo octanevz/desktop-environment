@@ -69,20 +69,28 @@ step() {
 # None of the scripts that use sudo set an EXIT trap of their own.
 #
 # When the timestamp is already valid - update-all.sh calls update-sys.sh,
-# and both call this - sudo -v does not prompt, so the message is skipped.
+# and both call this - "sudo -n -v" succeeds and the message is skipped. It
+# is -v, not a NOPASSWD-able command like true, that is tested: only -v
+# proves the authentication itself is cached.
+#
+# The loop's output goes to /dev/null so that the sleep it may leave behind
+# for up to a minute holds no pipe open when the script's output is piped.
+# The trap's kill fails when the loop has already ended, and under set -e a
+# failing command in an EXIT trap would replace the script's exit status
+# with 1 - hence the || true.
 sudo_keepalive() {
-    if ! sudo -n true 2> /dev/null; then
+    if ! sudo -n -v 2> /dev/null; then
         log "Some steps need root - enter your password once for sudo."
         sudo -v
     fi
     (
         while kill -0 "$$" 2> /dev/null; do
-            sudo -n -v 2> /dev/null || exit
+            sudo -n -v || exit
             sleep 60
         done
-    ) &
+    ) > /dev/null 2>&1 &
     SUDO_KEEPALIVE_PID=$!
-    trap 'kill "$SUDO_KEEPALIVE_PID" 2> /dev/null' EXIT
+    trap 'kill "$SUDO_KEEPALIVE_PID" 2> /dev/null || true' EXIT
 }
 
 # Call at the top of a numbered script, after its own argument parsing, with
