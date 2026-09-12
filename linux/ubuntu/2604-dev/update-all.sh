@@ -33,11 +33,15 @@ sudo_keepalive
 # ~/.local/bin, dotnet in ~/.dotnet, csharp-ls in ~/.dotnet/tools or nvm's npm
 # at all. So the same entries are made here, as setup-01-devtools.sh makes
 # them for its own run, and the telemetry opt-out it sets comes with them.
+# DOTNET_ROOT is set outright, as setup-01-devtools.sh sets it, not taken from
+# the environment: the install below always lands in ~/.dotnet, and the
+# pruning after it must work on that same tree - an inherited DOTNET_ROOT
+# pointing elsewhere would have it prune one tree and install into another.
 export PATH="$HOME/.local/bin:$PATH"
-export DOTNET_ROOT="${DOTNET_ROOT:-$HOME/.dotnet}"
-export PATH="$PATH:$DOTNET_ROOT:$HOME/.dotnet/tools"
+export DOTNET_ROOT="$HOME/.dotnet"
+export PATH="$PATH:$DOTNET_ROOT:$DOTNET_ROOT/tools"
 export DOTNET_CLI_TELEMETRY_OPTOUT=1
-# shellcheck disable=SC1091 # created by the nvm installer in setup-01-devtools.sh
+# shellcheck disable=SC1091 # created by the nvm installer in setup-01
 if [ -s "$HOME/.nvm/nvm.sh" ]; then
     \. "$HOME/.nvm/nvm.sh"
 fi

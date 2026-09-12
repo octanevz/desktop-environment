@@ -23,7 +23,8 @@ repos:
     hooks:
       # shfmt takes its formatting from .editorconfig, so no flags here.
       # -w rewrites the file; pre-commit then fails the commit because the
-      # file changed, and the formatted version is left staged for review.
+      # file changed. The rewrite lands in the working tree, unstaged, so it
+      # is reviewed with "git diff" and staged again before the next attempt.
       - id: shfmt
         name: shfmt
         entry: shfmt -w

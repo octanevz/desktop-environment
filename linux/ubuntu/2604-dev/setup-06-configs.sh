@@ -44,6 +44,15 @@ set -euo pipefail
 # Configuration
 # -----------------------------------------------------------------------------
 ALACRITTY_THEME_REPO="https://github.com/alacritty/alacritty-theme.git"
+
+# Where the configuration files go: XDG_CONFIG_HOME with its default, the way
+# setup-00-packages.sh places the atuin config and setup-04-lazyvim.sh the
+# Neovim one. Alacritty, herdr and xdg-terminal-exec all look there first.
+CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
+
+# The theme clone is the one path that stays under $HOME/.config whatever
+# XDG_CONFIG_HOME says: alacritty.toml imports it by that literal path, and
+# Alacritty expands only "~" in an import, not environment variables.
 ALACRITTY_THEME_DIR="$HOME/.config/alacritty/themes/alacritty-theme"
 
 TIMESTAMP="$(date +%Y%m%d%H%M%S)"
@@ -134,7 +143,7 @@ fi
 step "Configure Alacritty"
 log "Installing the Alacritty configuration..."
 install_config "$CONFIG_DIR/alacritty/alacritty.toml" \
-    "$HOME/.config/alacritty/alacritty.toml"
+    "$CONFIG_HOME/alacritty/alacritty.toml"
 
 # The configuration imports a theme from this repository, so Alacritty fails to
 # start without it. Cloned rather than vendored so themes can be switched by
@@ -177,7 +186,7 @@ fi
 # for and no X-TerminalArgExec, for which xdg-terminal-exec assumes "-e" -
 # which is what Alacritty takes.
 log "Installing the xdg-terminal-exec terminal list..."
-install_config "$CONFIG_DIR/xdg-terminals.list" "$HOME/.config/xdg-terminals.list"
+install_config "$CONFIG_DIR/xdg-terminals.list" "$CONFIG_HOME/xdg-terminals.list"
 
 if command -v xdg-terminal-exec > /dev/null 2>&1; then
     if [ -f /usr/local/share/applications/Alacritty.desktop ]; then
@@ -204,13 +213,18 @@ fi
 # rather than PageUp, which herdr has no key name for.
 step "Install the herdr configuration"
 log "Installing the herdr configuration..."
-install_config "$CONFIG_DIR/herdr/config.toml" "$HOME/.config/herdr/config.toml"
+install_config "$CONFIG_DIR/herdr/config.toml" "$CONFIG_HOME/herdr/config.toml"
 
 if command -v herdr > /dev/null 2>&1; then
     if herdr config check > /dev/null 2>&1; then
         log "  herdr config check: ok."
     else
+        # The file is in place but herdr rejects it - a key it no longer
+        # knows, most likely. Fixable in the repo, so it is retried by a plain
+        # re-run rather than recorded as done, like an unauthenticated gh in
+        # setup-07-git.sh.
         log "  herdr config check failed - run it by hand to see why."
+        INCOMPLETE+=("the herdr configuration - 'herdr config check' rejects it; fix config/herdr/config.toml, then re-run this script")
     fi
 fi
 
@@ -279,13 +293,12 @@ while IFS= read -r line || [ -n "$line" ]; do
         continue
     fi
 
-    if ! dconf write "$DCONF_PATH$key" "$wanted" 2> /dev/null; then
-        UNREACHABLE=1
-        continue
-    fi
-
-    # A key that was never set has nothing to put back, and is not backed
-    # up; "dconf reset" is how to unset it again.
+    # Backed up BEFORE the write, so a backup that cannot be written (set -e
+    # stops the script on it) never leaves a changed key without its old
+    # value. A key that was never set has nothing to put back, and is not
+    # backed up; "dconf reset" is how to unset it again. Should the write
+    # below then fail, the backup carries a value that never changed, which
+    # is harmless - loading it back is a no-op.
     if [ -n "$current" ]; then
         mkdir -p "$(dirname "$GNOME_SETTINGS_BACKUP")"
         if [ -n "$BACKUP_SECTION" ]; then
@@ -293,6 +306,11 @@ while IFS= read -r line || [ -n "$line" ]; do
             BACKUP_SECTION=""
         fi
         printf '%s=%s\n' "$key" "$current" >> "$GNOME_SETTINGS_BACKUP"
+    fi
+
+    if ! dconf write "$DCONF_PATH$key" "$wanted" 2> /dev/null; then
+        UNREACHABLE=1
+        continue
     fi
 
     log "  $DCONF_PATH$key: ${current:-<unset>} -> $wanted"
@@ -362,15 +380,17 @@ for app in "${DOCK_FAVORITES[@]}"; do
 done
 
 # The previous favourites are saved before they are replaced, like every other
-# file this script touches, and an unchanged dock is left alone. The write goes
-# through dconf rather than gsettings set because gsettings exits 0 even when it
-# could not reach dconf (see setup-00-packages.sh); without the session bus, as
-# over SSH, the command to run inside the desktop is printed instead.
+# file this script touches, and an unchanged dock is left alone. The write
+# goes through dconf rather than gsettings set because gsettings exits 0 even
+# when it could not reach dconf (see setup-00-packages.sh); without the
+# session bus, as over SSH, the command to run inside the desktop is printed
+# instead.
 if command -v gsettings > /dev/null 2>&1 &&
     gsettings list-schemas 2> /dev/null | grep -x "org.gnome.shell" > /dev/null; then
-    # gsettings get prints an empty list as "@as []" and a populated one without
-    # the type prefix, so the prefix is stripped for the comparison; the write
-    # always carries it, because dconf cannot infer the type of a bare [].
+    # gsettings get prints an empty list as "@as []" and a populated one
+    # without the type prefix, so the prefix is stripped for the comparison;
+    # the write always carries it, because dconf cannot infer the type of a
+    # bare [].
     CURRENT_FAVORITES="$(gsettings get org.gnome.shell favorite-apps)"
     if [ "${CURRENT_FAVORITES#@as }" = "[$FAVORITES]" ]; then
         log "  Dock is already up to date."

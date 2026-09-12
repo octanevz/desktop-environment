@@ -83,12 +83,15 @@ fi
 # them here as well would blur the line this split exists to draw: the host
 # gets runtime libraries, the container gets everything needed to compile.
 #
-# Their BUILD counterparts - build-essential, cmake, pkg-config, python3,
-# libfreetype6-dev, libfontconfig1-dev, libxcb-xfixes0-dev, libxkbcommon-dev
-# and the Rust toolchain - are installed INSIDE the ubuntu:26.04 container
-# further down and must never be hoisted onto the host. Keeping the ~1.5 GB
-# toolchain and the -dev packages off the host is the whole point of building
-# in a container; adding them to setup-00-packages.sh would defeat it.
+# Their BUILD counterparts - libfreetype6-dev, libfontconfig1-dev,
+# libxcb-xfixes0-dev, libxkbcommon-dev, scdoc and the Rust toolchain - are
+# installed INSIDE the ubuntu:26.04 container further down and must never be
+# hoisted onto the host. Keeping the ~1.5 GB toolchain and the -dev packages
+# off the host is the whole point of building in a container; adding them to
+# setup-00-packages.sh would defeat it. (build-essential, cmake, pkg-config
+# and python3 are on the host as well, but for LazyVim's treesitter and
+# friends - setup-00-packages.sh installs them in its own right, not for
+# this build.)
 ALACRITTY_RUNTIME_LIBS=(
     libfontconfig1
     libfreetype6

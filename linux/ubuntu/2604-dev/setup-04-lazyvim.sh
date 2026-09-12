@@ -22,10 +22,10 @@ set -euo pipefail
 # Node.js for the Copilot language server; this script verifies they are
 # there.
 #
-# Everything is left at LazyVim defaults apart from the extras and spelllang.
-# The extras are a plugin SELECTION rather than configuration: without them
-# the JSON and Markdown tooling, Copilot and the rest are not installed at
-# all.
+# Everything is left at LazyVim defaults apart from the extras, spelllang and
+# the two lazy.nvim settings for a slow link. The extras are a plugin
+# SELECTION rather than configuration: without them the JSON and Markdown
+# tooling, Copilot and the rest are not installed at all.
 #
 # Copilot still has to be signed in once by hand: start nvim and run
 # :Copilot auth, which shows a device code to enter on GitHub.
@@ -91,7 +91,8 @@ if ! command -v fd > /dev/null 2>&1 && ! command -v fdfind > /dev/null 2>&1; the
     MISSING_COMMANDS+=("fd")
 fi
 
-# Either clipboard tool is enough - Wayland and X11 sessions want different ones.
+# Either clipboard tool is enough - Wayland and X11 sessions want different
+# ones.
 if ! command -v wl-copy > /dev/null 2>&1 && ! command -v xclip > /dev/null 2>&1; then
     MISSING_COMMANDS+=("wl-copy or xclip")
 fi
@@ -135,7 +136,8 @@ if [ -e "$NVIM_CONFIG" ] && [ "$FORCE" != "1" ]; then
 fi
 
 # Below the exit 0 for an existing configuration; the backup move just
-# below is the first thing that touches the machine.
+# below (with --force) or the rename of the staged configuration further
+# down is the first thing that touches the machine.
 setup_invalidate
 
 if [ "$FORCE" = "1" ]; then
@@ -152,11 +154,25 @@ fi
 # -----------------------------------------------------------------------------
 # Install the LazyVim starter
 # -----------------------------------------------------------------------------
+# The starter is cloned and edited in a staging directory and only renamed to
+# $NVIM_CONFIG once every edit below has gone through. Cloning straight into
+# place would leave a half-done configuration behind when a later step fails,
+# and the next plain run would take that for a configuration of yours - the
+# exit 0 above - and record the script as complete. The staging directory is
+# created next to the destination, so the rename is a rename on one
+# filesystem and cannot itself be interrupted halfway. A stage left by a run
+# that died is removed first; a run never leaves one behind on purpose.
+#
 # The .git directory is removed so the configuration becomes yours to commit
 # elsewhere, which is what the LazyVim installation instructions do.
+NVIM_CONFIG_PARENT="$(dirname "$NVIM_CONFIG")"
+mkdir -p "$NVIM_CONFIG_PARENT"
+rm -rf "$NVIM_CONFIG_PARENT"/nvim.setup-04.*
+NVIM_STAGE="$(mktemp -d "$NVIM_CONFIG_PARENT/nvim.setup-04.XXXXXX")"
+
 log "Cloning the LazyVim starter into $NVIM_CONFIG..."
-git clone "$LAZYVIM_STARTER" "$NVIM_CONFIG"
-rm -rf "$NVIM_CONFIG/.git"
+git clone "$LAZYVIM_STARTER" "$NVIM_STAGE"
+rm -rf "$NVIM_STAGE/.git"
 
 # -----------------------------------------------------------------------------
 # Enable the LazyVim extras
@@ -186,7 +202,7 @@ rm -rf "$NVIM_CONFIG/.git"
 # would silently not load. 8 is the current schema version; a later LazyVim
 # simply migrates it forward.
 log "Enabling the LazyVim extras..."
-cat > "$NVIM_CONFIG/lazyvim.json" << 'EOF'
+cat > "$NVIM_STAGE/lazyvim.json" << 'EOF'
 {
   "extras": [
     "lazyvim.plugins.extras.ai.copilot",
@@ -211,7 +227,7 @@ EOF
 # The only option overridden here. LazyVim defaults to { "en" }, which accepts
 # both US and British spellings; this narrows it to US English.
 log "Setting spelllang to en_us..."
-cat >> "$NVIM_CONFIG/lua/config/options.lua" << 'EOF'
+cat >> "$NVIM_STAGE/lua/config/options.lua" << 'EOF'
 
 -- US English only (LazyVim defaults to { "en" }, which also accepts en_gb)
 vim.opt.spelllang = { "en_us" }
@@ -233,10 +249,11 @@ EOF
 # The lines go in after the "install = { colorscheme ..." option, which is
 # checked for first so a changed starter fails loudly rather than silently
 # skipping this.
-LAZY_LUA="$NVIM_CONFIG/lua/config/lazy.lua"
+LAZY_LUA="$NVIM_STAGE/lua/config/lazy.lua"
 if ! grep -q '^  install = { colorscheme = ' "$LAZY_LUA"; then
-    echo "The starter's $LAZY_LUA has changed shape - the install = { colorscheme" >&2
-    echo "line is missing, so the slow-link settings cannot be inserted." >&2
+    echo "The starter's lua/config/lazy.lua has changed shape - the" >&2
+    echo "install = { colorscheme line is missing, so the slow-link settings" >&2
+    echo "cannot be inserted. The staged clone is left in $NVIM_STAGE." >&2
     exit 1
 fi
 log "Setting the git timeout and the headless concurrency in lazy.lua..."
@@ -247,6 +264,10 @@ sed -i '/^  install = { colorscheme = /a\
   git = { timeout = 900 },\
   concurrency = #vim.api.nvim_list_uis() == 0 and 4 or nil,' "$LAZY_LUA"
 log "  Done."
+
+# Every edit went through: the configuration takes its place in one rename.
+mv "$NVIM_STAGE" "$NVIM_CONFIG"
+log "Installed the configuration in $NVIM_CONFIG."
 
 # -----------------------------------------------------------------------------
 # Install the plugins

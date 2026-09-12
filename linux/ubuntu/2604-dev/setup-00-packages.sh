@@ -37,8 +37,8 @@ source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 setup_begin "$@"
 sudo_keepalive
 
-# Nothing between here and the end leaves the machine untouched - it installs packages
-# straight away - so the completion marker goes now.
+# Nothing between here and the end leaves the machine untouched - it installs
+# packages straight away - so the completion marker goes now.
 setup_invalidate
 
 # -----------------------------------------------------------------------------
@@ -483,11 +483,25 @@ fi
 # --disable-up-arrow keeps the arrow key on plain "previous command" and leaves
 # atuin on Ctrl-R alone. Drop the flag to have the arrow open atuin too,
 # filtered to the current directory.
+#
+# The line has to come AFTER the fzf block, whose "fzf --zsh" also binds
+# Ctrl-R - see the fzf section. On a .zshrc from before that block existed
+# the atuin line is already there and the block has just been appended below
+# it, so the line is moved: deleted where it is and appended again at the end.
 # shellcheck disable=SC2016 # written to .zshrc verbatim, expands there
 ATUIN_INIT='eval "$(atuin init zsh --disable-up-arrow)"'
-if ! grep -qxF "$ATUIN_INIT" ~/.zshrc; then
+# The line numbers are empty when a line is absent; the || true keeps the
+# grep's exit status 1 from stopping the script.
+ATUIN_LINE="$(grep -nxF "$ATUIN_INIT" ~/.zshrc | cut -d: -f1 | tail -1 || true)"
+FZF_LINE="$(grep -nxF 'source <(fzf --zsh)' ~/.zshrc | cut -d: -f1 | tail -1 || true)"
+if [ -z "$ATUIN_LINE" ]; then
     echo "$ATUIN_INIT" >> ~/.zshrc
     log "  Added the atuin init to .zshrc."
+elif [ -n "$FZF_LINE" ] && [ "$ATUIN_LINE" -lt "$FZF_LINE" ]; then
+    grep -vxF "$ATUIN_INIT" ~/.zshrc > ~/.zshrc.setup-00
+    echo "$ATUIN_INIT" >> ~/.zshrc.setup-00
+    mv ~/.zshrc.setup-00 ~/.zshrc
+    log "  Moved the atuin init below the fzf key bindings in .zshrc."
 else
     log "  The atuin init is already in .zshrc."
 fi
@@ -504,8 +518,8 @@ atuin --version
 # changes; pass --cmd cd below to have z take cd over entirely.
 #
 # Appended after the Oh My Zsh block like the entries above, and for one extra
-# reason: the init defines completions, and compinit - which oh-my-zsh.sh runs -
-# has to have gone first for them to register.
+# reason: the init defines completions, and compinit - which oh-my-zsh.sh runs
+# - has to have gone first for them to register.
 step "Configure zoxide as the z directory jumper"
 log "Configuring zoxide..."
 

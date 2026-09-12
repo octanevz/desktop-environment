@@ -19,12 +19,27 @@ set -euo pipefail
 # =============================================================================
 
 # -----------------------------------------------------------------------------
+# Read one NUL-terminated value
+# -----------------------------------------------------------------------------
+# Every path here is captured through this rather than $(...): a command
+# substitution strips trailing newlines, so a name ending in one would come
+# out as a different name. read -d '' stops at the NUL the producers below
+# (realpath -z, fzf --print0) end their output with. Returns non-zero when
+# nothing was read, which is how a cancelled pick is told apart.
+read_nul() {
+    IFS= read -r -d '' "$1"
+}
+# Assigned through read_nul, which shellcheck cannot see.
+cwd_abs='' root='' selection='' abs=''
+
+# -----------------------------------------------------------------------------
 # Determine the search root
 # -----------------------------------------------------------------------------
 # The whole git project if the popup's working directory is inside one, the
 # working directory itself otherwise.
-cwd_abs=$(realpath -- "$PWD")
-root=$(git rev-parse --show-toplevel 2> /dev/null || echo "$cwd_abs")
+read_nul cwd_abs < <(realpath -z -- "$PWD")
+read_nul root < <(git rev-parse --show-toplevel 2> /dev/null | tr '\n' '\0') ||
+    root=$cwd_abs
 
 # -----------------------------------------------------------------------------
 # Find fd
@@ -43,11 +58,13 @@ fi
 # -----------------------------------------------------------------------------
 # Pick a file
 # -----------------------------------------------------------------------------
-# Hidden files are included, the .git directory is not. Cancelling fzf (Esc or
-# Ctrl-C) exits non-zero, which is not an error here: nothing gets sent.
-selection=$(
-    "$fd_cmd" --type f --hidden --exclude .git . "$root" |
-        fzf --reverse --prompt 'file > ' --no-multi --height 100%
+# Hidden files are included, the .git directory is not. The candidates are
+# NUL-delimited end to end (fd -0, fzf --read0/--print0), so a name with a
+# newline in it is one candidate rather than two fragments. Cancelling fzf
+# (Esc or Ctrl-C) prints nothing, and read_nul then fails: nothing gets sent.
+read_nul selection < <(
+    "$fd_cmd" -0 --type f --hidden --exclude .git . "$root" |
+        fzf --read0 --print0 --reverse --prompt 'file > ' --no-multi --height 100%
 ) || exit 0
 
 [ -z "$selection" ] && exit 0
@@ -58,7 +75,7 @@ selection=$(
 # fd prints paths under $root, which may be above the working directory, so
 # the result is normalised first and then stripped of the cwd prefix when it
 # has one. Anything outside the working directory stays absolute.
-abs=$(realpath -- "$selection")
+read_nul abs < <(realpath -z -- "$selection")
 
 case "$abs" in
     "$cwd_abs"/*) out=${abs#"$cwd_abs"/} ;;
@@ -70,11 +87,16 @@ esac
 # Send the path into the calling pane
 # -----------------------------------------------------------------------------
 # tmux types it literally (-l) into the pane the binding recorded; herdr does
-# the same through its pane API. Without a pane it goes to stdout.
+# the same through its pane API. What is typed lands on a shell prompt, so
+# the path is shell-quoted first (printf %q): a space, an apostrophe or a
+# newline in the name would otherwise split the word, open a quote or submit
+# the line. A plain path is unchanged by %q, so the usual case reads as
+# before. Without a pane the raw path goes to stdout, where a pipeline wants
+# it unquoted.
 if [ -n "${TMUX_FILE_PICKER_TARGET:-}" ]; then
-    tmux send-keys -l -t "$TMUX_FILE_PICKER_TARGET" -- "$out"
+    tmux send-keys -l -t "$TMUX_FILE_PICKER_TARGET" -- "$(printf '%q' "$out")"
 elif [ -n "${HERDR_ACTIVE_PANE_ID:-}" ]; then
-    "${HERDR_BIN_PATH:-herdr}" pane send-text "$HERDR_ACTIVE_PANE_ID" "$out"
+    "${HERDR_BIN_PATH:-herdr}" pane send-text "$HERDR_ACTIVE_PANE_ID" "$(printf '%q' "$out")"
 else
     printf '%s\n' "$out"
 fi

@@ -29,7 +29,8 @@ set -euo pipefail
 # re-running is a matter of pressing Enter. Set GIT_USER_NAME and
 # GIT_USER_EMAIL in the environment to skip the questions entirely:
 #
-#   GIT_USER_NAME="Ada Lovelace" GIT_USER_EMAIL=ada@example.com ./setup-07-git.sh
+#   GIT_USER_NAME="Ada Lovelace" GIT_USER_EMAIL=ada@example.com \
+#       ./setup-07-git.sh
 #
 # With no terminal attached, the script uses those variables and whatever is
 # already configured, and stops if that leaves the identity unset.
@@ -294,11 +295,22 @@ fi
 # working directory, which is not this script's business.
 #
 # Checked rather than run blindly, so a re-run stays as quiet as set_config
-# does. filter.lfs.clean is the key "git lfs install" sets first.
+# does. All four keys "git lfs install" writes are checked, not the first
+# alone: a configuration with clean but no smudge or process would pass a
+# one-key test and leave the checkout side of the filter unset.
+lfs_registered() {
+    local key
+    for key in clean smudge process required; do
+        if [ -z "$(git config --global --get "filter.lfs.$key" || true)" ]; then
+            return 1
+        fi
+    done
+}
+
 if ! command -v git-lfs > /dev/null 2>&1; then
     log "git-lfs is not installed - skipping the LFS filters."
     log "  Install it with: sudo apt install -y git-lfs"
-elif [ -n "$(git config --global --get filter.lfs.clean || true)" ]; then
+elif lfs_registered; then
     log "The Git LFS filters are already registered."
 else
     log "Registering the Git LFS filters..."

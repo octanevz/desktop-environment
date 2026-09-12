@@ -18,10 +18,11 @@ set -euo pipefail
 # different image. Note that the -trixie suffix is the image's own base
 # distribution, not the host's.
 #
-# ubuntu:26.04 is the image setup-03-alacritty.sh compiles in. That script would
-# pull it on its own the first time it runs, so having it here only moves the
-# download to a predictable moment - and re-running this script with --force
-# refreshes it, which "docker run" never does once the tag is present locally.
+# ubuntu:26.04 is the image setup-03-alacritty.sh compiles in. That script
+# would pull it on its own the first time it runs, so having it here only
+# moves the download to a predictable moment - and re-running this script
+# with --force refreshes it, which "docker run" never does once the tag is
+# present locally.
 DOCKER_IMAGES=(
     postgres:18-trixie
     quay.io/jupyter/scipy-notebook:latest
@@ -33,8 +34,8 @@ DOCKER_IMAGES=(
 source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 setup_begin "$@"
 
-# Nothing between here and the end leaves the machine untouched - it pulls images
-# straight away - so the completion marker goes now.
+# Nothing between here and the end leaves the machine untouched - it pulls
+# images straight away - so the completion marker goes now.
 setup_invalidate
 
 # -----------------------------------------------------------------------------

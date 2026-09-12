@@ -13,6 +13,9 @@
 # - setup_begin: parses the arguments, then stops the script when a
 #   lower-numbered script has not completed yet, or when the script itself
 #   has already completed
+# - setup_invalidate: drops the script's completion marker at the point it
+#   starts changing the machine, so an interrupted run is not taken for the
+#   completed one it replaced
 # - setup_end: records the script's completion
 #
 # Completion is recorded as one file per script under STATE_DIR, named after
@@ -23,9 +26,10 @@
 # backups the scripts take before changing something live under STATE_DIR
 # too, each kind in its own subdirectory.
 #
-# The scripts that are meant to run repeatedly - setup-agents.sh, update-sys.sh
-# and update-all.sh - source this file for log and step only and never call
-# setup_begin or setup_end, so they carry no marker and run every time.
+# The scripts that are meant to run repeatedly - setup-agents.sh,
+# update-sys.sh and update-all.sh - source this file for log, step,
+# sudo_keepalive, tmp_dir and the directories, and never call setup_begin,
+# setup_invalidate or setup_end, so they carry no marker and run every time.
 #
 # Sourcing this file sets the EXIT trap that ends the sudo loop and removes
 # TMP_DIR; no script sets an EXIT trap of its own, which would replace it.

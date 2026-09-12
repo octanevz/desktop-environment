@@ -113,8 +113,9 @@ if ! command -v gnome-extensions > /dev/null 2>&1; then
     exit 1
 fi
 
-# Extension Manager comes from setup-00-packages.sh; it is not needed to install
-# the extensions, only to configure them afterwards, so this is a warning.
+# Extension Manager comes from setup-00-packages.sh; it is not needed to
+# install the extensions, only to configure them afterwards, so this is a
+# warning.
 if ! command -v gnome-extensions-app > /dev/null 2>&1 &&
     ! command -v extension-manager > /dev/null 2>&1; then
     log "Warning: Extension Manager was not found."
@@ -146,9 +147,19 @@ setup_invalidate
 
 tmp_dir
 
+# An installed extension is skipped only when its metadata.json lists the
+# running shell version: a home directory restored from an older
+# installation carries builds for the shell of that time, which the running
+# one would refuse to load, and those are reinstalled like a missing one.
 for uuid in "${EXTENSION_UUIDS[@]}"; do
-    if [ -d "$EXTENSIONS_DIR/$uuid" ] && [ "$FORCE" != "1" ]; then
-        log "$uuid is already installed. Skipping (use --force to reinstall)."
+    METADATA="$EXTENSIONS_DIR/$uuid/metadata.json"
+    if [ -f "$METADATA" ] && [ "$FORCE" != "1" ] &&
+        python3 -c '
+import json, sys
+metadata = json.load(open(sys.argv[1]))
+sys.exit(0 if sys.argv[2] in map(str, metadata.get("shell-version", [])) else 1)
+' "$METADATA" "$SHELL_MAJOR"; then
+        log "$uuid is already installed for GNOME Shell $SHELL_MAJOR. Skipping (use --force to reinstall)."
         continue
     fi
 
@@ -299,10 +310,10 @@ log "Verifying the installation..."
 for uuid in "${EXTENSION_UUIDS[@]}"; do
     METADATA="$EXTENSIONS_DIR/$uuid/metadata.json"
     if [ -f "$METADATA" ]; then
-        INSTALLED="$(python3 -c "
-import json
-print(json.load(open('$METADATA')).get('version', 'unknown'))
-")"
+        INSTALLED="$(python3 -c '
+import json, sys
+print(json.load(open(sys.argv[1])).get("version", "unknown"))
+' "$METADATA")"
         log "$uuid: version $INSTALLED"
     else
         log "$uuid: not installed"

@@ -31,8 +31,8 @@ source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 setup_begin "$@"
 sudo_keepalive
 
-# Nothing between here and the end leaves the machine untouched - it writes an apt source
-# straight away - so the completion marker goes now.
+# Nothing between here and the end leaves the machine untouched - it writes an
+# apt source straight away - so the completion marker goes now.
 setup_invalidate
 
 # Every download below lands in TMP_DIR. Each is removed as soon as it is
@@ -64,8 +64,9 @@ install_keyring https://download.docker.com/linux/ubuntu/gpg docker.asc
 
 # Add the repository to Apt sources:
 # UBUNTU_CODENAME is used rather than VERSION_CODENAME so the correct suite is
-# picked on Ubuntu derivatives too. Docker publishes per-Ubuntu-release suites;
-# if the repo does not carry this release yet, pin the previous LTS codename here.
+# picked on Ubuntu derivatives too. Docker publishes per-Ubuntu-release
+# suites; if the repo does not carry this release yet, pin the previous LTS
+# codename here.
 # shellcheck disable=SC1091 # /etc/os-release is read on the target machine
 sudo tee /etc/apt/sources.list.d/docker.sources << EOF
 Types: deb
@@ -78,7 +79,7 @@ EOF
 sudo apt update -y
 
 # Install latest version of Docker Engine and containerd
-sudo apt -y install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
 # Post-installation steps: manage Docker as a non-root user
 sudo groupadd docker || true
@@ -361,7 +362,8 @@ setsid -f "$HOME/.local/share/JetBrains/Toolbox/bin/jetbrains-toolbox" \
 # Install GitHub CLI
 # -----------------------------------------------------------------------------
 step "Install GitHub CLI"
-# The Ubuntu archive version is frozen per release, so the upstream repo is used.
+# The Ubuntu archive version is frozen per release, so the upstream repo is
+# used.
 
 log "Installing the GitHub CLI signing key and repository..."
 install_keyring https://cli.github.com/packages/githubcli-archive-keyring.gpg githubcli-archive-keyring.gpg
@@ -393,8 +395,13 @@ curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.4/install.sh | bas
 # shellcheck disable=SC1091 # created by the nvm installer just above
 \. "$HOME/.nvm/nvm.sh"
 
-# Download and install Node.js
+# Download and install Node.js. The first install on a machine becomes nvm's
+# default on its own; a re-run over an nvm that already has an older default
+# does not move it, and the next shell would then start on the old version
+# and miss the packages installed under 24 below - so the default is set
+# explicitly either way.
 nvm install 24
+nvm alias default 24
 
 # Verify the Node.js version
 node -v
