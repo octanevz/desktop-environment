@@ -94,44 +94,45 @@ Two maintenance scripts are also included and registered as shell aliases during
 
 ### Running the scripts
 
-Assuming the repo has been cloned to `~/github/octanevz/desktop-environment`:
+Assuming the repo has been cloned to `~/github/octanevz/desktop-environment`. Each block below is one command chain to paste into a terminal; the chain stops at the first script that fails, and the reboots and the log out are where a fresh terminal is needed anyway.
 
-1. Navigate to the setup directory and make the scripts executable:
+1. Install packages and set up the shell:
 
    ```bash
-   cd ~/github/octanevz/desktop-environment/linux/ubuntu/2604-dev
-   chmod +x *.sh
+   cd ~/github/octanevz/desktop-environment/linux/ubuntu/2604-dev &&
+     ./setup-00-packages.sh # reboot when prompted
    ```
 
-2. Install packages and set up the shell:
+2. After the reboot, open a terminal and install the applications and dev tools:
 
    ```bash
-   ./setup-00-packages.sh # reboot when prompted
+   cd ~/github/octanevz/desktop-environment/linux/ubuntu/2604-dev &&
+     ./setup-01-devtools.sh # reboot when prompted
    ```
 
-3. After reboot, open your terminal and navigate back to the setup directory:
+3. After the reboot, open a terminal and run the remaining scripts up to the log out:
 
    ```bash
-   cd ~/github/octanevz/desktop-environment/linux/ubuntu/2604-dev
+   cd ~/github/octanevz/desktop-environment/linux/ubuntu/2604-dev &&
+     ./setup-02-docker-images.sh &&
+     ./setup-03-alacritty.sh &&
+     ./setup-04-lazyvim.sh &&
+     ./setup-05-gnome-extensions.sh &&
+     ./setup-06-configs.sh # logs out when prompted
    ```
 
-4. Install applications and dev tools:
+4. After logging back in, open a terminal and configure Git:
 
    ```bash
-   ./setup-01-devtools.sh # reboot when prompted
+   cd ~/github/octanevz/desktop-environment/linux/ubuntu/2604-dev &&
+     ./setup-07-git.sh # asks for your name and email
    ```
 
-5. After reboot, open your terminal and navigate back to the setup directory. Then run the remaining scripts in order:
+5. Log in to Claude Code and the Codex CLI, then install the agent plugins and skills (any time after step 2):
 
    ```bash
-   cd ~/github/octanevz/desktop-environment/linux/ubuntu/2604-dev
-   ./setup-02-docker-images.sh
-   ./setup-03-alacritty.sh
-   ./setup-04-lazyvim.sh
-   ./setup-05-gnome-extensions.sh
-   ./setup-06-configs.sh # logs out when prompted
-   ./setup-07-git.sh # asks for your name and email
-   ./setup-agents.sh # any time after setup-01-devtools.sh and the Claude Code and Codex logins
+   cd ~/github/octanevz/desktop-environment/linux/ubuntu/2604-dev &&
+     ./setup-agents.sh
    ```
 
 ## Repository Structure
