@@ -39,6 +39,9 @@ sudo_keepalive
 # the environment: the install below always lands in ~/.dotnet, and the
 # pruning after it must work on that same tree - an inherited DOTNET_ROOT
 # pointing elsewhere would have it prune one tree and install into another.
+# ~/.dotnet goes first on PATH, as setup-01-devtools.sh puts it - see there:
+# an apt dotnet-host or runtime would otherwise own "dotnet", find no SDK
+# and end this script at "dotnet --version".
 # NVM_DIR is pinned the same way, to the directory setup-01-devtools.sh
 # told the installer to use. Sourcing nvm.sh keeps whatever Node.js version
 # is already active in the calling shell - an "nvm use 22" for some project,
@@ -46,9 +49,24 @@ sudo_keepalive
 # packages that setup-01-devtools.sh installed and this script updates. No
 # default means that script has not run, which is said rather than left to
 # the npm step to trip over.
+#
+# The script runs from /. Some of the tools updated below take settings from
+# the directory they are started in and its parents: dotnet obeys a
+# global.json there (using the SDK it pins, or failing when that one is not
+# installed - which would end this script at "dotnet --version"), npm reads
+# a project .npmrc, nvm dies on a prefix set in one - already when nvm.sh is
+# sourced just below, which is why the cd comes first - and uv reads a
+# uv.toml or pyproject.toml. These are machine-level updates and must not be
+# steered by whatever project the terminal happens to be in. / is the one
+# directory that cannot be inside a project: not TMP_DIR, which mktemp puts
+# under TMPDIR and so wherever the caller pointed that, and not $HOME. Every
+# path below is absolute or resolved through SETUP_DIR, so nothing else
+# changes. setup-01-devtools.sh does the same.
+cd /
+
 export PATH="$HOME/.local/bin:$PATH"
 export DOTNET_ROOT="$HOME/.dotnet"
-export PATH="$PATH:$DOTNET_ROOT:$DOTNET_ROOT/tools"
+export PATH="$DOTNET_ROOT:$PATH:$DOTNET_ROOT/tools"
 export DOTNET_CLI_TELEMETRY_OPTOUT=1
 export NVM_DIR="$HOME/.nvm"
 # shellcheck disable=SC1091 # created by the nvm installer in setup-01
@@ -122,11 +140,15 @@ step "Update the system packages"
 # setup-01-devtools.sh installs the SDK with dotnet-install.sh into ~/.dotnet,
 # outside apt, so the same call is repeated here. It resolves the newest SDK
 # of the channel and is a no-op when that version is already installed.
+# --install-dir pins the tree, as setup-01-devtools.sh does: the installer
+# would take an inherited DOTNET_INSTALL_DIR over its default, and the
+# pruning below works on DOTNET_ROOT - the two must be the same directory.
 step "Update the .NET SDK"
 DOTNET_CHANNEL="10.0"
 
 log "Updating the .NET SDK..."
-curl -fsSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin --channel "$DOTNET_CHANNEL"
+curl -fsSL https://dot.net/v1/dotnet-install.sh |
+    bash /dev/stdin --channel "$DOTNET_CHANNEL" --install-dir "$DOTNET_ROOT"
 dotnet --version
 
 # The installer adds the new version next to the old ones and never removes

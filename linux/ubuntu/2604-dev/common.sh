@@ -52,6 +52,17 @@ ZSH_COMPLETIONS="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/completions"
 SUDO_KEEPALIVE_PID=""
 TMP_DIR=""
 
+# mktemp puts TMP_DIR under TMPDIR when that is set. A relative TMPDIR is
+# made absolute here, against the directory the script was started in:
+# setup-01-devtools.sh and update-all.sh change to / before their tools run,
+# and a relative path would be resolved against that instead. Exported, so
+# the tools they run read TMPDIR the same way. -m, because a TMPDIR that
+# does not exist is mktemp's error to report, not this line's.
+if [ -n "${TMPDIR:-}" ]; then
+    TMPDIR="$(realpath -m -- "$TMPDIR")"
+    export TMPDIR
+fi
+
 # The trap's kill fails when the loop has already ended, and under set -e a
 # failing command in an EXIT trap would replace the script's exit status
 # with 1 - hence the || true. A script that ends in exec (the reboots, the

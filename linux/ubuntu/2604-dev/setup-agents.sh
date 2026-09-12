@@ -18,6 +18,32 @@ set -euo pipefail
 # shellcheck source=common.sh
 source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 
+# -----------------------------------------------------------------------------
+# Put the user-local tools on PATH, and run from a directory no project can
+# reach
+# -----------------------------------------------------------------------------
+# The same two measures update-all.sh takes, for the same reasons. claude
+# lives in ~/.local/bin and codex under nvm, and the PATH entries
+# setup-01-devtools.sh writes for them only reach an interactive zsh: started
+# from a bash shell, cron or "ssh host setup-agents.sh" this script would
+# report an installed agent as missing. So the entries are made here, and
+# nvm's default - the version setup-01-devtools.sh installed codex under -
+# is selected outright. And npx reads a project .npmrc from the working
+# directory, which could point the skills CLI at a registry that does not
+# carry it, so the script runs from /, the one directory that cannot be
+# inside a project. Nothing below depends on the working directory.
+cd /
+export PATH="$HOME/.local/bin:$PATH"
+export NVM_DIR="$HOME/.nvm"
+# shellcheck disable=SC1091 # created by the nvm installer in setup-01
+if [ -s "$NVM_DIR/nvm.sh" ]; then
+    \. "$NVM_DIR/nvm.sh"
+    if ! nvm use default > /dev/null 2>&1; then
+        echo "nvm has no default Node.js version - run setup-01-devtools.sh first." >&2
+        exit 1
+    fi
+fi
+
 step "Verify the agents are installed and logged in"
 
 # -----------------------------------------------------------------------------

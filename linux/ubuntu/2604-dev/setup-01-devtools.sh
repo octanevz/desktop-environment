@@ -40,6 +40,18 @@ setup_invalidate
 # reboot, which never runs that, and the Orca .deb alone is ~164 MB.
 tmp_dir
 
+# The script runs from /. Some of the tools below take settings from the
+# directory they are started in and its parents: dotnet obeys a global.json
+# there (using the SDK it pins, or failing when that one is not installed),
+# npm reads a project .npmrc, nvm dies on a prefix set in one, uv reads a
+# uv.toml or pyproject.toml. This is a machine-level install and must not be
+# steered by whatever project the terminal happens to be in. / is the one
+# directory that cannot be inside a project: not TMP_DIR, which mktemp puts
+# under TMPDIR and so wherever the caller pointed that, and not $HOME. Every
+# path below is absolute or resolved through SETUP_DIR, so nothing else
+# changes. update-all.sh does the same.
+cd /
+
 # Downloads an apt signing key into /etc/apt/keyrings. apt accepts armored
 # (.asc) and binary (.gpg) keys alike in Signed-By, so nothing is dearmored.
 # The download is staged in TMP_DIR and only installed once it succeeded,
@@ -534,8 +546,9 @@ ruff --version
 step "Install .NET 10 LTS and csharp-ls"
 DOTNET_CHANNEL="10.0"
 
-# An archive SDK from an earlier version of this script would shadow the
-# user-local one, since /usr/bin comes first on PATH. Tested on the install
+# An archive SDK from an earlier version of this script is removed: it is
+# redundant next to the user-local one, and would shadow it in every shell
+# whose .zshrc still appends ~/.dotnet to PATH. Tested on the install
 # status, as the yq check above is: a bare dpkg-query -W also answers for a
 # package that was removed but not purged.
 if dpkg-query -W -f='${Status}' dotnet-sdk-10.0 2> /dev/null | grep -q '^install ok installed'; then
@@ -544,13 +557,28 @@ if dpkg-query -W -f='${Status}' dotnet-sdk-10.0 2> /dev/null | grep -q '^install
     sudo apt autoremove -y
 fi
 
+# --install-dir names ~/.dotnet outright, although it is the installer's
+# default: the installer takes an inherited DOTNET_INSTALL_DIR over that
+# default, and one exported for some project would send the SDK there while
+# DOTNET_ROOT and the PATH entries below name ~/.dotnet - "dotnet --version"
+# would then find no SDK. update-all.sh pins it the same way, since it
+# prunes that tree.
 log "Installing .NET $DOTNET_CHANNEL LTS..."
-curl -fsSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin --channel "$DOTNET_CHANNEL"
+curl -fsSL https://dot.net/v1/dotnet-install.sh |
+    bash /dev/stdin --channel "$DOTNET_CHANNEL" --install-dir "$HOME/.dotnet"
 
+# ~/.dotnet goes FIRST on PATH, not last as Microsoft's instructions have
+# it: an apt dotnet-host or dotnet-runtime-10.0 - pulled in for some other
+# program, without an SDK - owns /usr/bin/dotnet, and with ~/.dotnet behind
+# it that host would answer every "dotnet" call, find no SDK and fail; the
+# dotnet calls below and update-all.sh's would then abort. DOTNET_ROOT alone
+# does not settle this - it steers the host a program starts with, not which
+# dotnet the shell finds. The tools directory can stay behind: it holds only
+# the global tools, which nothing in /usr/bin competes with.
 # shellcheck disable=SC2016 # written to .zshrc verbatim, expands there
 if ! grep -qxF 'export DOTNET_ROOT="$HOME/.dotnet"' ~/.zshrc; then
     echo 'export DOTNET_ROOT="$HOME/.dotnet"' >> ~/.zshrc
-    echo 'export PATH="$PATH:$DOTNET_ROOT"' >> ~/.zshrc
+    echo 'export PATH="$DOTNET_ROOT:$PATH"' >> ~/.zshrc
 fi
 # The .NET CLI reports usage to Microsoft unless told not to. Exported here
 # as well, so that the dotnet calls below - the first ones ever made - send
@@ -559,7 +587,7 @@ if ! grep -qxF 'export DOTNET_CLI_TELEMETRY_OPTOUT=1' ~/.zshrc; then
     echo 'export DOTNET_CLI_TELEMETRY_OPTOUT=1' >> ~/.zshrc
 fi
 export DOTNET_ROOT="$HOME/.dotnet"
-export PATH="$PATH:$DOTNET_ROOT"
+export PATH="$DOTNET_ROOT:$PATH"
 export DOTNET_CLI_TELEMETRY_OPTOUT=1
 dotnet --version
 
