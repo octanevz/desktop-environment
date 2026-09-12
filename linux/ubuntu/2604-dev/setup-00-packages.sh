@@ -63,8 +63,8 @@ sudo add-apt-repository -y -n universe
 # setup-05-gnome-extensions.sh loads the extension settings with it, and
 # git-delta for setup-07-git.sh, which points the Git pager at it. The
 # libfontconfig1, libfreetype6, libwayland-client0, libxcb-xfixes0 and
-# libxkbcommon* entries are the Alacritty runtime libraries setup-04 verifies -
-# see that script for why the split exists.
+# libxkbcommon* entries are the Alacritty runtime libraries
+# setup-03-alacritty.sh verifies - see that script for why the split exists.
 #
 # Separate statements rather than one && chain: set -e ignores a failure
 # anywhere but the last link of a chain, so a failed upgrade would otherwise

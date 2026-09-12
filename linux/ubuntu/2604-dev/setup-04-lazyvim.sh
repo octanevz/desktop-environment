@@ -3,8 +3,8 @@ set -euo pipefail
 
 # =============================================================================
 # This script performs the following tasks:
-# - Verifies Neovim and the LazyVim prerequisites installed by setup-00 and
-#   setup-01
+# - Verifies Neovim and the LazyVim prerequisites installed by
+#   setup-00-packages.sh and setup-01-devtools.sh
 # - Installs the LazyVim starter into ~/.config/nvim
 # - Enables the lang.json and lang.markdown LazyVim extras plus the
 #   recommended ai.copilot, coding.yanky, editor.dial, editor.inc-rename,

@@ -11,9 +11,10 @@ set -euo pipefail
 # - Pins the installed applications to the GNOME dock
 #
 # Run this AFTER setup-00-packages.sh (tmux, Tmux Plugin Manager, fzf, fd, git,
-# the JetBrains Mono font) and setup-01-devtools.sh (herdr). setup-04 installs
-# Alacritty itself, but the configuration is deployed here whether or not you
-# ran it - a config for a program that is not installed is harmless.
+# the JetBrains Mono font) and setup-01-devtools.sh (herdr).
+# setup-03-alacritty.sh installs Alacritty itself, but the configuration is
+# deployed here whether or not you ran it - a config for a program that is not
+# installed is harmless.
 #
 # Nothing is ever overwritten in place: every file that already exists is
 # copied to <name>.bak-<timestamp> before the new one is written, and the
